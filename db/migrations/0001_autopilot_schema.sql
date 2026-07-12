@@ -1,4 +1,5 @@
--- AUTOPILOT SCHEMA — DO NOT PUSH. Owner review required (PRD decision D-4).
+-- AUTOPILOT SCHEMA — Autopilot's own database. Apply with db/apply.mjs;
+-- never apply this to the Forevermore platform's Supabase project.
 --
 -- Control-plane schema for Forevermore Autopilot, the TikTok/IG "autonomous
 -- marketing employee" (marketing/07-autopilot/PRD.md §5 is the DDL this
@@ -19,10 +20,10 @@
 -- publishable key — goes through four SECURITY DEFINER RPCs (ap_queue,
 -- ap_decide, ap_rules, ap_settings). Those RPCs live in `public`, not
 -- `autopilot`, so PostgREST can see them (this schema is deliberately not on
--- the exposed-schemas list); each is gated by public.is_admin_self() exactly
--- like the existing atlas admin pattern (20260711130000_atlas_admin_check.sql):
--- EXECUTE revoked from public/anon, granted to authenticated, with the real
--- gate enforced inside the function body, not by the grant.
+-- the exposed-schemas list); each is gated by autopilot_private.is_operator()
+-- (see the AP-813 adaptation note below): EXECUTE revoked from public/anon,
+-- granted to authenticated, with the real gate enforced inside the function
+-- body, not by the grant.
 --
 -- This file was cross-checked against autopilot/src/types.mjs — the file-mode
 -- (M0) JSDoc contract already landed by the parallel AP-201/AP-103 session —
@@ -31,9 +32,42 @@
 -- from the literal PRD §5 sketch, and the few points still open, are called
 -- out inline as they occur.
 --
+-- ── AP-813 standalone adaptation (2026-07-12) ──────────────────────────────
+-- This file was moved verbatim from the (now-defunct) platform-embedded copy
+-- at supabase/migrations/20260713090000_autopilot_schema.sql and made fully
+-- self-contained per ADR-001 (docs/ADR-001-standalone.md), which mandates
+-- "no dependency on any migration from the platform project." Three
+-- dependencies on platform-only state were removed, with all table/enum/
+-- constraint/RLS/RPC semantics preserved exactly:
+--   1. Roles (anon/authenticated/service_role) — Supabase-managed on a
+--      hosted project, absent on bare Postgres. §0 below creates them
+--      idempotently (no-ops on a project where they already exist).
+--   2. `private` schema + private.set_updated_at() — defined in the
+--      platform's 20260615205910 migration, not available here. §1 below
+--      defines Autopilot's own `autopilot_private` schema (deliberately NOT
+--      named `private`, to avoid colliding if this database is ever hosted
+--      on a Supabase project that already has one) with its own
+--      set_updated_at(), a verbatim copy of the platform's 3-line body.
+--   3. public.is_admin_self() — the platform's Atlas admin gate, backed by
+--      public.user_profiles (a table that doesn't exist in this database).
+--      §1 below defines `autopilot_private.is_operator()` in its place: for
+--      local/single-operator deployments, the gate is the network
+--      boundary (only the operator can reach this Postgres instance at
+--      all), expressed as a session GUC (`autopilot.operator`) plus a
+--      superuser/service_role bypass so `psql` and the runner never need to
+--      set it. A hosted multi-operator deployment later replaces this one
+--      function with a real JWT/user-table check — every call site already
+--      isolates the gate behind this single function, so that's a one-
+--      function swap, not a schema change.
+-- No other adaptation was made: every table, enum, constraint, index, RLS
+-- posture, and RPC business rule below is identical to the platform version.
+--
 -- Rollback: `drop schema autopilot cascade;` removes the schema, its 4 enums,
--- 10 tables and their triggers/indexes — but NOT the RPCs, which live in
--- `public` on purpose (see above). Also run:
+-- 10 tables and their triggers/indexes. `drop schema autopilot_private
+-- cascade;` removes the two helper functions from adaptation #2/#3 above.
+-- Neither drops the RPCs, which live in `public` on purpose (see above), nor
+-- the roles created in §0 (those may be relied on outside this schema, e.g.
+-- by a hosted project, so rollback never drops roles). Also run:
 --   drop function if exists public.ap_queue(text);
 --   drop function if exists public.ap_decide(uuid, text, text[], text, text);
 --   drop function if exists public.ap_rules(text, uuid);
@@ -42,7 +76,95 @@
 -- any existing table.
 
 -- ============================================================================
--- 0. Schema + lockdown
+-- 0. Roles (idempotent — AP-813 adaptation #1)
+-- ============================================================================
+--
+-- On a hosted Supabase project these three roles already exist (Supabase
+-- creates and manages them) and every guard below no-ops. On the bare
+-- postgres:16 container this repo runs by default (db/apply.mjs against
+-- docker-compose.yml), nothing creates them automatically, so this migration
+-- creates them itself to stay fully self-contained (ADR-001). Attributes
+-- mirror what a hosted Supabase project actually has, confirmed against a
+-- live project: anon/authenticated are plain NOLOGIN roles, service_role is
+-- NOLOGIN with BYPASSRLS (that attribute, not a policy, is what lets it skip
+-- RLS everywhere in §3 below).
+
+do $$
+begin
+  if not exists (select 1 from pg_roles where rolname = 'anon') then
+    create role anon nologin;
+  end if;
+end
+$$;
+
+do $$
+begin
+  if not exists (select 1 from pg_roles where rolname = 'authenticated') then
+    create role authenticated nologin;
+  end if;
+end
+$$;
+
+do $$
+begin
+  if not exists (select 1 from pg_roles where rolname = 'service_role') then
+    create role service_role nologin bypassrls;
+  end if;
+end
+$$;
+
+-- ============================================================================
+-- 1. Private helpers (AP-813 adaptation #2 + #3)
+-- ============================================================================
+--
+-- `autopilot_private` stands in for the platform's `private` schema — same
+-- lockdown pattern (create + revoke-from-everyone-but-owner), different name
+-- so this never collides with a `private` schema if this database is ever
+-- hosted on a Supabase project (which conventionally owns that name).
+
+create schema if not exists autopilot_private;
+
+revoke all on schema autopilot_private from public;
+revoke all on schema autopilot_private from anon;
+revoke all on schema autopilot_private from authenticated;
+
+-- Verbatim copy (3-line body) of the platform's private.set_updated_at()
+-- from 20260615205910_create_user_profiles_and_projects.sql. Schema-agnostic
+-- generic trigger function; §7 below points every updated_at trigger at
+-- this copy instead.
+create or replace function autopilot_private.set_updated_at()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+-- Replaces public.is_admin_self() (the platform's Atlas admin gate, backed
+-- by public.user_profiles — a table that doesn't exist in this standalone
+-- database). Local/single-operator deployments authenticate at the network
+-- layer: only the operator can reach this Postgres instance, so the gate is
+-- a session GUC the operator (or an already-trusted role) sets explicitly —
+-- `select set_config('autopilot.operator', 'true', false);` — plus a bypass
+-- for postgres/service_role so the CLI and the runner never need to set it.
+-- Hosted multi-operator mode replaces this one function with a real JWT/
+-- user-table check; every §6 RPC gate already calls through this single
+-- function, so that's a one-function swap, not a call-site change.
+create or replace function autopilot_private.is_operator()
+returns boolean
+language sql
+set search_path = ''
+stable
+as $$
+  select coalesce(current_setting('autopilot.operator', true)::boolean, false)
+    or current_user in ('postgres', 'service_role');
+$$;
+
+-- ============================================================================
+-- 2. Schema + lockdown
 -- ============================================================================
 
 create schema autopilot;
@@ -60,7 +182,7 @@ revoke all on schema autopilot from authenticated;
 grant usage on schema autopilot to service_role;
 
 -- ============================================================================
--- 1. Enums (PRD §5 — verbatim labels/order, matches
+-- 3. Enums (PRD §5 — verbatim labels/order, matches
 --    autopilot/src/types.mjs PLATFORMS/FORMATS/RISKS/STATUSES exactly)
 -- ============================================================================
 
@@ -82,7 +204,7 @@ create type autopilot.ap_status as enum (
 create type autopilot.ap_risk as enum ('evergreen', 'standard', 'sensitive');
 
 -- ============================================================================
--- 2. Tables
+-- 4. Tables
 -- ============================================================================
 
 -- ideas — runtime copy of marketing/02-idea-database/ideas.json. Source of
@@ -342,16 +464,17 @@ create table autopilot.link_nonces (
 create index link_nonces_created_at_idx on autopilot.link_nonces (created_at); -- TTL pruning sweeps
 
 -- ============================================================================
--- 3. Row level security — enable everywhere, ZERO policies (deny by default)
+-- 5. Row level security — enable everywhere, ZERO policies (deny by default)
 -- ============================================================================
 --
 -- No browser client ever holds credentials that can even resolve
--- `autopilot.*` (see the schema-level revoke in §0), so RLS here is
+-- `autopilot.*` (see the schema-level revoke in §2), so RLS here is
 -- defense-in-depth rather than the primary gate. service_role bypasses RLS
 -- entirely via its BYPASSRLS role attribute — a Postgres role property, not
 -- a policy — so enabling RLS does not restrict service_role; the explicit
--- grants in §4 are what let it operate. The only owner-facing surface is the
--- four SECURITY DEFINER RPCs in §6, each gated by is_admin_self() internally.
+-- grants in §6 are what let it operate. The only owner-facing surface is the
+-- four SECURITY DEFINER RPCs in §8, each gated by autopilot_private.is_operator()
+-- internally.
 
 alter table autopilot.ideas enable row level security;
 alter table autopilot.content_items enable row level security;
@@ -365,7 +488,7 @@ alter table autopilot.settings enable row level security;
 alter table autopilot.link_nonces enable row level security;
 
 -- ============================================================================
--- 4. service_role grants
+-- 6. service_role grants
 -- ============================================================================
 --
 -- Explicit CRUD grant across every table in one statement (rather than 10
@@ -385,59 +508,62 @@ alter default privileges in schema autopilot
   grant usage, select on sequences to service_role;
 
 -- ============================================================================
--- 5. updated_at maintenance
+-- 7. updated_at maintenance
 -- ============================================================================
 --
--- Reuses private.set_updated_at(), already defined in
--- 20260615205910_create_user_profiles_and_projects.sql (same function
--- public.user_profiles/public.projects use). It's schema-agnostic (just sets
--- new.updated_at = now()), and trigger *creation* only needs the creating
--- role's own privileges — not EXECUTE on the function itself — so this works
--- even though that function grants EXECUTE to nobody but its owner.
+-- Reuses autopilot_private.set_updated_at() (§1 above), Autopilot's own copy
+-- of the platform's private.set_updated_at() (same 3-line body, same
+-- schema-agnostic "just set new.updated_at = now()" implementation). Trigger
+-- *creation* only needs the creating role's own privileges — not EXECUTE on
+-- the function itself — so this works even though autopilot_private grants
+-- EXECUTE to nobody but its owner.
 --
 -- Applied only where updated_at means something (see per-table comments in
--- §2 for why runs/approvals/metrics_snapshots/playbook_rules/owner_notes/
+-- §4 for why runs/approvals/metrics_snapshots/playbook_rules/owner_notes/
 -- link_nonces are deliberately excluded).
 
 create trigger set_ideas_updated_at
 before update on autopilot.ideas
 for each row
-execute function private.set_updated_at();
+execute function autopilot_private.set_updated_at();
 
 create trigger set_content_items_updated_at
 before update on autopilot.content_items
 for each row
-execute function private.set_updated_at();
+execute function autopilot_private.set_updated_at();
 
 create trigger set_post_results_updated_at
 before update on autopilot.post_results
 for each row
-execute function private.set_updated_at();
+execute function autopilot_private.set_updated_at();
 
 create trigger set_settings_updated_at
 before update on autopilot.settings
 for each row
-execute function private.set_updated_at();
+execute function autopilot_private.set_updated_at();
 
 -- ============================================================================
--- 6. Owner-gated RPCs (SECURITY DEFINER, is_admin_self()-gated)
+-- 8. Owner-gated RPCs (SECURITY DEFINER, autopilot_private.is_operator()-gated)
 -- ============================================================================
 --
 -- Live in `public`, not `autopilot` — PostgREST/supabase-js can only reach
 -- functions in an exposed schema, and `autopilot` deliberately isn't on that
--- list, so the RPC façade has to sit in `public` (exactly where
--- is_admin_self() itself lives). Parameters are `p_`-prefixed rather than
--- the bare names used in the ticket's prose signatures — matching the only
--- existing precedent for a client-callable SECURITY DEFINER RPC in this repo
--- (public.claim_gift's p_gift_id/p_device_token/…), and sidestepping a real
--- ambiguous-column problem in ap_settings (its `key`/`value` parameters
--- would otherwise collide with autopilot.settings' own `key`/`value`
--- columns). Exact signatures are documented in autopilot/src/db/types.ts and
--- autopilot/src/db/README.md — that's the source of truth for callers.
+-- list, so the RPC façade has to sit in `public`. Parameters are `p_`-prefixed
+-- rather than the bare names used in the ticket's prose signatures — matching
+-- the only existing precedent for a client-callable SECURITY DEFINER RPC in
+-- the platform codebase (public.claim_gift's p_gift_id/p_device_token/…), and
+-- sidestepping a real ambiguous-column problem in ap_settings (its
+-- `key`/`value` parameters would otherwise collide with autopilot.settings'
+-- own `key`/`value` columns). Exact signatures are documented in
+-- autopilot/src/db/types.ts and autopilot/src/db/README.md — that's the
+-- source of truth for callers.
 --
 -- All four raise a `not authorized` (42501) exception when the caller isn't
--- an admin, rather than silently returning nothing — a consistent,
--- debuggable contract across reads and writes alike.
+-- an operator, rather than silently returning nothing — a consistent,
+-- debuggable contract across reads and writes alike. See the AP-813
+-- adaptation note at the top of this file for what autopilot_private.is_operator()
+-- checks (local/network-boundary gate today; swaps for a real JWT check in
+-- hosted mode without touching any of these four call sites).
 
 -- ap_queue: the review queue. With no filter, returns exactly what the Atlas
 -- Queue tab (PRD §10.1) needs to render — items waiting on a human decision.
@@ -451,7 +577,7 @@ set search_path = ''
 stable
 as $$
 begin
-  if not public.is_admin_self() then
+  if not autopilot_private.is_operator() then
     raise exception 'not authorized' using errcode = '42501';
   end if;
 
@@ -496,9 +622,9 @@ grant execute on function public.ap_queue(text) to authenticated;
 -- 'edited' is the only path allowed to change `caption` (caption_after is
 -- silently ignored for the other two decisions, so a plain Approve/Reject
 -- call can't sneak a caption change through). `via` is hardcoded to 'atlas'
--- — this RPC is is_admin_self()-gated, i.e. exclusively the Atlas Studio
--- surface; CLI and email-link approvals write via service_role directly and
--- never pass through here, per PRD §4.3/§10.3.
+-- — this RPC is autopilot_private.is_operator()-gated, i.e. exclusively the
+-- Atlas Studio surface; CLI and email-link approvals write via service_role
+-- directly and never pass through here, per PRD §4.3/§10.3.
 create or replace function public.ap_decide(
   p_item_id uuid,
   p_decision text,
@@ -518,7 +644,7 @@ declare
   v_caption_diff jsonb;
   v_item autopilot.content_items;
 begin
-  if not public.is_admin_self() then
+  if not autopilot_private.is_operator() then
     raise exception 'not authorized' using errcode = '42501';
   end if;
 
@@ -601,7 +727,7 @@ as $$
 declare
   v_rule autopilot.playbook_rules;
 begin
-  if not public.is_admin_self() then
+  if not autopilot_private.is_operator() then
     raise exception 'not authorized' using errcode = '42501';
   end if;
 
@@ -653,7 +779,7 @@ as $$
 declare
   v_setting autopilot.settings;
 begin
-  if not public.is_admin_self() then
+  if not autopilot_private.is_operator() then
     raise exception 'not authorized' using errcode = '42501';
   end if;
 
@@ -676,7 +802,7 @@ revoke execute on function public.ap_settings(text, jsonb) from public, anon;
 grant execute on function public.ap_settings(text, jsonb) to authenticated;
 
 -- ============================================================================
--- 7. Seed data
+-- 9. Seed data
 -- ============================================================================
 --
 -- Four settings rows, matching the ticket's literal ask exactly (settings is

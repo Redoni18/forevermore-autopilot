@@ -1,0 +1,31 @@
+# Autopilot's own local Postgres — see docs/ADR-001-standalone.md. This is
+# NEVER the Forevermore platform's database; it is a fully separate instance
+# that only this repo's migrations (db/migrations/*.sql) ever touch.
+#
+# Quickstart:
+#   docker compose up -d
+#   node db/apply.mjs
+#
+# Connection string (matches .env.example's AUTOPILOT_DB_URL):
+#   postgres://postgres:autopilot@127.0.0.1:5433/autopilot
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: autopilot-local-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: autopilot
+      POSTGRES_DB: autopilot
+    ports:
+      - "5433:5432"
+    volumes:
+      - autopilot-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d autopilot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  autopilot-pgdata:
