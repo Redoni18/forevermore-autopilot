@@ -1,0 +1,19 @@
+{
+  "template": "overlay-reel",
+  "params": {
+    "accent": "#ff90e8",
+    "headline": "he'd rather mine blocks than answer my texts",
+    "world": "blockheart-mine",
+    "chip_style": "jet-on-paper",
+    "tilt_deg": 3
+  },
+  "video": {
+    "comp": "OverlayReel",
+    "props": {
+      "clip": "blockheart-mine",
+      "hook": "he'd rather mine blocks than answer my texts, so i met him there.",
+      "beats": ["our photos were waiting in the caverns", "six heart-gems, one vault door"],
+      "cta": "the blockheart mine · $45 at getforevermore.co"
+    }
+  }
+}

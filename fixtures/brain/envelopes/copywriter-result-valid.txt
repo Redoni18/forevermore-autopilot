@@ -1,0 +1,17 @@
+Here's the candidate for the Blockheart Mine slot:
+
+```json
+{
+  "caption": "he ignores me for minecraft, so i built our whole relationship somewhere he'd actually look.",
+  "hashtags": ["giftideas", "gamercouple", "anniversarygift", "longdistance"],
+  "overlays": {
+    "hook": "he'd rather mine blocks than answer my texts, so i met him there.",
+    "beats": ["took the pickaxe from the spawn chest", "our photos were waiting in the caverns", "six heart-gems, one vault door", "he can keep the diamonds. i want the vault."],
+    "cta": "the blockheart mine · $45 at getforevermore.co"
+  },
+  "link_utm": "getforevermore.co?utm_source=tiktok&utm_medium=organic&utm_campaign=P4&utm_content=ci_smoke_1",
+  "selfcheck": { "claims_ok": true, "nouns_ok": true, "no_banned_words": true }
+}
+```
+
+That's the gamer-partner tension played straight, then paid off at the vault.

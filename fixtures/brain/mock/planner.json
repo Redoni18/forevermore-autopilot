@@ -1,0 +1,20 @@
+{
+  "slots": [
+    {
+      "slot_at": "2026-07-14T17:30:00+02:00",
+      "platform": "tiktok",
+      "format": "tiktok_video",
+      "pillar": "P4",
+      "idea_ids": ["F03", "S13", "A17"],
+      "rationale": "gamer-partner wedge in the valentine's/anniversary window; all three ride the live Blockheart Mine with distinct hooks."
+    },
+    {
+      "slot_at": "2026-07-14T18:00:00+02:00",
+      "platform": "instagram",
+      "format": "reel",
+      "pillar": "P2",
+      "idea_ids": ["F01", "S05", "S07"],
+      "rationale": "finish-tonight speed-build proof for the last-minute crowd; Sunset Cruise and Pocket Pal show the range."
+    }
+  ]
+}

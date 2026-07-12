@@ -1,0 +1,53 @@
+{
+  "id": "ci_20260713_ig_1",
+  "slot_at": "2026-07-13T18:30:00+02:00",
+  "platform": "instagram",
+  "format": "reel",
+  "idea_id": "F03",
+  "series_key": null,
+  "pillar": "P4",
+  "risk": "standard",
+  "status": "pending_review",
+  "candidate_group": "cg_20260713_ig_1830",
+  "chosen": false,
+  "caption": "he'd rather mine blocks than answer my texts, so i met him there. six heart-gems, one vault door, one very unimpressed pickaxe guy. (he cried a little. don't tell him i said that.)",
+  "hashtags": [
+    "blockheartmine",
+    "gamercouple",
+    "giftideas"
+  ],
+  "overlays": {
+    "hook": "he ignores me for minecraft, so i said it in his language.",
+    "beats": [
+      "first-person block-world walk to the spawn chest",
+      "six heart-gems mined in quick cuts",
+      "the vault door opens on the golden room",
+      "he can keep the diamonds. i want the vault."
+    ]
+  },
+  "link_utm": "https://getforevermore.co/?utm_source=instagram&utm_medium=organic&utm_campaign=P4&utm_content=ci_20260713_ig_1",
+  "assets": [
+    {
+      "kind": "video",
+      "path": "assets/final.mp4",
+      "w": 108,
+      "h": 192,
+      "sha256": "13b8dbeabb4f73b11c30f4901e496652ee5e6c6e842ecafd1b384d201aec9100",
+      "dur_s": 6.5
+    }
+  ],
+  "lint": {
+    "passed": true,
+    "violations": []
+  },
+  "dedupe": {
+    "hook_sim": 0.22,
+    "nearest_item": "ci_20260622_ig_4",
+    "method": "hook-4gram-jaccard"
+  },
+  "produced_by": "run_20260712_0531_copywriter_a1",
+  "attempt": 1,
+  "regen_of": null,
+  "created_at": "2026-07-12T05:31:04.000Z",
+  "updated_at": "2026-07-12T05:31:04.000Z"
+}

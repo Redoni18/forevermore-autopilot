@@ -1,0 +1,50 @@
+{
+  "id": "ci_20260714_tt_3",
+  "slot_at": "2026-07-14T09:00:00+02:00",
+  "platform": "tiktok",
+  "format": "image",
+  "idea_id": "A09",
+  "series_key": null,
+  "pillar": "P1",
+  "risk": "standard",
+  "status": "pending_review",
+  "candidate_group": "cg_20260714_tt_0900",
+  "chosen": false,
+  "caption": "store-bought says 'i remembered.' handmade says 'i remember everything.' pick one.",
+  "hashtags": [
+    "giftideas",
+    "handmade"
+  ],
+  "overlays": {
+    "hook": "store-bought says 'i remembered.' handmade says 'i remember everything.'",
+    "beats": [
+      "a store gift card, quick and forgettable",
+      "cut to: a whole built world, their name in the address bar",
+      "side by side, no contest"
+    ]
+  },
+  "link_utm": "https://getforevermore.co/?utm_source=tiktok&utm_medium=organic&utm_campaign=P1&utm_content=ci_20260714_tt_3",
+  "assets": [
+    {
+      "kind": "poster",
+      "path": "assets/poster.png",
+      "w": 1080,
+      "h": 1350,
+      "sha256": "dae44ca47322c727b8b1100f4bf087c0edb9f06baccdd9ba8f94cfc2ff8b83b4"
+    }
+  ],
+  "lint": {
+    "passed": true,
+    "violations": []
+  },
+  "dedupe": {
+    "hook_sim": 0.12,
+    "nearest_item": "ci_20260609_tt_2",
+    "method": "hook-4gram-jaccard"
+  },
+  "produced_by": "run_20260712_0535_copywriter_b2",
+  "attempt": 1,
+  "regen_of": null,
+  "created_at": "2026-07-12T05:35:19.000Z",
+  "updated_at": "2026-07-12T05:35:19.000Z"
+}

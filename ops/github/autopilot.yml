@@ -1,0 +1,144 @@
+# Forevermore Autopilot scheduler (GitHub Actions)
+#
+# IMPORTANT: This file MUST be COPIED to .github/workflows/autopilot.yml when adopted.
+# DO NOT place this file directly in .github/workflows/; it lives here for review.
+#
+# Secrets required in repo settings:
+#   CLAUDE_CODE_OAUTH_TOKEN    - from `claude setup-token` (or ANTHROPIC_API_KEY as fallback)
+#   SUPABASE_URL               - production database URL
+#   SUPABASE_SERVICE_ROLE_KEY  - service-role key (never anon/authenticated)
+#   META_IG_TOKEN              - Instagram Graph API long-lived user token
+#   TIKTOK_CLIENT_KEY          - TikTok OAuth client ID
+#   TIKTOK_CLIENT_SECRET       - TikTok OAuth client secret
+#   TIKTOK_REFRESH_TOKEN       - TikTok stored refresh token
+#   RESEND_API_KEY             - email delivery service key
+#   AP_HMAC_SECRET             - HMAC key for signed approval links
+#
+# Cron times are in UTC; local times shown in comments below.
+# System TZ: Europe/Tirane (UTC+1 winter / UTC+2 summer)
+#
+# Local → UTC mapping (summer DST):
+#   Sun 18:00 → 16:00 UTC (plan)
+#   Daily 05:30 → 03:30 UTC (generate)
+#   Daily 07:30 → 05:30 UTC (digest)
+#   Daily 17:00–21:00 → 15:00–19:00 UTC (publish every 30 min)
+#   Daily 22:00 → 20:00 UTC (metrics)
+#   Daily 23:00 → 21:00 UTC (reflect)
+
+name: Autopilot Scheduler
+
+on:
+  schedule:
+    # Plan: Sunday 18:00 local = 16:00 UTC
+    - cron: '0 16 * * 0'
+    # Generate: Daily 05:30 local = 03:30 UTC
+    - cron: '30 3 * * *'
+    # Digest: Daily 07:30 local = 05:30 UTC
+    - cron: '30 5 * * *'
+    # Publish: Daily every 30 min 17:00–21:00 local = 15:00–19:00 UTC
+    - cron: '0,30 15-19 * * *'
+    # Metrics: Daily 22:00 local = 20:00 UTC
+    - cron: '0 20 * * *'
+    # Reflect: Daily 23:00 local = 21:00 UTC
+    - cron: '0 21 * * *'
+
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: 'Stage to run (plan|generate|digest|publish|metrics|reflect)'
+        required: true
+        type: choice
+        options:
+          - plan
+          - generate
+          - digest
+          - publish
+          - metrics
+          - reflect
+
+jobs:
+  autopilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      matrix:
+        stage: [plan, generate, digest, publish, metrics, reflect]
+
+    concurrency:
+      group: autopilot-${{ matrix.stage }}
+      cancel-in-progress: false
+
+    env:
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      META_IG_TOKEN: ${{ secrets.META_IG_TOKEN }}
+      TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
+      TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
+      TIKTOK_REFRESH_TOKEN: ${{ secrets.TIKTOK_REFRESH_TOKEN }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      AP_HMAC_SECRET: ${{ secrets.AP_HMAC_SECRET }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 11
+
+      - name: Cache pnpm modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Ensure Remotion browser
+        run: npx remotion browser ensure
+
+      - name: Determine stage
+        id: determine-stage
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "stage=${{ github.event.inputs.stage }}" >> $GITHUB_OUTPUT
+          else
+            # Map cron schedule to stage based on current time
+            # This is a fallback; ideally GitHub would label each cron trigger
+            MINUTE=$(date +%M)
+            HOUR=$(date +%H)
+            DOW=$(date +%u)
+
+            if [[ $DOW -eq 0 && $HOUR -eq 16 ]]; then
+              echo "stage=plan" >> $GITHUB_OUTPUT
+            elif [[ $HOUR -eq 3 && $MINUTE -eq 30 ]]; then
+              echo "stage=generate" >> $GITHUB_OUTPUT
+            elif [[ $HOUR -eq 5 && $MINUTE -eq 30 ]]; then
+              echo "stage=digest" >> $GITHUB_OUTPUT
+            elif [[ $HOUR -ge 15 && $HOUR -le 19 && ($MINUTE -eq 0 || $MINUTE -eq 30) ]]; then
+              echo "stage=publish" >> $GITHUB_OUTPUT
+            elif [[ $HOUR -eq 20 && $MINUTE -eq 0 ]]; then
+              echo "stage=metrics" >> $GITHUB_OUTPUT
+            elif [[ $HOUR -eq 21 && $MINUTE -eq 0 ]]; then
+              echo "stage=reflect" >> $GITHUB_OUTPUT
+            else
+              echo "stage=unknown" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Run autopilot ${{ steps.determine-stage.outputs.stage }}
+        run: |
+          cd autopilot
+          node bin/autopilot.mjs run ${{ steps.determine-stage.outputs.stage }}

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>autopilot — review</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&display=swap" />
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+<div id="app">
+  <header class="hd">
+    <div class="hd-left">
+      <span class="coin">♥</span>
+      <h1>autopilot — review</h1>
+    </div>
+    <div class="hd-right">
+      <span class="hd-date" id="hd-date"></span>
+      <span class="chip pending" id="hd-pending">— pending</span>
+      <span class="chip kill" id="hd-kill" hidden></span>
+    </div>
+  </header>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <main id="board" aria-live="polite">
+    <div class="loading">loading outbox…</div>
+  </main>
+
+  <footer class="kb-help">
+    <span><b>j</b>/<b>k</b> move</span>
+    <span><b>n</b> next group</span>
+    <span><b>a</b> approve</span>
+    <span><b>e</b> edit caption</span>
+    <span><b>c</b> request changes</span>
+    <span><b>r</b> reject</span>
+    <span><b>esc</b> cancel</span>
+  </footer>
+</div>
+<script src="/app.js" type="module"></script>
+</body>
+</html>

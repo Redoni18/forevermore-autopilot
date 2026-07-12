@@ -1,0 +1,11 @@
+{
+  "proposals": [
+    {
+      "rule": "hooks that name the recipient or their obsession outperform generic openers — prefer them",
+      "category": "hook",
+      "evidence": ["ci_20260701_tt_2", "ci_20260703_ig_1", "ci_20260705_tt_1"],
+      "confidence": 0.78
+    }
+  ],
+  "report_md": "## This period\n\n3 approvals, 1 rejection, 4 metric snapshots.\n\n**Proposing:** name-the-recipient hooks. The three top-quartile posts this period all named the person or their hobby in the first line; the rejected one opened generically. Clears the 3-event bar.\n\n**Not proposing:** a shift toward carousels — only 2 supporting data points, below the 3-event threshold. Holding until more evidence lands."
+}

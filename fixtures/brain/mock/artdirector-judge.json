@@ -1,0 +1,13 @@
+{
+  "verdict": {
+    "pass": true,
+    "issues": [
+      {
+        "area": "cta end card",
+        "severity": "warn",
+        "note": "coin sits 12px inside the right safe-area — legible, but nudge left for breathing room"
+      }
+    ],
+    "notes": "clean overall: text is sentence case, nothing clipped, poster not distorted, overlays clear of the TikTok gutters."
+  }
+}

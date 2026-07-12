@@ -1,0 +1,14 @@
+{
+  "directives": [
+    {
+      "type": "occasion_focus",
+      "value": { "occasion": "father's day", "weeks": 2 },
+      "applies_from": "2026-07-14"
+    },
+    {
+      "type": "world_boost",
+      "value": ["Gone Fishing", "Matchday"],
+      "applies_from": null
+    }
+  ]
+}

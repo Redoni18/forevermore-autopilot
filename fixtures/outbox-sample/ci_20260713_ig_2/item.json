@@ -1,0 +1,52 @@
+{
+  "id": "ci_20260713_ig_2",
+  "slot_at": "2026-07-13T18:30:00+02:00",
+  "platform": "instagram",
+  "format": "reel",
+  "idea_id": null,
+  "series_key": null,
+  "pillar": "P5",
+  "risk": "sensitive",
+  "status": "pending_review",
+  "candidate_group": "cg_20260713_ig_1830",
+  "chosen": false,
+  "caption": "he told the same six stories every sunday dinner, word for word, forever. we finally wrote them down — his voice, his pauses, the parts he always laughed at before the punchline. a little world the grandkids can walk through whenever they miss him.",
+  "hashtags": [
+    "forgrandpa",
+    "familyarchive"
+  ],
+  "overlays": {
+    "hook": "grandpa told the same six stories every sunday. we finally wrote them down.",
+    "beats": [
+      "his six sunday stories, listed like a table of contents",
+      "each one opens into a small keepsake room",
+      "his actual words, not a paraphrase",
+      "for the grandkids who weren't born in time to hear it firsthand"
+    ]
+  },
+  "link_utm": "https://getforevermore.co/?utm_source=instagram&utm_medium=organic&utm_campaign=P5&utm_content=ci_20260713_ig_2",
+  "assets": [
+    {
+      "kind": "video",
+      "path": "assets/final.mp4",
+      "w": 108,
+      "h": 192,
+      "sha256": "a3f3ac7a35c4bba2fb9acebadd760db1aa64834b388f8dd1baa286df0340127d",
+      "dur_s": 6.5
+    }
+  ],
+  "lint": {
+    "passed": true,
+    "violations": []
+  },
+  "dedupe": {
+    "hook_sim": 0.05,
+    "nearest_item": null,
+    "method": "hook-4gram-jaccard"
+  },
+  "produced_by": "run_20260712_0531_copywriter_a1",
+  "attempt": 1,
+  "regen_of": null,
+  "created_at": "2026-07-12T05:31:58.000Z",
+  "updated_at": "2026-07-12T05:31:58.000Z"
+}

@@ -1,0 +1,53 @@
+{
+  "id": "ci_20260713_ig_3",
+  "slot_at": "2026-07-13T18:30:00+02:00",
+  "platform": "instagram",
+  "format": "reel",
+  "idea_id": "F17",
+  "series_key": null,
+  "pillar": "P5",
+  "risk": "standard",
+  "status": "pending_review",
+  "candidate_group": "cg_20260713_ig_1830",
+  "chosen": false,
+  "caption": "he's said 'just one more cast' for twenty years and meant it every time. built him a whole fishing morning to wander through — every catch, every excuse to stay another hour, saved. happy father's day to the guy who finds a new reason to be late for dinner every single time.",
+  "hashtags": [
+    "fathersday",
+    "fishing",
+    "giftideas"
+  ],
+  "overlays": {
+    "hook": "for the one who always says 'just one more cast.'",
+    "beats": [
+      "dawn-to-dusk fishing world, cast to catch",
+      "each catch glows and locks into the tackle box display",
+      "his actual replies turned into cast plaques",
+      "one more cast. always one more cast."
+    ]
+  },
+  "link_utm": "https://getforevermore.co/?utm_source=instagram&utm_medium=organic&utm_campaign=P5&utm_content=ci_20260713_ig_3",
+  "assets": [
+    {
+      "kind": "video",
+      "path": "assets/final.mp4",
+      "w": 108,
+      "h": 192,
+      "sha256": "619d3ed2f10c375b32ad928774042d9598513077743f71f833803860423153c6",
+      "dur_s": 6.5
+    }
+  ],
+  "lint": {
+    "passed": true,
+    "violations": []
+  },
+  "dedupe": {
+    "hook_sim": 0.31,
+    "nearest_item": "ci_20260701_ig_2",
+    "method": "hook-4gram-jaccard"
+  },
+  "produced_by": "run_20260712_0532_copywriter_a2",
+  "attempt": 1,
+  "regen_of": null,
+  "created_at": "2026-07-12T05:32:41.000Z",
+  "updated_at": "2026-07-12T05:32:41.000Z"
+}
