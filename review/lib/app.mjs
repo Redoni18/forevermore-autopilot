@@ -13,11 +13,14 @@ import { readSettings } from './settings.mjs';
 
 const MAX_BODY_BYTES = 1_000_000; // 1MB is generous for a caption edit + note
 
-export function createReviewServer({ outboxDir, decisionsDir, settingsPath, publicDir }) {
-  if (!outboxDir || !decisionsDir || !settingsPath || !publicDir) {
-    throw new Error('createReviewServer requires outboxDir, decisionsDir, settingsPath, publicDir');
+// `store` carries the item/decision data (file OR postgres — same contract);
+// `outboxDir` is used ONLY to stream on-disk assets; `settingsPath` feeds the
+// read-only kill-switch header (graceful about missing/either-shape files).
+export function createReviewServer({ store, outboxDir, settingsPath, publicDir }) {
+  if (!store || !outboxDir || !publicDir) {
+    throw new Error('createReviewServer requires store, outboxDir, publicDir');
   }
-  const ctx = { outboxDir, decisionsDir, settingsPath, publicDir };
+  const ctx = { store, outboxDir, settingsPath, publicDir };
   return createServer((req, res) => {
     handleRequest(req, res, ctx).catch((err) => {
       console.error('[autopilot-review] unhandled error:', err);
@@ -58,8 +61,8 @@ function sendJson(res, status, obj) {
 
 async function handleGetItems(req, res, ctx) {
   const [{ groups, pending_count }, settings] = await Promise.all([
-    listGroupedItems({ outboxDir: ctx.outboxDir, decisionsDir: ctx.decisionsDir }),
-    readSettings(ctx.settingsPath),
+    listGroupedItems({ store: ctx.store }),
+    ctx.settingsPath ? readSettings(ctx.settingsPath) : null,
   ]);
   sendJson(res, 200, { generated_at: new Date().toISOString(), pending_count, settings, groups });
 }
@@ -121,8 +124,7 @@ async function handlePostDecide(req, res, ctx) {
   }
 
   const result = await decide({
-    outboxDir: ctx.outboxDir,
-    decisionsDir: ctx.decisionsDir,
+    store: ctx.store,
     itemId,
     decision,
     reasonTags: tags,

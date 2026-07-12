@@ -26,6 +26,10 @@ export const REPO_ROOT =
 const DEFAULTS = {
   timezone: 'Europe/Tirane',
   store: 'file',
+  /** Postgres connection string for store: 'postgres' (control-plane DB — never
+   *  the platform's database, per ADR-001). null → PostgresStore refuses to
+   *  boot with a clear error. Overridable via env AUTOPILOT_DB_URL. */
+  dbUrl: null,
   brainDriver: 'fixture',
   /** Path (relative to PKG_ROOT or absolute) to the lint engine module (AP-401).
    *  null → built-in no-op lint that passes everything. Real engine exports a
@@ -108,6 +112,7 @@ export function loadConfig(opts = {}) {
   // ---- env overrides (highest priority) ----
   if (env.AUTOPILOT_TZ) cfg.timezone = env.AUTOPILOT_TZ;
   if (env.AUTOPILOT_STORE) cfg.store = env.AUTOPILOT_STORE;
+  if (env.AUTOPILOT_DB_URL) cfg.dbUrl = env.AUTOPILOT_DB_URL;
   if (env.AUTOPILOT_DRIVER) cfg.brainDriver = env.AUTOPILOT_DRIVER;
   if (env.AUTOPILOT_BRAVE) cfg.brave = env.AUTOPILOT_BRAVE;
   if (env.AUTOPILOT_LINT_MODULE) cfg.lintModule = env.AUTOPILOT_LINT_MODULE;
@@ -130,6 +135,7 @@ export function loadConfig(opts = {}) {
     pkgRoot: PKG_ROOT,
     repoRoot: fmRoot, // = the Forevermore platform checkout (see REPO_ROOT doc)
     configPath,
+    dbUrl: cfg.dbUrl || null, // control-plane Postgres DSN (store: 'postgres')
     dataRoot,
     outbox: abs(P.outbox, dataRoot),
     decisions: abs(P.decisions, dataRoot),

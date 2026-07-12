@@ -6,6 +6,7 @@
 
 import { promises as fsp, existsSync } from 'node:fs';
 import { join, delimiter } from 'node:path';
+import { createHash } from 'node:crypto';
 import { loadConfig } from '../config.mjs';
 import { createStore } from '../store/index.mjs';
 import { runStage, STAGE_NAMES, isPaused } from '../stages/registry.mjs';
@@ -14,11 +15,27 @@ import { loadIdeas } from '../plan/ideas.mjs';
 import { remotionBin } from '../adapters/proc.mjs';
 import { localToday } from '../util/time.mjs';
 
+/** Stores opened this process — closed together by the CLI entrypoint so a
+ *  postgres pool doesn't keep the process alive after a command finishes. */
+const OPEN_STORES = [];
+
 /** Load config + store once per command. */
 function boot(flags) {
   const config = loadConfig({ configPath: flags.config });
   const store = createStore(config);
+  OPEN_STORES.push(store);
   return { config, store };
+}
+
+/** Close every store opened during this CLI invocation (called from bin). */
+export async function closeStores() {
+  for (const store of OPEN_STORES.splice(0)) {
+    try {
+      await store.close?.();
+    } catch {
+      /* best-effort shutdown */
+    }
+  }
 }
 
 function fail(msg) {
@@ -198,6 +215,142 @@ export async function cmdResume(argv, flags) {
   return 0;
 }
 
+/* ----------------------------- import-outbox --------------------------- */
+/**
+ * One-time migration of a file-mode outbox into the DB-backed store: upsert
+ * every outbox/<id>/item.json (ensuring its idea_id FK target exists first),
+ * then replay decisions/*.json as approvals rows. Idempotent across re-runs —
+ * items upsert on their (derived) key and an approval is skipped when one with
+ * the same content_item + decided_at already exists.
+ */
+/**
+ * Importer core — reusable + testable, decoupled from the CLI/console. Upserts
+ * items (ensuring idea FKs first) and replays decision files idempotently.
+ * @param {import('../store/index.mjs').PostgresStore} store DB-backed store (needs ensureIdea)
+ * @param {{outboxDir:string, decisionsDir:string, ideasPath?:string, onError?:(msg:string)=>void}} opts
+ * @returns {Promise<{ideas:number, items:number, itemErrors:number, decisionFiles:number, approvals:number, approvalsSkipped:number}>}
+ */
+export async function importOutbox(store, { outboxDir, decisionsDir, ideasPath, onError } = {}) {
+  if (typeof store.ensureIdea !== 'function') {
+    throw new Error('importOutbox needs a DB-backed store (ensureIdea) — use store=postgres');
+  }
+  const warn = onError || (() => {});
+
+  // Platform ideas.json supplies the FK payloads; minimal {} fallback if absent.
+  const ideaById = new Map();
+  if (ideasPath) {
+    try {
+      for (const idea of loadIdeas(ideasPath)) {
+        if (idea && idea.id) ideaById.set(idea.id, idea);
+      }
+    } catch (e) {
+      warn(`ideas.json not read (${e.message}); importing with minimal {} idea payloads`);
+    }
+  }
+
+  const s = { ideas: 0, items: 0, itemErrors: 0, decisionFiles: 0, approvals: 0, approvalsSkipped: 0 };
+
+  // 1. items (+ idea FKs)
+  let entries;
+  try {
+    entries = await fsp.readdir(outboxDir, { withFileTypes: true });
+  } catch (e) {
+    if (e.code === 'ENOENT') entries = [];
+    else throw e;
+  }
+  const ensuredIdeas = new Set();
+  for (const ent of entries) {
+    if (!ent.isDirectory()) continue;
+    let item;
+    try {
+      item = JSON.parse(await fsp.readFile(join(outboxDir, ent.name, 'item.json'), 'utf8'));
+    } catch {
+      continue; // dir without a readable item.json — not an item
+    }
+    try {
+      if (item.idea_id && !ensuredIdeas.has(item.idea_id)) {
+        await store.ensureIdea(item.idea_id, ideaById.get(item.idea_id) || {});
+        ensuredIdeas.add(item.idea_id);
+        s.ideas++;
+      }
+      await store.putItem(item);
+      s.items++;
+    } catch (e) {
+      s.itemErrors++;
+      warn(`${ent.name}: ${e.message}`);
+    }
+  }
+
+  // 2. decisions replay (idempotent on content_item_id + decided_at)
+  let files;
+  try {
+    files = (await fsp.readdir(decisionsDir)).filter((f) => f.endsWith('.json'));
+  } catch (e) {
+    if (e.code === 'ENOENT') files = [];
+    else throw e;
+  }
+  for (const f of files) {
+    let rec;
+    try {
+      rec = JSON.parse(await fsp.readFile(join(decisionsDir, f), 'utf8'));
+    } catch {
+      continue;
+    }
+    if (!rec.content_item_id || !rec.decision) continue;
+    s.decisionFiles++;
+    const target = rec.decided_at ? new Date(rec.decided_at).getTime() : null;
+    const existing = await store.listApprovals(rec.content_item_id);
+    const dup = existing.some((a) => a.decided_at && new Date(a.decided_at).getTime() === target);
+    if (dup) {
+      s.approvalsSkipped++;
+      continue;
+    }
+    try {
+      await store.appendApproval({
+        content_item_id: rec.content_item_id,
+        decision: rec.decision,
+        reason_tags: rec.reason_tags ?? null,
+        note: rec.note ?? null,
+        caption_diff: rec.caption_diff ?? null,
+        via: rec.via ?? 'cli',
+        decided_at: rec.decided_at,
+      });
+      s.approvals++;
+    } catch (e) {
+      warn(`approval ${f}: ${e.message}`);
+    }
+  }
+  return s;
+}
+
+export async function cmdImportOutbox(argv, flags) {
+  const { config, store } = boot(flags);
+  if (typeof store.ensureIdea !== 'function') {
+    return fail(
+      'import-outbox needs a DB-backed store — set "store":"postgres" (or --store postgres / AUTOPILOT_STORE=postgres)',
+    );
+  }
+  const s = await importOutbox(store, {
+    outboxDir: config.resolved.outbox,
+    decisionsDir: config.resolved.decisions,
+    ideasPath: config.resolved.ideas,
+    onError: (msg) => console.log(`  ✗ ${msg}`),
+  });
+
+  if (flags.json) {
+    console.log(JSON.stringify(s, null, 2));
+  } else {
+    console.log('import-outbox summary');
+    console.log(`  ${'ideas ensured'.padEnd(20)} ${s.ideas}`);
+    console.log(`  ${'items upserted'.padEnd(20)} ${s.items}`);
+    if (s.itemErrors) console.log(`  ${'item errors'.padEnd(20)} ${s.itemErrors}`);
+    console.log(`  ${'decision files'.padEnd(20)} ${s.decisionFiles}`);
+    console.log(`  ${'approvals inserted'.padEnd(20)} ${s.approvals}`);
+    console.log(`  ${'approvals skipped'.padEnd(20)} ${s.approvalsSkipped}`);
+  }
+  return s.itemErrors ? 1 : 0;
+}
+
 /* -------------------------------- doctor ------------------------------- */
 function onPath(bin) {
   return (process.env.PATH || '').split(delimiter).some((d) => d && existsSync(join(d, bin)));
@@ -236,6 +389,32 @@ export async function cmdDoctor(argv, flags) {
   }
   add('outbox writable', writable, 'critical', wdetail);
 
+  // postgres store health (critical when store=postgres/supabase)
+  const isPg = config.store === 'postgres' || config.store === 'supabase';
+  if (isPg) {
+    add('db url configured', Boolean(config.resolved.dbUrl), 'critical', config.resolved.dbUrl ? '(set)' : 'AUTOPILOT_DB_URL unset');
+    let connected = false;
+    let schemaOk = false;
+    let detail = '';
+    try {
+      await store.getSettings(); // reaches autopilot.settings → proves connect + schema
+      connected = true;
+      schemaOk = true;
+    } catch (e) {
+      detail = e.message;
+    }
+    add('postgres reachable', connected, 'critical', connected ? 'connected' : detail);
+    add('autopilot schema present', schemaOk, 'critical', schemaOk ? 'autopilot.settings readable' : detail);
+    // migration file hash (info — provenance note, not a live check)
+    const migPath = join(config.resolved.pkgRoot, 'db', 'migrations', '0001_autopilot_schema.sql');
+    if (existsSync(migPath)) {
+      try {
+        const h = createHash('sha256').update(await fsp.readFile(migPath)).digest('hex').slice(0, 12);
+        add('migration file', true, 'info', `0001 sha256:${h}`);
+      } catch { /* unreadable → skip the note */ }
+    }
+  }
+
   // kill switch state (info)
   let paused = false;
   try {
@@ -244,7 +423,7 @@ export async function cmdDoctor(argv, flags) {
   add('kill switch', !paused, 'info', paused ? 'ENGAGED (paused)' : 'released');
 
   // config summary (info)
-  add('store', config.store === 'file', 'info', config.store);
+  add('store', true, 'info', config.store);
   add('timezone', true, 'info', config.timezone);
   add('brain driver', true, 'info', config.brainDriver);
 

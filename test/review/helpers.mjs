@@ -8,6 +8,8 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { createReviewServer } from '../../review/lib/app.mjs';
+import { loadConfig } from '../../src/config.mjs';
+import { createStore } from '../../src/store/index.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 export const FIXTURE_OUTBOX = join(HERE, '..', '..', 'fixtures', 'outbox-sample');
@@ -31,11 +33,20 @@ export async function copyFixtureOutbox() {
 }
 
 /** Boots a real review-station HTTP server on an ephemeral port against the
- * given (already-copied) outbox tree, and returns fetch-ready helpers. */
+ * given (already-copied) outbox tree, and returns fetch-ready helpers. The
+ * server runs in file mode over a FileStore rooted at the copied fixture — the
+ * same Store abstraction postgres mode uses. */
 export async function startTestServer(paths) {
+  const dataRoot = dirname(paths.outboxDir);
+  const config = loadConfig({
+    configPath: join(dataRoot, 'no-config.json'),
+    env: { AUTOPILOT_ROOT: dataRoot, AUTOPILOT_STORE: 'file' },
+  });
+  const store = createStore(config);
+
   const server = createReviewServer({
+    store,
     outboxDir: paths.outboxDir,
-    decisionsDir: paths.decisionsDir,
     settingsPath: paths.settingsPath,
     publicDir: PUBLIC_DIR,
   });
@@ -68,6 +79,7 @@ export async function startTestServer(paths) {
     },
     async close() {
       await new Promise((resolve) => server.close(resolve));
+      await store.close?.();
     },
   };
 }

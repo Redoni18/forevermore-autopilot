@@ -27,6 +27,8 @@ import {
   cmdResume,
   cmdDoctor,
   cmdReview,
+  cmdImportOutbox,
+  closeStores,
 } from '../src/cli/commands.mjs';
 
 const USAGE = `autopilot — Forevermore Autopilot pipeline (M0)
@@ -41,11 +43,13 @@ usage:
   autopilot pause | resume
   autopilot doctor
   autopilot review
+  autopilot import-outbox
 
 stages:   plan | generate | render | qa | digest
 notes:    --date defaults to today; generate/render/qa/digest act on that slot
           date, plan plans the 7 days after it. A completed (stage,date) is a
-          no-op unless --force. The kill switch (pause) halts every stage.`;
+          no-op unless --force. The kill switch (pause) halts every stage.
+          import-outbox migrates a file-mode outbox into store=postgres.`;
 
 /** @type {Record<string, (argv:string[], flags:Object)=>Promise<number>|number>} */
 const COMMANDS = {
@@ -59,6 +63,7 @@ const COMMANDS = {
   resume: cmdResume,
   doctor: cmdDoctor,
   review: cmdReview,
+  'import-outbox': cmdImportOutbox,
 };
 
 async function main() {
@@ -84,4 +89,8 @@ main()
   .catch((err) => {
     console.error(`✗ ${err && err.stack ? err.stack : err}`);
     process.exitCode = 1;
+  })
+  .finally(async () => {
+    // Release any DB pool so a postgres-backed command exits cleanly.
+    await closeStores();
   });

@@ -44,6 +44,15 @@ export class FileStore {
     this.lock = { retries: 200, delayMs: 15 };
   }
 
+  /**
+   * Lifecycle parity with PostgresStore (which closes its connection pool).
+   * FileStore holds no long-lived handles, so this is a no-op — but callers
+   * (CLI, review server) can `await store.close()` uniformly for both modes.
+   */
+  async close() {
+    /* nothing to release in file mode */
+  }
+
   /* ------------------------------ paths ------------------------------ */
   itemDir(id) {
     return join(this.dirs.outbox, id);

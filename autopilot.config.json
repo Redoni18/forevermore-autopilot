@@ -1,6 +1,7 @@
 {
   "timezone": "Europe/Tirane",
-  "store": "file",
+  "store": "postgres",
+  "dbUrl": "postgres://postgres:autopilot@127.0.0.1:5433/autopilot",
   "brainDriver": "fixture",
   "lintModule": "src/drivers/brand-lint.mjs",
   "brave": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",

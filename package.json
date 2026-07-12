@@ -12,7 +12,11 @@
   },
   "scripts": {
     "test": "node --test",
-    "autopilot": "node bin/autopilot.mjs"
+    "autopilot": "node bin/autopilot.mjs",
+    "import-outbox": "node bin/autopilot.mjs import-outbox"
+  },
+  "dependencies": {
+    "postgres": "^3.4.5"
   },
   "license": "UNLICENSED"
 }
