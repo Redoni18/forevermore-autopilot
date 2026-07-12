@@ -31,6 +31,11 @@ export async function planStage(ctx) {
     return { produced: 0, planned: shells, dryRun: true };
   }
 
+  // FK-backed stores (postgres) require the referenced idea row to exist
+  // before a content_item can point at it. ensureIdea is idempotent; FileStore
+  // has no FK and no ensureIdea, so this is a no-op there (AP-820 seed fix).
+  const ideaById = new Map(ideas.map((i) => [i.id, i]));
+
   let created = 0;
   let skipped = 0;
   const createdShells = [];
@@ -40,6 +45,10 @@ export async function planStage(ctx) {
       skipped++;
       await log({ event: 'plan.skip_existing', id: shell.id });
       continue;
+    }
+    if (shell.idea_id && typeof store.ensureIdea === 'function') {
+      const idea = ideaById.get(shell.idea_id);
+      await store.ensureIdea(shell.idea_id, idea || {});
     }
     await store.putItem(shell);
     createdShells.push(shell);

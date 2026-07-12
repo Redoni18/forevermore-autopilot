@@ -333,6 +333,7 @@ function buildPendingCard(item) {
   const card = document.createElement('article');
   card.className = 'card';
   card.dataset.id = item.id;
+  card.dataset.format = item.format || '';
   if (item.risk === 'sensitive') card.classList.add('is-sensitive');
 
   const attemptBadge = (item.attempt || 1) > 1

@@ -305,6 +305,13 @@ kbd {
   background: #0f172a;
   border: 1px solid var(--border);
   position: relative;
+}
+/* image/carousel assets are 4:5 feed posters — don't crop them into a 9:16
+   video frame (they render letterboxed on a light ground instead) */
+.card[data-format='image'] .media-frame,
+.card[data-format='carousel'] .media-frame {
+  aspect-ratio: 4 / 5;
+  background: #f1f5f9;
   cursor: pointer;
 }
 .media-frame img, .media-frame video { width: 100%; height: 100%; object-fit: cover; display: block; }
