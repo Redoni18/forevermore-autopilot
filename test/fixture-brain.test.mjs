@@ -41,6 +41,67 @@ test('fixture is deterministic', async () => {
   assert.deepEqual(await brain.complete(req), await brain.complete(req));
 });
 
+/* ── AP-820: format-aware copy shapes ───────────────────────────────────── */
+
+const CAROUSEL_IDEA = {
+  id: 'C01',
+  hook: 'he ignores me for minecraft, so i said it in his language.',
+  beats: ['took the pickaxe from the spawn chest', 'our photos were waiting in the caverns', 'six heart-gems, one vault door', 'he can keep the diamonds, i want the vault'],
+  cta: 'the blockheart mine · $45 at getforevermore.co',
+  worlds: ['The Blockheart Mine'],
+  occasions: ['anniversary'],
+};
+
+test('carousel: overlays.beats become 5–7 slide texts, cover echoes hook, last beat is the cta line', async () => {
+  const brain = new FixtureBrain();
+  const r = await brain.complete({
+    stage: 'copywriter',
+    item: { id: 'ci_ig_1', platform: 'instagram', format: 'carousel' },
+    idea: CAROUSEL_IDEA,
+  });
+  const beats = r.overlays.beats;
+  assert.ok(beats.length >= 5 && beats.length <= 7, `expected 5–7 slide texts, got ${beats.length}`);
+  assert.equal(beats[0], r.overlays.hook, 'slide 1 is the hook cover');
+  assert.equal(beats[beats.length - 1], r.overlays.cta, 'last slide text is the cta line (cta ≤90 here)');
+  assert.ok(beats.every((b) => b.length <= 90), 'each slide text ≤90 chars');
+  assert.ok(r.caption.length > 0);
+  assert.equal((r.caption.match(/!/g) || []).length, 0, 'no exclamation marks (lint)');
+});
+
+test('carousel: reads format from inputs.formatSpec when item.format is absent', async () => {
+  const brain = new FixtureBrain();
+  const r = await brain.complete({
+    stage: 'copywriter',
+    item: { id: 'ci_ig_1', platform: 'instagram' },
+    idea: CAROUSEL_IDEA,
+    inputs: { formatSpec: { platform: 'instagram', format: 'carousel' } },
+  });
+  assert.ok(r.overlays.beats.length >= 5);
+});
+
+test('image: hook is the single line (≤80), beats is at most one sub-line, caption storytells', async () => {
+  const brain = new FixtureBrain();
+  const r = await brain.complete({
+    stage: 'copywriter',
+    item: { id: 'ci_ig_1', platform: 'instagram', format: 'image' },
+    idea: CAROUSEL_IDEA,
+  });
+  assert.ok(r.overlays.hook.length <= 80, 'image hook ≤80 chars');
+  assert.ok(r.overlays.beats.length <= 1, 'image carries ≤1 sub-line');
+  assert.ok(r.caption.includes(r.overlays.cta), 'caption carries the story + cta');
+});
+
+test('reel shape is unchanged for tiktok_video / default formats', async () => {
+  const brain = new FixtureBrain();
+  const tt = await brain.complete({
+    stage: 'copywriter',
+    item: { id: 'ci_tt_1', platform: 'tiktok', format: 'tiktok_video' },
+    idea: IDEA,
+  });
+  assert.deepEqual(tt.overlays.beats, IDEA.beats.slice(0, 2));
+  assert.equal(tt.overlays.hook, IDEA.hook.split('\n')[0]);
+});
+
 test('resolveBrainDriver: fixture default, mock stand-in, real drivers bridge or error', async () => {
   const d = await resolveBrainDriver('fixture');
   assert.equal(d.name, 'fixture');

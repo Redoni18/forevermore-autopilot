@@ -16,6 +16,10 @@
     "instagram": "17:30",
     "tiktok": "19:00"
   },
+  "format_mix": {
+    "instagram": { "1": "reel", "2": "carousel", "3": "reel", "4": "image", "5": "carousel", "6": "reel", "7": "reel" },
+    "tiktok": { "1": "tiktok_video", "2": "tiktok_video", "3": "tiktok_video", "4": "tiktok_video", "5": "tiktok_video", "6": "tiktok_video", "7": "tiktok_video" }
+  },
   "retry": {
     "qa_max_attempts": 3,
     "regen_max": 2,

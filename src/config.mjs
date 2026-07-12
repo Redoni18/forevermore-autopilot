@@ -7,6 +7,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { dirname, join, resolve, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { DEFAULT_FORMAT_MIX } from './plan/ideas.mjs';
 
 const SELF = fileURLToPath(import.meta.url);
 /** Autopilot package root (this file lives at <root>/src/config.mjs). */
@@ -44,6 +45,13 @@ const DEFAULTS = {
   },
   planning_horizon_days: 7,
   slot_times: { instagram: '17:30', tiktok: '19:00' },
+  /** Per-platform, per-ISO-weekday format pattern (AP-820). The planner reads a
+   *  slot's format from here (keyed by platform + weekday 1=Mon..7=Sun) instead
+   *  of from the idea, so a week gets planned variety (reels + images +
+   *  carousels). Config-file overridable (a platform's whole map is replaced).
+   *  'story' is a legal value but NOT a default — stories need manual sticker/
+   *  link placement; see DEFAULT_FORMAT_MIX in src/plan/ideas.mjs. */
+  format_mix: DEFAULT_FORMAT_MIX,
   retry: {
     qa_max_attempts: 3, // qa_failed → drafting bounces before skip
     regen_max: 2, // changes_requested → drafting bounces before skip

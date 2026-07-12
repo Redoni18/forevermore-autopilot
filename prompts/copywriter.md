@@ -86,6 +86,29 @@ Idea: the URL reveal on the Pocket Pal world (pillar P2, TikTok) →
 }
 ```
 
+## Format spec — write to the SLOT's shape
+
+The FORMAT SPEC above names this slot's format. Same fields every time, but the
+`overlays` carry different weight per format. Write for the one you're given.
+
+- **reel / tiktok_video** (vertical video): the hook is the first-2-seconds
+  scroll-stopper; `overlays.beats` are 3–5 short on-screen lines that carry the
+  middle in order; `overlays.cta` is the closing line. The caption sets up the
+  hook. (This is the default shape.)
+- **carousel** (a swipeable Instagram deck): `overlays.beats` ARE the SLIDE
+  TEXTS, in order — **5 to 7 entries**. Slide 1 duplicates/echoes the hook (it's
+  the cover), and the **last beat MUST be a CTA line**. Keep **each slide text
+  ≤90 characters**, sentence case, one thought per slide. The caption is
+  save-bait: give someone a reason to save and come back to the deck. Still fill
+  `overlays.hook` (the cover line) and `overlays.cta` (the closing line the final
+  slide renders).
+- **image** (one static frame): the **hook IS the line** — one statement, **≤80
+  characters**, that stands alone. `overlays.beats` is at most ONE short
+  sub-line (or empty). The **caption does the storytelling** the single frame
+  can't. Fill `overlays.cta` as usual.
+- **story**: single vertical frame; keep the hook short and the caption to a
+  line. (Rarely requested — only when the slot explicitly asks for it.)
+
 ## Your task
 
 Write ONE candidate for the idea and slot above.
@@ -95,8 +118,10 @@ Write ONE candidate for the idea and slot above.
 - `hashtags`: an array WITHOUT the `#` — obey the FORMAT SPEC count (TikTok 3–5,
   Instagram under ~8). Lowercase.
 - `overlays.hook`: the ≤110-char scroll-stopper (see the hook bar).
-- `overlays.beats`: 2–4 short on-screen lines that carry the middle of the video,
-  in order. Fragments are good.
+- `overlays.beats`: on-screen lines, in order — the COUNT + role depend on the
+  format (see the FORMAT SPEC section): 3–5 video beats for reel/tiktok_video,
+  5–7 slide texts for carousel (last one a CTA line), ≤1 sub-line for image.
+  Fragments are good.
 - `overlays.cta`: the closing line — the price in exact language + getforevermore.co.
 - `link_utm`: build EXACTLY this, substituting the real platform, pillar, and item id:
   `getforevermore.co?utm_source={platform}&utm_medium=organic&utm_campaign={pillar}&utm_content={item_id}`

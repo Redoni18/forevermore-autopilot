@@ -19,6 +19,7 @@ export async function planStage(ctx) {
     usage,
     cadence: config.cadence,
     slotTimes: config.slot_times,
+    formatMix: config.format_mix,
     timezone: config.timezone,
     startDate: date,
     horizonDays: config.planning_horizon_days,

@@ -63,7 +63,10 @@ export async function renderStage(ctx) {
         });
       }
       const outDir = join(config.resolved.outbox, cur.id, 'assets');
-      const assets = await adapters[route](cur, { config, outDir });
+      // `log` lets adapters record non-fatal notes (e.g. the poster adapter
+      // warns when a carousel is clamped to IG's 10-slide limit); adapters that
+      // don't need it simply ignore the extra opt.
+      const assets = await adapters[route](cur, { config, outDir, log });
       cur = await transitionItem(store, {
         item: cur,
         to: 'rendered',

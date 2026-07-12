@@ -14,7 +14,14 @@
 
 import { addDays, zonedISO } from '../util/time.mjs';
 import { itemId, candidateGroupId } from '../util/ids.mjs';
-import { ideaEligibleFor, formatFor, riskFor, baseScore } from './ideas.mjs';
+import {
+  ideaEligibleFor,
+  riskFor,
+  baseScore,
+  formatForSlot,
+  formatPreferenceRank,
+  DEFAULT_FORMAT_MIX,
+} from './ideas.mjs';
 
 /** Recency window (days): an idea used `WINDOW`+ days ago carries no penalty. */
 const RECENCY_WINDOW_DAYS = 30;
@@ -85,6 +92,8 @@ function shell({ id, slot_at, platform, format, idea, cg, producedBy }) {
  * @property {Object<string,{last_used_at?:string, uses?:number}>} [usage]  Recency journal.
  * @property {Object} cadence   { instagram_per_day, tiktok_per_day, candidates_per_slot, quiet_days }
  * @property {Object<string,string>} slotTimes  { instagram:'17:30', tiktok:'19:00' }
+ * @property {Object} [formatMix]  Per-platform, per-ISO-weekday format pattern
+ *   (defaults to {@link DEFAULT_FORMAT_MIX}). The slot's format comes from HERE.
  * @property {string} timezone
  * @property {string} startDate  Run date T; slots are planned for T+1..T+horizon.
  * @property {number} [horizonDays]
@@ -101,6 +110,7 @@ export function planWeek(opts) {
     usage = {},
     cadence,
     slotTimes,
+    formatMix = DEFAULT_FORMAT_MIX,
     timezone,
     startDate,
     horizonDays = 7,
@@ -125,7 +135,8 @@ export function planWeek(opts) {
 
   for (let d = 1; d <= horizonDays; d++) {
     const slotDate = addDays(startDate, d);
-    if (quiet.has(isoWeekday(slotDate))) continue;
+    const weekday = isoWeekday(slotDate);
+    if (quiet.has(weekday)) continue;
 
     // Fixed slot order per day: Instagram then TikTok.
     const slots = [];
@@ -134,12 +145,25 @@ export function planWeek(opts) {
 
     for (const platform of slots) {
       const cg = candidateGroupId(slotDate, platform);
+      // The slot's format comes from the format-mix pattern (AP-820), NOT from
+      // the idea — this is what gives the week planned variety.
+      const format = formatForSlot(platform, weekday, formatMix);
       const pool = ideas.filter((x) => x.active !== false && ideaEligibleFor(x, platform));
 
       const scored = pool
-        .map((idea) => ({ idea, s: baseScore(idea) * recencyPenalty(recency[idea.id], slotDate) }))
-        // Deterministic order: score desc, then id asc as a stable tie-break.
-        .sort((a, b) => b.s - a.s || String(a.idea.id).localeCompare(String(b.idea.id)));
+        .map((idea) => ({
+          idea,
+          rank: formatPreferenceRank(idea, format),
+          s: baseScore(idea) * recencyPenalty(recency[idea.id], slotDate),
+        }))
+        // Deterministic order: format-preference tier first (so a carousel slot
+        // prefers a purpose-built carousel idea), then score desc, then id asc.
+        .sort(
+          (a, b) =>
+            a.rank - b.rank ||
+            b.s - a.s ||
+            String(a.idea.id).localeCompare(String(b.idea.id)),
+        );
 
       // Prefer ideas not yet used this week; fall back to reuse only if the
       // eligible pool is too small to fill the slot with fresh ideas.
@@ -160,7 +184,7 @@ export function planWeek(opts) {
       chosen.forEach((idea, idx) => {
         const id = itemId(slotDate, platform, idx + 1);
         const slot_at = zonedISO(slotDate, slotTimes[platform], timezone);
-        items.push(shell({ id, slot_at, platform, format: formatFor(idea, platform), idea, cg, producedBy }));
+        items.push(shell({ id, slot_at, platform, format, idea, cg, producedBy }));
         recency[idea.id] = slotDate;
         usedThisRun.add(idea.id);
       });
