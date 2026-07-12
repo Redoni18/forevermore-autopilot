@@ -284,3 +284,21 @@ AP-102 ─▶ (D-4 push) ─▶ AP-101 ─▶ AP-502/503/601 ─▶ AP-602/603 �
 AP-701/702 (owner) ────────────────────┘
 metrics (AP-703/704) ─▶ AP-303/304 ─▶ AP-705 ─▶ M2 exit
 ```
+
+## Post-standalone wave (owner-driven, 2026-07-12)
+
+**AP-815 · Close the changes_requested feedback loop — Fable · DONE**
+Station decide() bounces to drafting w/ regenNext; feedback persists in pg
+mode (overlays.__feedback envelope); overlay writes preserve __fileids;
+generate injects inputs.feedback; registry uses store-canonical run ids;
+risk chip relabeled. Found live by the owner's first real change request.
+
+**AP-820 · Format variety — opus-developer · [W 🚀]**
+Weekly format-mix policy in the planner (reels + carousels + statics),
+format-aware idea selection + copywriter specs, multi-slide carousel and
+single-image poster production in the adapter. Owner: "everything is videos."
+
+**AP-821 · Review station UI v2 — opus-developer · [W 🚀]**
+Standard SaaS dashboard restyle (neutral tokens, topbar/sidebar, card rows,
+history view, feedback banners); Gum-press brand styling retired for the
+internal tool. Owner: "too overcooked."
