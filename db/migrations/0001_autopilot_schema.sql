@@ -153,6 +153,12 @@ $$;
 -- Hosted multi-operator mode replaces this one function with a real JWT/
 -- user-table check; every §6 RPC gate already calls through this single
 -- function, so that's a one-function swap, not a call-site change.
+--
+-- SECURITY NOTE (AP-813 validation finding, fixed at integration): this MUST
+-- use session_user, not current_user. Inside a SECURITY DEFINER function
+-- current_user is the function OWNER (postgres), so a current_user check is
+-- always-true dead code when called through the ap_* RPCs. session_user is
+-- the real login identity and survives SET ROLE and definer contexts.
 create or replace function autopilot_private.is_operator()
 returns boolean
 language sql
@@ -160,7 +166,7 @@ set search_path = ''
 stable
 as $$
   select coalesce(current_setting('autopilot.operator', true)::boolean, false)
-    or current_user in ('postgres', 'service_role');
+    or session_user in ('postgres', 'service_role');
 $$;
 
 -- ============================================================================
