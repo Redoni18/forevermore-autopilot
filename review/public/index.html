@@ -3,38 +3,91 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>autopilot — review</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&display=swap" />
+<title>Autopilot review</title>
 <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
 <div id="app">
-  <header class="hd">
-    <div class="hd-left">
-      <span class="coin">♥</span>
-      <h1>autopilot — review</h1>
+  <!-- top bar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+        <span class="nav-toggle-bars" aria-hidden="true"></span>
+      </button>
+      <span class="brand">Autopilot</span>
+      <span class="brand-sub">review</span>
     </div>
-    <div class="hd-right">
-      <span class="hd-date" id="hd-date"></span>
-      <span class="chip pending" id="hd-pending">— pending</span>
-      <span class="chip kill" id="hd-kill" hidden></span>
+    <div class="topbar-right">
+      <span class="topbar-date" id="hd-date"></span>
+      <span class="pill pill-pending" id="hd-pending" title="Items waiting for your review">
+        <span id="hd-pending-count">—</span> pending
+      </span>
+      <span class="kill" id="hd-kill" hidden>
+        <span class="kill-dot" aria-hidden="true"></span>
+        <span class="kill-label" id="hd-kill-label"></span>
+      </span>
+      <button type="button" class="btn btn-ghost btn-icon" id="hd-help" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
+      <button type="button" class="btn btn-ghost" id="hd-refresh" aria-label="Refresh">
+        <span class="refresh-glyph" aria-hidden="true"></span>
+        Refresh
+      </button>
     </div>
   </header>
 
-  <div class="toast" id="toast" hidden></div>
+  <div class="shell">
+    <!-- sidebar -->
+    <nav class="sidebar" id="sidebar" aria-label="Views">
+      <button type="button" class="nav-item is-active" data-view="queue" aria-current="page">
+        <span class="nav-label">Queue</span>
+        <span class="nav-badge" id="nav-queue-badge" hidden>0</span>
+      </button>
+      <button type="button" class="nav-item" data-view="history">
+        <span class="nav-label">History</span>
+      </button>
+      <button type="button" class="nav-item" data-view="planned">
+        <span class="nav-label">Planned</span>
+      </button>
+    </nav>
+    <div class="sidebar-scrim" id="sidebar-scrim" hidden></div>
 
-  <main id="board" aria-live="polite">
-    <div class="loading">loading outbox…</div>
-  </main>
+    <!-- main -->
+    <main class="main" id="main" aria-live="polite">
+      <div class="content" id="content"></div>
+    </main>
+  </div>
 
-  <footer class="kb-help">
-    <span><b>j</b>/<b>k</b> move</span>
-    <span><b>n</b> next group</span>
-    <span><b>a</b> approve</span>
-    <span><b>e</b> edit caption</span>
-    <span><b>c</b> request changes</span>
-    <span><b>r</b> reject</span>
-    <span><b>esc</b> cancel</span>
+  <!-- toast stack (top-right) -->
+  <div class="toast-stack" id="toast-stack" aria-live="assertive" aria-atomic="true"></div>
+
+  <!-- shortcuts cheat sheet -->
+  <div class="cheatsheet" id="cheatsheet" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts" hidden>
+    <div class="cheatsheet-card">
+      <div class="cheatsheet-head">
+        <h2>Keyboard shortcuts</h2>
+        <button type="button" class="btn btn-ghost btn-icon" id="cheatsheet-close" aria-label="Close">✕</button>
+      </div>
+      <dl class="cheatsheet-grid">
+        <div><dt><kbd>j</kbd> <kbd>k</kbd></dt><dd>Move between cards</dd></div>
+        <div><dt><kbd>n</kbd></dt><dd>Next group</dd></div>
+        <div><dt><kbd>a</kbd></dt><dd>Approve</dd></div>
+        <div><dt><kbd>e</kbd></dt><dd>Edit caption</dd></div>
+        <div><dt><kbd>c</kbd></dt><dd>Request changes</dd></div>
+        <div><dt><kbd>r</kbd></dt><dd>Reject</dd></div>
+        <div><dt><kbd>esc</kbd></dt><dd>Cancel / close</dd></div>
+        <div><dt><kbd>?</kbd></dt><dd>Toggle this sheet</dd></div>
+      </dl>
+    </div>
+  </div>
+
+  <!-- footer hint bar -->
+  <footer class="hintbar" id="hintbar">
+    <span><kbd>j</kbd><kbd>k</kbd> move</span>
+    <span><kbd>n</kbd> next group</span>
+    <span><kbd>a</kbd> approve</span>
+    <span><kbd>e</kbd> edit</span>
+    <span><kbd>c</kbd> changes</span>
+    <span><kbd>r</kbd> reject</span>
+    <span class="hintbar-more"><kbd>?</kbd> all shortcuts</span>
   </footer>
 </div>
 <script src="/app.js" type="module"></script>

@@ -1,20 +1,33 @@
-// Autopilot local review station — vanilla JS, no build step, no deps.
-// Talks to GET /api/items + POST /api/decide. See autopilot/review/server.mjs.
+// Autopilot review station — vanilla JS, no build step, no deps.
+// Standard SaaS dashboard UI (AP-821). Talks to GET /api/items + POST
+// /api/decide. See autopilot/review/lib/app.mjs for the API contract.
 
 const REASON_TAGS = ['hook-weak', 'off-voice', 'wrong-world', 'too-salesy', 'timing', 'duplicate', 'other'];
 const PLATFORM_LABELS = { instagram: 'Instagram', tiktok: 'TikTok' };
-const OUTCOME_LABELS = { approved: 'Approved', changes_requested: 'Changes requested', skipped: 'Rejected' };
+const FORMAT_LABELS = { reel: 'Reel', image: 'Image', carousel: 'Carousel', video: 'Video' };
+const OUTCOME_LABELS = {
+  approved: 'Approved',
+  edited: 'Edited & approved',
+  changes_requested: 'Changes requested',
+  rejected: 'Rejected',
+  skipped: 'Rejected',
+};
+const RISK_TOOLTIP =
+  'Risk class controls approval strictness: evergreen may auto-publish at L2 · standard always needs your tap · sensitive requires typed confirmation';
 
 const state = {
-  items: new Map(), // id -> item
-  cardEls: new Map(), // id -> pending card element
-  groupOrder: [], // candidate_group keys, in board render order
-  pendingOrder: [], // pending item ids, in reading order (for j/k)
+  view: 'queue', // queue | history | planned
+  data: null, // last /api/items payload
+  items: new Map(), // id -> item (current view)
+  cardEls: new Map(), // id -> pending card element (current view)
+  groupOrder: [], // candidate_group keys in render order (queue)
+  pendingOrder: [], // pending item ids in reading order (j/k)
   focusId: null,
   busy: new Set(),
 };
 
 const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => [...document.querySelectorAll(sel)];
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // ------------------------------------------------------------------- API
@@ -51,25 +64,48 @@ function formatSlot(iso) {
     weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
   }).format(d);
 }
-function formatTime(iso) {
+function formatDay(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso || '';
+  return new Intl.DateTimeFormat(undefined, { weekday: 'long', month: 'short', day: 'numeric' }).format(d);
+}
+function formatClock(iso) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso || '';
   return new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(d);
 }
+function formatTime(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso || '';
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+  }).format(d);
+}
 function assetUrl(itemId, assetPath) {
   return `/assets/${encodeURIComponent(itemId)}/${assetPath.split('/').map(encodeURIComponent).join('/')}`;
+}
+function dayKey(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return String(iso || '');
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
+function isVideoAsset(asset) {
+  return asset && (asset.kind === 'video' || /\.(mp4|mov|webm|m4v)$/i.test(asset.path || ''));
 }
 
 // -------------------------------------------------------------------- toast
 
-let toastTimer = null;
-function toast(msg, kind = 'ok') {
-  const el = $('#toast');
-  el.textContent = msg;
-  el.hidden = false;
+function toast(msg, kind = 'success') {
+  const stack = $('#toast-stack');
+  const el = document.createElement('div');
   el.className = `toast toast-${kind}`;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.hidden = true; }, 3200);
+  el.textContent = msg;
+  stack.appendChild(el);
+  setTimeout(() => {
+    el.style.transition = 'opacity .2s ease';
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 220);
+  }, kind === 'error' ? 4600 : 3200);
 }
 
 function describeOutcome(result) {
@@ -77,7 +113,7 @@ function describeOutcome(result) {
   const base = {
     approved: 'Approved.',
     edited: 'Approved with edited caption.',
-    changes_requested: 'Changes requested.',
+    changes_requested: 'Changes requested — sent back for a redraft.',
     rejected: 'Rejected.',
   }[d] || 'Saved.';
   const n = result.autoSkipped?.length || 0;
@@ -90,61 +126,78 @@ function renderHeader(data) {
   $('#hd-date').textContent = new Intl.DateTimeFormat(undefined, {
     weekday: 'long', month: 'short', day: 'numeric',
   }).format(new Date());
-  $('#hd-pending').textContent = `${data.pending_count} pending`;
+
+  $('#hd-pending-count').textContent = data.pending_count;
+
+  const badge = $('#nav-queue-badge');
+  if (data.pending_count > 0) {
+    badge.hidden = false;
+    badge.textContent = data.pending_count;
+  } else {
+    badge.hidden = true;
+  }
 
   const killEl = $('#hd-kill');
+  const killLabel = $('#hd-kill-label');
   const killSwitch = data.settings ? data.settings.kill_switch : undefined;
   if (typeof killSwitch === 'boolean') {
     killEl.hidden = false;
-    killEl.textContent = killSwitch ? 'kill switch: ON' : 'kill switch: off';
     killEl.classList.toggle('kill-on', killSwitch);
+    killLabel.textContent = killSwitch ? 'Kill switch on' : 'Live';
   } else {
     killEl.hidden = true;
   }
 }
 
-// --------------------------------------------------------------------- board
+// ------------------------------------------------------------ view routing
 
-function renderBoard(data) {
+function setView(view) {
+  state.view = view;
+  $$('.nav-item').forEach((btn) => {
+    const active = btn.dataset.view === view;
+    btn.classList.toggle('is-active', active);
+    if (active) btn.setAttribute('aria-current', 'page');
+    else btn.removeAttribute('aria-current');
+  });
+  closeSidebar();
+  render();
+}
+
+function render() {
+  if (!state.data) return;
+  if (state.view === 'queue') renderQueue(state.data);
+  else if (state.view === 'history') renderHistory(state.data);
+  else renderPlanned(state.data);
+}
+
+// --------------------------------------------------------------- queue view
+
+function renderQueue(data) {
   state.items = new Map();
   state.cardEls = new Map();
   state.groupOrder = [];
   state.pendingOrder = [];
 
-  const board = $('#board');
-  board.textContent = '';
+  const content = $('#content');
+  content.textContent = '';
 
-  if (!data.groups.length) {
-    board.innerHTML = `<div class="empty">no items in the outbox yet. run <code>generate</code>, or point
-      <code>--outbox</code> at <code>autopilot/fixtures/outbox-sample</code> to try the station.</div>`;
+  const pendingGroups = data.groups.filter((g) => g.pending_count > 0);
+
+  content.appendChild(viewHead('Queue', pendingGroups.length
+    ? `${data.pending_count} item${data.pending_count === 1 ? '' : 's'} awaiting review across ${pendingGroups.length} slot${pendingGroups.length === 1 ? '' : 's'}.`
+    : 'Everything is reviewed.'));
+
+  if (!pendingGroups.length) {
+    content.appendChild(emptyState(
+      'Queue is clear',
+      'No items are waiting for review. New candidates will appear here after the next <code>generate</code> run.',
+    ));
     return;
   }
 
-  for (const group of data.groups) {
+  for (const group of pendingGroups) {
     state.groupOrder.push(group.candidate_group);
-
-    const col = document.createElement('section');
-    col.className = 'group';
-    col.dataset.group = group.candidate_group;
-    col.appendChild(renderGroupHeader(group));
-
-    const stack = document.createElement('div');
-    stack.className = 'stack';
-    col.appendChild(stack);
-
-    for (const item of group.items) {
-      state.items.set(item.id, item);
-      if (item.status === 'pending_review') {
-        const card = buildPendingCard(item);
-        state.cardEls.set(item.id, card);
-        state.pendingOrder.push(item.id);
-        stack.appendChild(card);
-      } else {
-        stack.appendChild(buildDecidedCard(item));
-      }
-    }
-
-    board.appendChild(col);
+    content.appendChild(buildGroupSection(group));
   }
 
   if (!state.focusId || !state.pendingOrder.includes(state.focusId)) {
@@ -153,308 +206,607 @@ function renderBoard(data) {
   applyFocusStyles();
 }
 
-function renderGroupHeader(group) {
+function viewHead(title, sub) {
   const el = document.createElement('div');
-  el.className = 'group-hd';
-  el.innerHTML = `
-    <div class="group-chips">
-      <span class="chip plat">${esc(PLATFORM_LABELS[group.platform] || group.platform)}</span>
-      <span class="chip">${esc(group.format)}</span>
-      ${group.pillar ? `<span class="chip">${esc(group.pillar)}</span>` : ''}
-    </div>
-    <div class="group-slot">${esc(formatSlot(group.slot_at))}</div>
-    <div class="group-count">${group.pending_count}/${group.items.length} pending</div>`;
+  el.className = 'view-head';
+  el.innerHTML = `<div class="view-title">${esc(title)}</div><div class="view-sub">${sub}</div>`;
   return el;
+}
+
+function platformBadge(platform) {
+  const cls = platform === 'instagram' ? 'badge-ig' : platform === 'tiktok' ? 'badge-tt' : 'badge-neutral';
+  return `<span class="badge badge-platform ${cls}">${esc(PLATFORM_LABELS[platform] || platform)}</span>`;
+}
+
+function buildGroupSection(group) {
+  const section = document.createElement('section');
+  section.className = 'group';
+  section.dataset.group = group.candidate_group;
+
+  const head = document.createElement('div');
+  head.className = 'group-head';
+  head.innerHTML = `
+    ${platformBadge(group.platform)}
+    <span class="chip">${esc(FORMAT_LABELS[group.format] || group.format)}</span>
+    <span class="group-slot">${esc(formatSlot(group.slot_at))}</span>
+    <span class="group-progress">${group.pending_count} of ${group.items.length} pending</span>`;
+  section.appendChild(head);
+
+  const cards = document.createElement('div');
+  cards.className = 'group-cards';
+  for (const item of group.items) {
+    state.items.set(item.id, item);
+    if (item.status === 'pending_review') {
+      const wrap = buildPendingCard(item);
+      cards.appendChild(wrap);
+    }
+    // decided siblings within a still-pending group are intentionally hidden
+    // from Queue; they live in History. The "n of m pending" count above still
+    // reflects them so the slot's full picture stays legible.
+  }
+  section.appendChild(cards);
+  return section;
 }
 
 // ------------------------------------------------------------- pending card
 
 function renderMedia(item) {
-  const asset = item.assets && item.assets[0];
-  if (!asset) return `<div class="media no-asset">no asset</div>`;
-  const ratio = asset.w && asset.h ? `${asset.w} / ${asset.h}` : '9 / 16';
-  const url = assetUrl(item.id, asset.path);
-  const altText = esc(item.overlays?.hook || 'candidate preview');
-  if (asset.kind === 'video') {
-    return `<div class="media" style="aspect-ratio:${ratio}">
-      <video muted loop autoplay playsinline controls preload="metadata" src="${url}"></video>
+  const assets = Array.isArray(item.assets) ? item.assets : [];
+  const first = assets[0];
+  if (!first) return `<div class="media-frame no-asset">no asset</div>`;
+
+  const isCarousel = item.format === 'carousel' || assets.length > 1;
+  const url = assetUrl(item.id, first.path);
+  const alt = esc(item.overlays?.hook || 'candidate preview');
+
+  if (isVideoAsset(first)) {
+    const dur = first.dur_s ? `<span class="media-dur">${first.dur_s}s</span>` : '';
+    return `<div class="media-frame" data-media="video">
+      <video muted loop playsinline preload="metadata" src="${url}"></video>
+      <span class="media-play" aria-hidden="true"></span>${dur}
     </div>`;
   }
-  return `<div class="media" style="aspect-ratio:${ratio}"><img src="${url}" alt="${altText}" loading="lazy" /></div>`;
+
+  const countBadge = isCarousel ? `<span class="media-count">${assets.length} slide${assets.length > 1 ? 's' : ''}</span>` : '';
+  return `<div class="media-frame" data-media="${isCarousel ? 'carousel' : 'image'}">
+    <img src="${url}" alt="${alt}" loading="lazy" />${countBadge}
+  </div>`;
 }
 
-function renderLintBadge(lint) {
+function renderSlideStrip(item) {
+  const assets = Array.isArray(item.assets) ? item.assets : [];
+  if (!(item.format === 'carousel' || assets.length > 1)) return '';
+  const thumbs = assets.map((a, i) => {
+    const url = assetUrl(item.id, a.path);
+    return `<button type="button" class="slide-thumb${i === 0 ? ' is-active' : ''}" data-slide="${i}" aria-label="Slide ${i + 1}">
+      <img src="${url}" alt="Slide ${i + 1}" loading="lazy" />
+    </button>`;
+  }).join('');
+  return `<div class="slide-strip" hidden>${thumbs}</div>`;
+}
+
+function renderLint(lint) {
   const violations = lint?.violations || [];
   const hasBlock = violations.some((v) => v.severity === 'block');
   const hasWarn = violations.some((v) => v.severity === 'warn');
   const level = hasBlock ? 'block' : hasWarn ? 'warn' : 'pass';
-  const label = level === 'pass'
-    ? 'lint pass'
-    : `${violations.length} ${level === 'warn' ? 'warning' : 'blocker'}${violations.length > 1 ? 's' : ''}`;
-  const list = violations.length
-    ? `<ul class="lint-list">${violations.map((v) => `<li><b>${esc(v.rule)}</b> — ${esc(v.excerpt || '')}</li>`).join('')}</ul>`
-    : '';
-  return `<div class="lint-badge lint-${level}"><span class="lint-dot"></span>${esc(label)}${list}</div>`;
+  if (level === 'pass') {
+    return `<span class="lint lint-pass"><span class="lint-summary">Lint pass</span></span>`;
+  }
+  const label = `${violations.length} ${level === 'warn' ? 'warning' : 'blocker'}${violations.length > 1 ? 's' : ''}`;
+  const list = violations.map((v) => `<li><b>${esc(v.rule)}</b> — ${esc(v.excerpt || '')}</li>`).join('');
+  return `<details class="lint lint-${level}">
+    <summary class="lint-summary">${esc(label)}</summary>
+    <ul class="lint-list">${list}</ul>
+  </details>`;
 }
 
-function renderDedupeNote(dedupe) {
+function renderDedupe(dedupe) {
   if (!dedupe) return '';
   const sim = dedupe.hook_sim ?? 0;
   const pct = Math.round(sim * 100);
   const level = sim >= 0.55 ? 'hot' : sim >= 0.4 ? 'warm' : 'cool';
-  const near = dedupe.nearest_item ? ` vs ${esc(dedupe.nearest_item)}` : ' (no close match)';
-  return `<span class="dedupe dedupe-${level}">similarity ${pct}%${near}</span>`;
+  const near = dedupe.nearest_item ? ` vs ${esc(dedupe.nearest_item)}` : '';
+  return `<span class="dedupe dedupe-${level}">dedupe ${pct}%${near}</span>`;
+}
+
+function renderFeedbackBanner(item) {
+  const fb = item.feedback;
+  if (!fb) return '';
+  const attempt = item.attempt || 1;
+  const tags = (fb.reason_tags || []).length
+    ? `<div class="feedback-tags">${fb.reason_tags.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>`
+    : '';
+  const note = fb.note ? `<div class="feedback-note">"${esc(fb.note)}"</div>` : '';
+  const detail = tags || note;
+  return `<details class="feedback-banner">
+    <summary>Feedback addressed — attempt ${attempt}</summary>
+    ${detail || '<div class="feedback-note">Previous note: (tags only)</div>'}
+  </details>`;
 }
 
 function buildPendingCard(item) {
+  const wrap = document.createElement('div');
+  wrap.className = 'card-wrap';
+  wrap.dataset.id = item.id;
+
   const card = document.createElement('article');
-  card.className = 'card pending';
+  card.className = 'card';
   card.dataset.id = item.id;
-  if (item.risk === 'sensitive') card.classList.add('sensitive');
+  if (item.risk === 'sensitive') card.classList.add('is-sensitive');
+
+  const attemptBadge = (item.attempt || 1) > 1
+    ? `<span class="chip attempt-badge">attempt ${item.attempt}</span>` : '';
 
   card.innerHTML = `
-    ${item.risk === 'sensitive' ? `
-      <div class="sensitive-banner">
-        <span>Sensitive — memorial / kids / UGC risk</span>
-        <div class="confirm-row">
-          <input type="text" class="confirm-input" placeholder="type CONFIRM to unlock actions" autocomplete="off" spellcheck="false" />
-        </div>
+    <div class="card-media">
+      <div class="media-wrap">${renderMedia(item)}</div>
+      ${renderSlideStrip(item)}
+    </div>
+    <div class="card-body">
+      <div class="card-hook">${esc(item.overlays?.hook || '(no hook)')}</div>
+      ${renderFeedbackBanner(item)}
+      ${item.risk === 'sensitive' ? `
+      <div class="sensitive-gate">
+        <div class="sensitive-gate-label">Sensitive — memorial / kids / UGC. Type CONFIRM to unlock actions.</div>
+        <input type="text" class="confirm-input" placeholder="type CONFIRM" autocomplete="off" spellcheck="false" aria-label="Type CONFIRM to unlock actions" />
       </div>` : ''}
-    <div class="media-wrap">${renderMedia(item)}</div>
-    <div class="hook">${esc(item.overlays?.hook || '')}</div>
-    <div class="caption-block">
-      <textarea class="caption-edit" rows="3">${esc(item.caption || '')}</textarea>
-      <div class="caption-hint">click caption or press <kbd>e</kbd> to edit</div>
-    </div>
-    <div class="meta-row">
-      ${renderLintBadge(item.lint)}
-      ${renderDedupeNote(item.dedupe)}
-    </div>
-    <div class="chips chips-meta">
-      <span class="chip">${esc(PLATFORM_LABELS[item.platform] || item.platform)}</span>
-      <span class="chip">${esc(item.format)}</span>
-      ${item.pillar ? `<span class="chip">${esc(item.pillar)}</span>` : ''}
-      <span class="chip risk-${esc(item.risk)}" title="Risk class controls approval strictness: evergreen may auto-publish at L2 · standard always needs your tap · sensitive requires typed confirmation">risk: ${esc(item.risk)}</span>
-      ${item.hashtags?.length ? `<span class="chip hashtags">${item.hashtags.length} tag${item.hashtags.length > 1 ? 's' : ''}</span>` : ''}
-    </div>
-    <div class="actions">
-      <button type="button" class="btn approve" data-action="approve">Approve <kbd>a</kbd></button>
-      <button type="button" class="btn edit" data-action="edit">Edit <kbd>e</kbd></button>
-      <button type="button" class="btn changes" data-action="changes_requested">Request changes <kbd>c</kbd></button>
-      <button type="button" class="btn reject" data-action="rejected">Reject <kbd>r</kbd></button>
-    </div>
-    <div class="reason-panel" hidden>
-      <div class="reason-chips">${REASON_TAGS.map((t) => `<button type="button" class="reason-chip" data-tag="${t}">${t}</button>`).join('')}</div>
-      <textarea class="note-box" placeholder="optional note… (required if you pick 'other')"></textarea>
-      <div class="panel-error" hidden></div>
-      <div class="reason-actions">
-        <button type="button" class="btn ghost" data-action="cancel-reason">Cancel <kbd>esc</kbd></button>
-        <button type="button" class="btn submit-reason" data-action="submit-reason">Submit</button>
+      <div class="caption">
+        <div class="caption-display${item.caption ? '' : ' is-empty'}" role="textbox" tabindex="0" aria-label="Caption, click to edit">${esc(item.caption || '(no caption — click to add)')}</div>
+      </div>
+      <div class="card-meta">
+        ${item.pillar ? `<span class="chip chip-strong">${esc(item.pillar)}</span>` : ''}
+        <span class="chip risk-chip risk-${esc(item.risk)}" title="${esc(RISK_TOOLTIP)}">risk: ${esc(item.risk)}</span>
+        ${attemptBadge}
+        ${renderLint(item.lint)}
+        ${renderDedupe(item.dedupe)}
+        ${item.hashtags?.length ? `<span class="chip">${item.hashtags.length} tag${item.hashtags.length > 1 ? 's' : ''}</span>` : ''}
       </div>
     </div>
-    <div class="card-error" hidden></div>`;
+    <div class="card-actions">
+      <button type="button" class="btn btn-primary" data-action="approve" aria-label="Approve">Approve <kbd>a</kbd></button>
+      <button type="button" class="btn" data-action="edit" aria-label="Edit and approve">Edit & approve <kbd>e</kbd></button>
+      <button type="button" class="btn" data-action="changes_requested" aria-label="Request changes">Request changes <kbd>c</kbd></button>
+      <button type="button" class="btn btn-danger-ghost" data-action="rejected" aria-label="Reject">Reject <kbd>r</kbd></button>
+    </div>`;
 
-  wirePendingCard(card, item);
-  return card;
+  wrap.appendChild(card);
+
+  const panel = document.createElement('div');
+  panel.className = 'reason-panel';
+  panel.hidden = true;
+  panel.innerHTML = `
+    <div class="reason-panel-title"></div>
+    <div class="reason-chips">${REASON_TAGS.map((t) => `<button type="button" class="reason-chip" data-tag="${t}">${t}</button>`).join('')}</div>
+    <textarea class="note-box" placeholder="Optional note (required if you pick 'other')" aria-label="Note"></textarea>
+    <div class="reason-error" hidden></div>
+    <div class="reason-actions">
+      <button type="button" class="btn" data-action="cancel-reason">Cancel <kbd>esc</kbd></button>
+      <button type="button" class="btn btn-primary" data-action="submit-reason">Submit</button>
+    </div>`;
+  wrap.appendChild(panel);
+
+  const errEl = document.createElement('div');
+  errEl.className = 'card-error';
+  errEl.hidden = true;
+  wrap.appendChild(errEl);
+
+  state.cardEls.set(item.id, card);
+  state.pendingOrder.push(item.id);
+  wirePendingCard(wrap, card, item);
+  return wrap;
 }
 
-function wirePendingCard(card, item) {
+function wirePendingCard(wrap, card, item) {
   const originalCaption = item.caption || '';
-  const captionBlock = card.querySelector('.caption-block');
-  const captionEdit = card.querySelector('.caption-edit');
-  const reasonPanel = card.querySelector('.reason-panel');
+  const captionWrap = card.querySelector('.caption');
+  const display = card.querySelector('.caption-display');
+  const panel = wrap.querySelector('.reason-panel');
 
-  card.addEventListener('click', () => {
+  // Any interaction with the card makes it the keyboard-focused card. Fields
+  // and the caption editor manage their own text focus on top of this.
+  card.addEventListener('mousedown', () => {
     state.focusId = item.id;
     applyFocusStyles();
   });
 
-  // Clicking anywhere in the caption block (not just the exact <textarea>
-  // rect — including the hint text under it) focuses the editor. This
-  // matters: if a click narrowly misses the textarea, the page never gains
-  // field focus, and the next keystrokes of an intended caption edit would
-  // instead fire the global j/k/n/a/e/c/r shortcuts (e.g. an 'a' typed as
-  // part of a normal sentence would silently approve the card).
-  captionBlock.addEventListener('click', (e) => {
-    if (e.target !== captionEdit) captionEdit.focus();
+  // caption click-to-edit: display div -> textarea, exactly like before.
+  display.addEventListener('click', () => enterCaptionEdit(card, originalCaption));
+  display.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); enterCaptionEdit(card, originalCaption); }
   });
 
-  captionEdit.addEventListener('input', () => {
-    captionBlock.classList.toggle('dirty', captionEdit.value !== originalCaption);
-  });
+  // media: video play toggle + carousel slide strip
+  wireMedia(card, item);
 
   if (item.risk === 'sensitive') {
     const confirmInput = card.querySelector('.confirm-input');
-    const actionButtons = card.querySelectorAll('.actions .btn');
+    const actionButtons = card.querySelectorAll('.card-actions .btn');
     actionButtons.forEach((b) => { b.disabled = true; });
     confirmInput.addEventListener('input', () => {
       const ok = confirmInput.value === 'CONFIRM';
-      card.classList.toggle('confirmed', ok);
+      card.classList.toggle('is-confirmed', ok);
       actionButtons.forEach((b) => { b.disabled = !ok; });
     });
   }
 
-  card.querySelector('[data-action="approve"]').addEventListener('click', () => submitApprove(card, item));
-  card.querySelector('[data-action="edit"]').addEventListener('click', () => focusCaptionEditor(card));
-  card.querySelector('[data-action="changes_requested"]').addEventListener('click', () => openReasonPanel(card, 'changes_requested'));
-  card.querySelector('[data-action="rejected"]').addEventListener('click', () => openReasonPanel(card, 'rejected'));
-  card.querySelector('[data-action="cancel-reason"]').addEventListener('click', () => closeReasonPanel(card));
-  card.querySelector('[data-action="submit-reason"]').addEventListener('click', () => submitReasonPanel(card, item));
-
-  reasonPanel.querySelectorAll('.reason-chip').forEach((chip) => {
-    chip.addEventListener('click', () => chip.classList.toggle('selected'));
+  card.querySelector('[data-action="approve"]').addEventListener('click', () => submitApprove(wrap, card, item));
+  card.querySelector('[data-action="edit"]').addEventListener('click', () => enterCaptionEdit(card, originalCaption, true));
+  card.querySelector('[data-action="changes_requested"]').addEventListener('click', () => openReasonPanel(wrap, card, 'changes_requested'));
+  card.querySelector('[data-action="rejected"]').addEventListener('click', () => openReasonPanel(wrap, card, 'rejected'));
+  panel.querySelector('[data-action="cancel-reason"]').addEventListener('click', () => closeReasonPanel(wrap, card));
+  panel.querySelector('[data-action="submit-reason"]').addEventListener('click', () => submitReasonPanel(wrap, card, item));
+  panel.querySelectorAll('.reason-chip').forEach((chip) => {
+    chip.addEventListener('click', () => chip.classList.toggle('is-selected'));
   });
+
+  // keep originalCaption + dirty-tracking accessible on the card element
+  card._originalCaption = originalCaption;
 }
 
-function focusCaptionEditor(card) {
-  const el = card.querySelector('.caption-edit');
-  el.focus();
-  el.setSelectionRange(el.value.length, el.value.length);
+function wireMedia(card, item) {
+  const frame = card.querySelector('.media-frame');
+  if (!frame) return;
+  const video = frame.querySelector('video');
+  if (video) {
+    frame.addEventListener('click', () => {
+      if (video.paused) {
+        video.play().then(() => frame.classList.add('is-playing')).catch(() => {});
+      } else {
+        video.pause();
+        frame.classList.remove('is-playing');
+      }
+    });
+    video.addEventListener('pause', () => frame.classList.remove('is-playing'));
+    video.addEventListener('ended', () => frame.classList.remove('is-playing'));
+    return;
+  }
+  // carousel: click cover toggles the slide strip; strip thumbs swap the cover
+  const strip = card.querySelector('.slide-strip');
+  if (strip) {
+    const cover = frame.querySelector('img');
+    frame.addEventListener('click', () => { strip.hidden = !strip.hidden; });
+    strip.querySelectorAll('.slide-thumb').forEach((thumb, i) => {
+      thumb.addEventListener('click', () => {
+        const src = thumb.querySelector('img').src;
+        if (cover) cover.src = src;
+        strip.querySelectorAll('.slide-thumb').forEach((t) => t.classList.remove('is-active'));
+        thumb.classList.add('is-active');
+      });
+    });
+  }
 }
+
+// caption editing --------------------------------------------------
+
+function enterCaptionEdit(card, originalCaption, selectEnd = false) {
+  const captionWrap = card.querySelector('.caption');
+  if (captionWrap.querySelector('.caption-edit')) {
+    captionWrap.querySelector('.caption-edit').focus();
+    return;
+  }
+  const display = captionWrap.querySelector('.caption-display');
+  const ta = document.createElement('textarea');
+  ta.className = 'caption-edit';
+  ta.value = card._originalCaption ?? originalCaption;
+  ta.rows = 3;
+  const hint = document.createElement('div');
+  hint.className = 'caption-editing-hint';
+  hint.textContent = 'Editing caption — approve to save your edit, or press esc to revert.';
+
+  display.hidden = true;
+  captionWrap.appendChild(ta);
+  captionWrap.appendChild(hint);
+
+  ta.addEventListener('input', () => {
+    captionWrap.classList.toggle('is-dirty', ta.value !== (card._originalCaption ?? originalCaption));
+    display.textContent = ta.value || '(no caption — click to add)';
+    display.classList.toggle('is-empty', !ta.value);
+  });
+  ta.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { e.stopPropagation(); exitCaptionEdit(card, true); }
+  });
+
+  ta.focus();
+  if (selectEnd) ta.setSelectionRange(ta.value.length, ta.value.length);
+  card._captionDirty = () => captionWrap.classList.contains('is-dirty');
+  card._captionValue = () => ta.value;
+}
+
+function exitCaptionEdit(card, revert = false) {
+  const captionWrap = card.querySelector('.caption');
+  const ta = captionWrap.querySelector('.caption-edit');
+  const hint = captionWrap.querySelector('.caption-editing-hint');
+  const display = captionWrap.querySelector('.caption-display');
+  if (!ta) return;
+  if (revert) {
+    display.textContent = card._originalCaption || '(no caption — click to add)';
+    display.classList.toggle('is-empty', !card._originalCaption);
+    captionWrap.classList.remove('is-dirty');
+  }
+  ta.remove();
+  hint?.remove();
+  display.hidden = false;
+}
+
+// sensitive gate ---------------------------------------------------
 
 function guardSensitive(card, item) {
-  if (item.risk !== 'sensitive' || card.classList.contains('confirmed')) return true;
+  if (item.risk !== 'sensitive' || card.classList.contains('is-confirmed')) return true;
   const input = card.querySelector('.confirm-input');
   if (input) {
     input.focus();
     input.classList.remove('shake');
-    // eslint-disable-next-line no-unused-expressions
     void input.offsetWidth; // restart the animation on repeated attempts
     input.classList.add('shake');
   }
   return false;
 }
 
-function openReasonPanel(card, decisionType) {
-  const panel = card.querySelector('.reason-panel');
+// reason panel -----------------------------------------------------
+
+function openReasonPanel(wrap, card, decisionType) {
+  if (!guardSensitive(card, item(card))) return;
+  const panel = wrap.querySelector('.reason-panel');
   panel.dataset.decision = decisionType;
   panel.hidden = false;
-  panel.querySelectorAll('.reason-chip').forEach((b) => b.classList.remove('selected'));
+  panel.querySelector('.reason-panel-title').textContent =
+    decisionType === 'rejected' ? 'Reject — why?' : 'Request changes — what should improve?';
+  panel.querySelectorAll('.reason-chip').forEach((b) => b.classList.remove('is-selected'));
   panel.querySelector('.note-box').value = '';
-  panel.querySelector('.panel-error').hidden = true;
-  card.classList.add('panel-open');
+  panel.querySelector('.reason-error').hidden = true;
+  card.classList.add('is-panel-open');
   panel.querySelector('.note-box').focus();
 }
 
-function closeReasonPanel(card) {
-  const panel = card.querySelector('.reason-panel');
+function closeReasonPanel(wrap, card) {
+  const panel = wrap.querySelector('.reason-panel');
   panel.hidden = true;
-  card.classList.remove('panel-open');
+  card.classList.remove('is-panel-open');
 }
 
-function submitApprove(card, item) {
-  const dirty = card.querySelector('.caption-block').classList.contains('dirty');
-  const captionAfter = card.querySelector('.caption-edit').value;
-  if (dirty) attemptDecide(card, item, 'edited', { captionAfter });
-  else attemptDecide(card, item, 'approved');
+function item(card) {
+  return state.items.get(card.dataset.id);
 }
 
-function submitReasonPanel(card, item) {
-  const panel = card.querySelector('.reason-panel');
+function submitApprove(wrap, card, it) {
+  const dirty = typeof card._captionDirty === 'function' && card._captionDirty();
+  if (dirty) {
+    const captionAfter = card._captionValue();
+    attemptDecide(wrap, card, it, 'edited', { captionAfter });
+  } else {
+    attemptDecide(wrap, card, it, 'approved');
+  }
+}
+
+function submitReasonPanel(wrap, card, it) {
+  const panel = wrap.querySelector('.reason-panel');
   const decisionType = panel.dataset.decision;
-  const tags = [...panel.querySelectorAll('.reason-chip.selected')].map((b) => b.dataset.tag);
+  const tags = [...panel.querySelectorAll('.reason-chip.is-selected')].map((b) => b.dataset.tag);
   const note = panel.querySelector('.note-box').value.trim();
-  const errEl = panel.querySelector('.panel-error');
+  const errEl = panel.querySelector('.reason-error');
 
   if (!tags.length && !note) {
-    errEl.textContent = 'pick at least one reason tag or add a note.';
+    errEl.textContent = 'Pick at least one reason tag or add a note.';
     errEl.hidden = false;
     return;
   }
   if (tags.includes('other') && !note) {
-    errEl.textContent = "add a note explaining 'other'.";
+    errEl.textContent = "Add a note explaining 'other'.";
     errEl.hidden = false;
     return;
   }
   errEl.hidden = true;
-  attemptDecide(card, item, decisionType, { reasonTags: tags, note: note || null });
+  attemptDecide(wrap, card, it, decisionType, { reasonTags: tags, note: note || null });
 }
 
-async function attemptDecide(card, item, decision, extra = {}) {
-  if (!guardSensitive(card, item)) return;
-  if (state.busy.has(item.id)) return;
+async function attemptDecide(wrap, card, it, decision, extra = {}) {
+  if (!guardSensitive(card, it)) return;
+  if (state.busy.has(it.id)) return;
 
-  state.busy.add(item.id);
-  card.classList.add('busy');
-  clearCardError(card);
+  state.busy.add(it.id);
+  card.classList.add('is-busy');
+  clearCardError(wrap);
 
   try {
     const result = await API.decide({
-      itemId: item.id,
+      itemId: it.id,
       decision,
       reasonTags: extra.reasonTags || [],
       note: extra.note ?? null,
       captionAfter: extra.captionAfter ?? null,
     });
-    toast(describeOutcome(result));
+    toast(describeOutcome(result), 'success');
     await reload();
   } catch (err) {
-    showCardError(card, err.message || 'failed to save decision');
+    showCardError(wrap, err.message || 'Failed to save decision.');
+    toast(err.message || 'Failed to save decision.', 'error');
   } finally {
-    state.busy.delete(item.id);
-    card.classList.remove('busy');
+    state.busy.delete(it.id);
+    card.classList.remove('is-busy');
   }
 }
 
-function showCardError(card, msg) {
-  const el = card.querySelector('.card-error');
+function showCardError(wrap, msg) {
+  const el = wrap.querySelector('.card-error');
   if (!el) return;
   el.textContent = msg;
   el.hidden = false;
 }
-function clearCardError(card) {
-  const el = card?.querySelector('.card-error');
+function clearCardError(wrap) {
+  const el = wrap?.querySelector('.card-error');
   if (el) el.hidden = true;
 }
 
-// ------------------------------------------------------------- decided card
+// ------------------------------------------------------------- history view
 
-function renderCaptionDiff(diff) {
-  return `<div class="caption-diff">
-    <div class="diff-before"><span class="diff-label">before</span>${esc(diff.before)}</div>
-    <div class="diff-after"><span class="diff-label">after</span>${esc(diff.after)}</div>
+function renderHistory(data) {
+  const content = $('#content');
+  content.textContent = '';
+
+  const decided = data.groups
+    .flatMap((g) => g.items)
+    .filter((i) => i.decision)
+    .sort((a, b) => new Date(b.decision.decided_at || 0) - new Date(a.decision.decided_at || 0));
+
+  content.appendChild(viewHead('History',
+    decided.length ? `${decided.length} decision${decided.length === 1 ? '' : 's'}, newest first.` : 'No decisions yet.'));
+
+  if (!decided.length) {
+    content.appendChild(emptyState('No decisions yet', 'Approvals, edits and rejections will show up here once you start reviewing.'));
+    return;
+  }
+
+  const list = document.createElement('div');
+  list.className = 'history-list';
+  for (const it of decided) list.appendChild(buildHistoryRow(it));
+  content.appendChild(list);
+}
+
+function buildHistoryRow(it) {
+  const d = it.decision || {};
+  let decisionKey = d.decision || it.status;
+  if (it.status === 'skipped' && d.reason_tags?.includes('candidate-not-chosen')) decisionKey = 'skipped';
+  const label = OUTCOME_LABELS[decisionKey] || OUTCOME_LABELS[it.status] || it.status;
+  const autoSkip = d.reason_tags?.includes('candidate-not-chosen');
+
+  const row = document.createElement('div');
+  row.className = `history-row decision-${decisionKey}`;
+
+  const tags = (d.reason_tags || []).filter((t) => t !== 'candidate-not-chosen');
+  const detailBits = [];
+  if (tags.length) detailBits.push(`<div class="history-tags">${tags.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>`);
+  if (d.note) detailBits.push(`<div class="note-quote">"${esc(d.note)}"</div>`);
+  if (d.caption_diff) {
+    detailBits.push(`<div class="caption-diff">
+      <div class="diff-line diff-before"><span class="diff-label">before</span>${esc(d.caption_diff.before)}</div>
+      <div class="diff-line diff-after"><span class="diff-label">after</span>${esc(d.caption_diff.after)}</div>
+    </div>`);
+  } else if (it.caption) {
+    detailBits.push(`<div>${esc(it.caption)}</div>`);
+  }
+  if (it.feedback) {
+    detailBits.push(`<div class="note-quote">feedback for redraft: ${esc(it.feedback.note || '(tags only)')}</div>`);
+  }
+
+  row.innerHTML = `
+    <button type="button" class="history-summary" aria-expanded="false">
+      <span class="decision-dot" aria-hidden="true"></span>
+      <span class="history-hook">${esc(it.overlays?.hook || it.caption || it.id)}</span>
+      <span class="history-id">${esc(it.id)}</span>
+      <span class="history-decision">${esc(label)}${autoSkip ? ' (auto)' : ''}</span>
+      <span class="history-via">${esc(d.via || '')}</span>
+      <span class="history-time">${d.decided_at ? formatTime(d.decided_at) : ''}</span>
+      <span class="history-chev" aria-hidden="true">▸</span>
+    </button>
+    <div class="history-detail" hidden>${detailBits.join('') || '<div class="note-quote">No note recorded.</div>'}</div>`;
+
+  const summary = row.querySelector('.history-summary');
+  const detail = row.querySelector('.history-detail');
+  summary.addEventListener('click', () => {
+    const open = detail.hidden;
+    detail.hidden = !open;
+    row.classList.toggle('is-open', open);
+    summary.setAttribute('aria-expanded', String(open));
+  });
+  return row;
+}
+
+// ------------------------------------------------------------- planned view
+
+function renderPlanned(data) {
+  const content = $('#content');
+  content.textContent = '';
+
+  // Upcoming shells = candidate groups that still have work to do (anything not
+  // fully decided). Grouped by the calendar day of their slot, soonest first.
+  const shells = data.groups
+    .filter((g) => g.items.some((i) => i.status !== 'skipped' && i.status !== 'archived' && i.status !== 'measured'))
+    .slice()
+    .sort((a, b) => new Date(a.slot_at) - new Date(b.slot_at));
+
+  content.appendChild(viewHead('Planned',
+    shells.length ? `${shells.length} upcoming slot${shells.length === 1 ? '' : 's'} on the schedule.` : 'Nothing scheduled.'));
+
+  if (!shells.length) {
+    content.appendChild(emptyState('Nothing planned', 'Scheduled slots will appear here as the planner fills the calendar.'));
+    return;
+  }
+
+  const byDay = new Map();
+  for (const g of shells) {
+    const key = dayKey(g.slot_at);
+    if (!byDay.has(key)) byDay.set(key, { label: formatDay(g.slot_at), groups: [] });
+    byDay.get(key).groups.push(g);
+  }
+
+  for (const { label, groups } of byDay.values()) {
+    const dayEl = document.createElement('div');
+    dayEl.className = 'day-group';
+    const grid = groups.map(buildShellCard).join('');
+    dayEl.innerHTML = `<div class="day-head">${esc(label)}</div><div class="shell-grid">${grid}</div>`;
+    content.appendChild(dayEl);
+  }
+}
+
+function buildShellCard(group) {
+  const pending = group.items.filter((i) => i.status === 'pending_review').length;
+  const approved = group.items.filter((i) => i.status === 'approved' || i.status === 'scheduled' || i.status === 'published').length;
+  const other = group.items.length - pending - approved;
+  const bits = [];
+  if (pending) bits.push(`<span class="dot pending">${pending} pending</span>`);
+  if (approved) bits.push(`<span class="dot approved">${approved} approved</span>`);
+  if (other) bits.push(`<span class="dot other">${other} other</span>`);
+  return `<div class="slot-shell">
+    <div class="shell-head">
+      ${platformBadge(group.platform)}
+      <span class="chip">${esc(FORMAT_LABELS[group.format] || group.format)}</span>
+      <span class="shell-time">${esc(formatClock(group.slot_at))}</span>
+    </div>
+    <div class="shell-status">${bits.join('') || '<span class="dot other">no items</span>'}</div>
   </div>`;
 }
 
-function buildDecidedCard(item) {
-  const card = document.createElement('article');
-  card.className = `card decided outcome-${item.status}`;
-  card.dataset.id = item.id;
+// -------------------------------------------------------------- shared UI
 
-  const d = item.decision || {};
-  let outcomeLabel = OUTCOME_LABELS[item.status] || item.status;
-  if (item.status === 'approved' && d.decision === 'edited') outcomeLabel = 'Edited & approved';
-  if (item.status === 'skipped' && d.reason_tags?.includes('candidate-not-chosen')) outcomeLabel = 'Not chosen (auto)';
+function emptyState(title, htmlBody, isError = false) {
+  const el = document.createElement('div');
+  el.className = `empty${isError ? ' is-error' : ''}`;
+  el.innerHTML = `<div class="empty-title">${esc(title)}</div><div>${htmlBody}</div>`;
+  return el;
+}
 
-  card.innerHTML = `
-    <button type="button" class="decided-summary">
-      <span class="outcome-dot"></span>
-      <span class="outcome-label">${esc(outcomeLabel)}</span>
-      <span class="outcome-time">${d.decided_at ? formatTime(d.decided_at) : ''}</span>
-      <span class="chev">details</span>
-    </button>
-    <div class="decided-detail" hidden>
-      <div class="hook">${esc(item.overlays?.hook || '')}</div>
-      ${d.reason_tags?.length ? `<div class="chips">${d.reason_tags.map((t) => `<span class="chip">${esc(t)}</span>`).join('')}</div>` : ''}
-      ${d.note ? `<div class="note-quote">"${esc(d.note)}"</div>` : ''}
-      ${d.caption_diff ? renderCaptionDiff(d.caption_diff) : `<div class="caption-final">${esc(item.caption || '')}</div>`}
-      ${item.feedback ? `<div class="feedback"><b>feedback:</b> ${esc(item.feedback.note || '(tags only, no note)')}</div>` : ''}
+function renderSkeleton() {
+  const content = $('#content');
+  content.innerHTML = `
+    <div class="view-head"><div class="view-title">Queue</div></div>
+    <div class="skeleton">
+      ${[0, 1].map(() => `
+        <div class="sk-group">
+          <div class="sk-head"></div>
+          ${[0, 1].map(() => `
+            <div class="sk-card">
+              <div class="sk-media"></div>
+              <div class="sk-body">
+                <div class="sk-line w-70"></div>
+                <div class="sk-line w-90"></div>
+                <div class="sk-line w-50"></div>
+                <div class="sk-line w-40"></div>
+              </div>
+              <div class="sk-actions">
+                <div class="sk-btn"></div><div class="sk-btn"></div><div class="sk-btn"></div>
+              </div>
+            </div>`).join('')}
+        </div>`).join('')}
     </div>`;
-
-  card.querySelector('.decided-summary').addEventListener('click', () => {
-    const detail = card.querySelector('.decided-detail');
-    detail.hidden = !detail.hidden;
-  });
-
-  return card;
 }
 
 // -------------------------------------------------------------- keyboard nav
 
 function applyFocusStyles() {
-  document.querySelectorAll('.card.focused').forEach((c) => c.classList.remove('focused'));
+  document.querySelectorAll('.card.is-focused').forEach((c) => c.classList.remove('is-focused'));
   const el = state.focusId ? state.cardEls.get(state.focusId) : null;
-  if (el) el.classList.add('focused');
+  if (el) el.classList.add('is-focused');
 }
 
 function scrollFocusedIntoView() {
@@ -494,11 +846,12 @@ function jumpNextGroup() {
   }
 }
 
-function focusedCardAndItem() {
+function focusedCtx() {
   if (!state.focusId) return null;
-  const item = state.items.get(state.focusId);
+  const it = state.items.get(state.focusId);
   const card = state.cardEls.get(state.focusId);
-  return item && card ? { item, card } : null;
+  if (!it || !card) return null;
+  return { item: it, card, wrap: card.closest('.card-wrap') };
 }
 
 function wireGlobalKeyboard() {
@@ -507,27 +860,58 @@ function wireGlobalKeyboard() {
     const inField = active && (active.tagName === 'TEXTAREA' || active.tagName === 'INPUT');
 
     if (e.key === 'Escape') {
-      if (inField) { active.blur(); return; }
-      document.querySelectorAll('.card.panel-open').forEach((c) => closeReasonPanel(c));
+      if (!$('#cheatsheet').hidden) { closeCheatsheet(); return; }
+      if (inField) {
+        if (active.classList.contains('caption-edit')) { exitCaptionEdit(active.closest('.card'), true); return; }
+        active.blur();
+        return;
+      }
+      document.querySelectorAll('.card.is-panel-open').forEach((c) => closeReasonPanel(c.closest('.card-wrap'), c));
       return;
     }
 
-    if (inField) return; // let normal typing through
-    if (e.metaKey || e.ctrlKey || e.altKey) return; // don't hijack Cmd/Ctrl/Alt combos (copy, reload, etc.)
+    if (e.key === '?' && !inField) { toggleCheatsheet(); e.preventDefault(); return; }
 
-    const ctx = () => focusedCardAndItem();
+    if (inField) return; // let normal typing through
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    if (state.view !== 'queue') return; // shortcuts act on the queue only
+
     switch (e.key) {
       case 'j': moveFocus(1); break;
       case 'k': moveFocus(-1); break;
       case 'n': jumpNextGroup(); break;
-      case 'a': { const c = ctx(); if (c) submitApprove(c.card, c.item); break; }
-      case 'e': { const c = ctx(); if (c) focusCaptionEditor(c.card); break; }
-      case 'c': { const c = ctx(); if (c) openReasonPanel(c.card, 'changes_requested'); break; }
-      case 'r': { const c = ctx(); if (c) openReasonPanel(c.card, 'rejected'); break; }
+      case 'a': { const c = focusedCtx(); if (c) submitApprove(c.wrap, c.card, c.item); break; }
+      case 'e': { const c = focusedCtx(); if (c) enterCaptionEdit(c.card, c.item.caption || '', true); break; }
+      case 'c': { const c = focusedCtx(); if (c) openReasonPanel(c.wrap, c.card, 'changes_requested'); break; }
+      case 'r': { const c = focusedCtx(); if (c) openReasonPanel(c.wrap, c.card, 'rejected'); break; }
       default: return;
     }
     e.preventDefault();
   });
+}
+
+// --------------------------------------------------------------- cheatsheet
+
+function toggleCheatsheet() {
+  const sheet = $('#cheatsheet');
+  if (sheet.hidden) openCheatsheet(); else closeCheatsheet();
+}
+function openCheatsheet() { $('#cheatsheet').hidden = false; }
+function closeCheatsheet() { $('#cheatsheet').hidden = true; }
+
+// ----------------------------------------------------------------- sidebar
+
+function openSidebar() {
+  $('#sidebar').classList.add('is-open');
+  $('#sidebar-scrim').classList.add('is-open');
+  $('#sidebar-scrim').hidden = false;
+  $('#nav-toggle').setAttribute('aria-expanded', 'true');
+}
+function closeSidebar() {
+  $('#sidebar').classList.remove('is-open');
+  $('#sidebar-scrim').classList.remove('is-open');
+  $('#sidebar-scrim').hidden = true;
+  $('#nav-toggle').setAttribute('aria-expanded', 'false');
 }
 
 // ------------------------------------------------------------------- boot
@@ -535,15 +919,41 @@ function wireGlobalKeyboard() {
 async function reload() {
   try {
     const data = await API.items();
+    state.data = data;
     renderHeader(data);
-    renderBoard(data);
+    render();
   } catch (err) {
-    $('#board').innerHTML = `<div class="empty error">failed to load /api/items: ${esc(err.message)}</div>`;
+    state.data = { groups: [], pending_count: 0 };
+    $('#content').innerHTML = '';
+    $('#content').appendChild(emptyState('Could not load queue', `Failed to load <code>/api/items</code>: ${esc(err.message)}`, true));
   }
 }
 
+async function refresh() {
+  const btn = $('#hd-refresh');
+  btn.classList.add('is-refreshing');
+  btn.disabled = true;
+  await reload();
+  btn.classList.remove('is-refreshing');
+  btn.disabled = false;
+}
+
+function wireChrome() {
+  $$('.nav-item').forEach((btn) => btn.addEventListener('click', () => setView(btn.dataset.view)));
+  $('#hd-refresh').addEventListener('click', refresh);
+  $('#hd-help').addEventListener('click', toggleCheatsheet);
+  $('#cheatsheet-close').addEventListener('click', closeCheatsheet);
+  $('#cheatsheet').addEventListener('click', (e) => { if (e.target === $('#cheatsheet')) closeCheatsheet(); });
+  $('#nav-toggle').addEventListener('click', () => {
+    if ($('#sidebar').classList.contains('is-open')) closeSidebar(); else openSidebar();
+  });
+  $('#sidebar-scrim').addEventListener('click', closeSidebar);
+}
+
 async function init() {
+  wireChrome();
   wireGlobalKeyboard();
+  renderSkeleton();
   await reload();
 }
 
