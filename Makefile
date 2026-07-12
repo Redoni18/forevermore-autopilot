@@ -1,4 +1,4 @@
-.PHONY: plan generate digest publish metrics reflect doctor review ls install-launchd uninstall-launchd logs
+.PHONY: plan generate digest publish metrics reflect doctor review ls install-launchd uninstall-launchd logs db-up db-apply db-fresh station
 
 # Autopilot task runners (thin wrappers over bin/autopilot.mjs)
 
@@ -58,3 +58,17 @@ logs:
 			tail -20 "$$log"; \
 		fi; \
 	done
+
+# Database management (standalone: Autopilot's own Postgres)
+
+db-up:
+	docker compose up -d
+
+db-apply:
+	node db/apply.mjs
+
+db-fresh:
+	node db/apply.mjs --fresh
+
+station:
+	node review/server.mjs

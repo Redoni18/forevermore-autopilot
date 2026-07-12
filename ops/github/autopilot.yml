@@ -1,12 +1,15 @@
-# Forevermore Autopilot scheduler (GitHub Actions)
+# Forevermore Autopilot scheduler (GitHub Actions) — standalone repo
 #
 # IMPORTANT: This file MUST be COPIED to .github/workflows/autopilot.yml when adopted.
 # DO NOT place this file directly in .github/workflows/; it lives here for review.
 #
+# Standalone layout: Autopilot repo with its own Postgres, connects to Forevermore
+# platform via FOREVERMORE_ROOT (defaults to sibling ../forevermore).
+#
 # Secrets required in repo settings:
 #   CLAUDE_CODE_OAUTH_TOKEN    - from `claude setup-token` (or ANTHROPIC_API_KEY as fallback)
-#   SUPABASE_URL               - production database URL
-#   SUPABASE_SERVICE_ROLE_KEY  - service-role key (never anon/authenticated)
+#   AUTOPILOT_DB_URL           - Autopilot's own Postgres (not platform's Supabase)
+#   FOREVERMORE_ROOT           - (optional) path to platform checkout (default ../forevermore)
 #   META_IG_TOKEN              - Instagram Graph API long-lived user token
 #   TIKTOK_CLIENT_KEY          - TikTok OAuth client ID
 #   TIKTOK_CLIENT_SECRET       - TikTok OAuth client secret
@@ -72,8 +75,8 @@ jobs:
     env:
       CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      AUTOPILOT_DB_URL: ${{ secrets.AUTOPILOT_DB_URL }}
+      FOREVERMORE_ROOT: ../forevermore
       META_IG_TOKEN: ${{ secrets.META_IG_TOKEN }}
       TIKTOK_CLIENT_KEY: ${{ secrets.TIKTOK_CLIENT_KEY }}
       TIKTOK_CLIENT_SECRET: ${{ secrets.TIKTOK_CLIENT_SECRET }}
@@ -82,8 +85,14 @@ jobs:
       AP_HMAC_SECRET: ${{ secrets.AP_HMAC_SECRET }}
 
     steps:
-      - name: Checkout repo
+      - name: Checkout Autopilot repo
         uses: actions/checkout@v4
+
+      - name: Checkout Forevermore platform
+        uses: actions/checkout@v4
+        with:
+          repository: redonemini/forevermore
+          path: ../forevermore
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -139,6 +148,4 @@ jobs:
           fi
 
       - name: Run autopilot ${{ steps.determine-stage.outputs.stage }}
-        run: |
-          cd autopilot
-          node bin/autopilot.mjs run ${{ steps.determine-stage.outputs.stage }}
+        run: node bin/autopilot.mjs run ${{ steps.determine-stage.outputs.stage }}

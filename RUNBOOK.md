@@ -1,12 +1,15 @@
 # Autopilot Runbook
 
-Operational guide for the Forevermore Autopilot system. All procedures assume you're in the repo root.
+Operational guide for the standalone Forevermore Autopilot system. All procedures assume you're in the repo root
+(`/Users/redonemini/Desktop/Code/Personal/forevermore-autopilot`). See `docs/ADR-001-standalone.md` for architecture.
 
 ## Quick reference
 
-- **Status:** `autopilot doctor`
-- **Tail logs:** `cd autopilot && make logs`
-- **Trigger stage manually:** `cd autopilot && make generate` (or plan/digest/publish/metrics/reflect)
+- **Status:** `make doctor` or `node bin/autopilot.mjs doctor`
+- **Database:** `make db-up` (start), `make db-apply` (migrate)
+- **Tail logs:** `make logs`
+- **Trigger stage manually:** `make generate` (or plan/digest/publish/metrics/reflect)
+- **Review UI:** `make station` → http://127.0.0.1:4600
 - **Emergency pause:** Edit `.env` set `KILL_SWITCH=true`, or see [Kill switch](#kill-switch) below
 
 ---
@@ -19,7 +22,7 @@ Halts all scheduled stages within one cron tick (typically <1 minute).
 
 ```bash
 # Option 1: Via env (affects next run)
-echo "KILL_SWITCH=true" >> autopilot/.env
+echo "KILL_SWITCH=true" >> .env
 
 # Option 2: Unload plists (immediate, survives restarts)
 launchctl unload ~/Library/LaunchAgents/co.getforevermore.autopilot.*.plist
@@ -42,8 +45,6 @@ launchctl load ~/Library/LaunchAgents/co.getforevermore.autopilot.*.plist
 If the Mac was asleep during a scheduled run, launchd skips it (no catch-up). Recover manually:
 
 ```bash
-cd autopilot
-
 # Check what was missed (view logs)
 make logs
 
@@ -52,6 +53,39 @@ make generate                              # or plan/digest/publish/metrics/refl
 
 # To force-wake a specific launchd job without waiting for schedule:
 launchctl kickstart -p system/co.getforevermore.autopilot.generate
+```
+
+---
+
+## Database management
+
+Autopilot has its own Postgres database (never shared with the platform).
+
+### Docker Compose startup
+
+```bash
+make db-up                    # Start the container (docker compose up -d)
+make db-apply                 # Apply migrations
+make db-fresh                 # Wipe and re-apply migrations (destructive)
+```
+
+**Connection:**
+- Default: `postgres://postgres:autopilot@127.0.0.1:5433/autopilot`
+- Override via `AUTOPILOT_DB_URL` in `.env`
+
+### Connection issues
+
+**"connection refused on port 5433"**
+```bash
+docker ps | grep autopilot              # Check if container is running
+make db-up                              # Start it
+```
+
+**"column X does not exist"**
+```bash
+make db-apply                           # Re-apply schema
+# If still broken, check docker logs:
+docker compose logs autopilot-db
 ```
 
 ---
@@ -68,7 +102,7 @@ Token type: long-lived user token (~60 days) or system-user token (non-expiring)
 
 **Check expiry:**
 ```bash
-cd autopilot && make doctor        # Shows IG token status
+make doctor                        # Shows IG token status
 ```
 
 **If expired:** digest and publish stages fail with 400 errors. Update `.env` `META_IG_TOKEN` and re-run.
@@ -83,7 +117,7 @@ Token type: OAuth refresh token (stored in `.env`).
 
 **Check validity:**
 ```bash
-cd autopilot && make doctor        # Shows TikTok token status
+make doctor                        # Shows TikTok token status
 ```
 
 ### Resend (email delivery)
@@ -101,8 +135,6 @@ An item stuck in `drafting` or `rendering` status (crashed mid-stage) blocks its
 ### File-mode (M0)
 
 ```bash
-cd autopilot
-
 # Find the stuck item
 ls -la outbox/
 
@@ -145,7 +177,7 @@ The system ships with launchd (M0–M1 default). To migrate to GitHub Actions:
    ```
 
 3. **Deploy workflow:**
-   - Copy `autopilot/ops/github/autopilot.yml` → `.github/workflows/autopilot.yml`
+   - Copy `ops/github/autopilot.yml` → `.github/workflows/autopilot.yml`
    - Commit and push
    - Verify workflow is enabled (Settings → Actions → All workflows)
 
@@ -169,13 +201,13 @@ launchctl load ~/Library/LaunchAgents/co.getforevermore.autopilot.*.plist
 ### Mac (launchd)
 
 ```
-autopilot/logs/launchd-<stage>.log   # Per-stage logs (append-mode)
-autopilot/logs/<YYYYMMDD>_<stage>.jsonl  # Structured run logs (if enabled)
+logs/launchd-<stage>.log   # Per-stage logs (append-mode)
+logs/<YYYYMMDD>_<stage>.jsonl  # Structured run logs (if enabled)
 ```
 
 **Tail in real time:**
 ```bash
-cd autopilot && make logs
+make logs
 ```
 
 ### GitHub Actions
@@ -186,12 +218,12 @@ cd autopilot && make logs
 
 ---
 
-## Health check — `autopilot doctor`
+## Health check — `make doctor`
 
 Runs diagnostic queries to verify system readiness:
 
 ```bash
-cd autopilot && make doctor
+make doctor
 ```
 
 **Checks:**
@@ -218,14 +250,14 @@ Autopilot uses headless Chrome (Brave on mac). Install:
 brew install brave-browser
 
 # Or set explicit path in .env:
-echo "CHROME_PATH=/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser" >> autopilot/.env
+echo "CHROME_PATH=/Applications/Brave\ Browser.app/Contents/MacOS/Brave\ Browser" >> .env
 ```
 
 ### "generation produced invalid JSON"
 
 Brain output schema mismatch (usually transient). Check logs:
 ```bash
-cd autopilot && tail -50 logs/launchd-generate.log
+tail -50 logs/launchd-generate.log
 ```
 
 If persistent, file ticket with log excerpt.
@@ -241,7 +273,7 @@ Large video files or network issues. Retry manually; if consistent, check:
 
 Common after token rotation. Verify:
 ```bash
-cd autopilot && make doctor     # Check TikTok token status
+make doctor     # Check TikTok token status
 ```
 
 If token is invalid, re-run token setup (AP-702) and update `.env`.
@@ -262,8 +294,37 @@ GitHub's cron can have ±5min drift. If critical:
 
 ---
 
+## Platform link broken
+
+Autopilot connects to the Forevermore platform checkout via `FOREVERMORE_ROOT` to read the marketing kit and template catalog.
+
+**Error: "ideas.json not found" or similar path errors**
+
+1. Check `FOREVERMORE_ROOT` is set correctly:
+   ```bash
+   echo $FOREVERMORE_ROOT
+   # Should be: ../forevermore (relative) or /full/path/to/forevermore (absolute)
+   ```
+
+2. Verify the platform repo exists at that path:
+   ```bash
+   ls -la $FOREVERMORE_ROOT/marketing/02-idea-database/
+   ```
+
+3. If missing, update `.env`:
+   ```bash
+   echo "FOREVERMORE_ROOT=/path/to/forevermore" >> .env
+   ```
+
+4. Run `make doctor` to verify the link:
+   ```bash
+   make doctor       # Shows platform connection status
+   ```
+
+---
+
 ## Contacts
 
-- **Owner:** see `CLAUDE.md` `userEmail`
-- **Docs:** `PRD.md` (normative), `TICKETS.md` (breakdown)
+- **Owner:** see `CLAUDE.md` `userEmail` (redonemini18@gmail.com)
+- **Docs:** `docs/PRD.md` (normative), `docs/TICKETS.md` (breakdown), `docs/ADR-001-standalone.md` (architecture)
 - **Issues:** file under Epic H (Hardening) or open an issue in the repo
