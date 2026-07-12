@@ -122,33 +122,38 @@ export async function runStage(name, opts) {
     note: dryRun ? 'dry_run' : undefined,
   });
 
+  // The store is authoritative for the run id: FileStore echoes the slug id
+  // back; PostgresStore mints the row's uuid PK. Using the returned id keeps
+  // updateRun/appendLog valid on BOTH backends (AP-815 fix — the slug id
+  // crashed updateRun in postgres mode).
+  const rid = run.id || runIdVal;
   const ctx = {
     config,
     store,
     date,
     dryRun,
     force,
-    runId: runIdVal,
+    runId: rid,
     brain,
     lintFn,
     adapters,
     now: opts.now || new Date(),
-    log: (entry) => store.appendLog(runIdVal, entry),
+    log: (entry) => store.appendLog(rid, entry),
   };
 
   try {
     await ctx.log({ event: 'stage.start', stage: name, date, dryRun });
     const result = (await stageFn(ctx)) || {};
-    await store.updateRun(runIdVal, {
+    await store.updateRun(rid, {
       status: 'ok',
       finished_at: nowISO(),
       produced: result.produced ?? 0,
     });
-    if (!dryRun) await store.setSetting(ckey, { run: runIdVal, at: nowISO() });
+    if (!dryRun) await store.setSetting(ckey, { run: rid, at: nowISO() });
     await ctx.log({ event: 'stage.ok', stage: name, date, produced: result.produced ?? 0 });
-    return { status: 'ok', stage: name, date, run: runIdVal, ...result };
+    return { status: 'ok', stage: name, date, run: rid, ...result };
   } catch (err) {
-    await store.updateRun(runIdVal, {
+    await store.updateRun(rid, {
       status: 'failed',
       finished_at: nowISO(),
       error: String(err && err.message ? err.message : err),

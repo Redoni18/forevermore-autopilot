@@ -131,6 +131,7 @@ async function handlePostDecide(req, res, ctx) {
     note: trimmedNote,
     captionAfter: typeof captionAfter === 'string' ? captionAfter : null,
     via: 'local-station',
+    regenMax: ctx.config?.retry?.regen_max ?? 2,
   });
 
   if (!result.ok) return sendJson(res, result.status, { error: result.error, message: result.message });

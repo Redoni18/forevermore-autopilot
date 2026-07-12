@@ -91,7 +91,7 @@ test('decide: 409s on double-decide (already left pending_review)', async (t) =>
   assert.equal(third.body.error, 'not_pending_review');
 });
 
-test('decide: changes_requested embeds feedback on the item and does not auto-skip siblings', async (t) => {
+test('decide: changes_requested embeds feedback and bounces to drafting for regen (AP-815)', async (t) => {
   const h = await setupReviewTest();
   t.after(() => h.teardown());
 
@@ -103,7 +103,11 @@ test('decide: changes_requested embeds feedback on the item and does not auto-sk
   });
 
   assert.equal(res.status, 200);
-  assert.equal(res.body.item.status, 'changes_requested');
+  // The item does NOT park at changes_requested — it enters the regen path
+  // immediately so the next `generate` run re-drafts it with the feedback.
+  assert.equal(res.body.item.status, 'drafting');
+  assert.equal(res.body.item.regen_count, 1);
+  assert.equal(res.body.item.attempt, 2);
   assert.equal(res.body.item.chosen, false);
   assert.deepEqual(res.body.item.feedback.reason_tags, ['hook-weak', 'timing']);
   assert.equal(res.body.item.feedback.note, 'sharpen the open, this reads slow');

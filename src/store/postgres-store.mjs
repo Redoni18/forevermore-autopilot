@@ -174,6 +174,11 @@ export class PostgresStore {
     const overlays = { ...(item.overlays || {}) };
     delete overlays.__fileids;
     if (Object.keys(fileids).length) overlays.__fileids = fileids;
+    // feedback rides the same reserved-envelope pattern (no dedicated column;
+    // the review station's changes_requested patch must survive postgres mode
+    // so the regen path can inject it into the brain — AP-815 fix).
+    delete overlays.__feedback;
+    if (item.feedback != null) overlays.__feedback = item.feedback;
 
     const candidateGroup = item.candidate_group ? toPk(item.candidate_group) : null;
     // FK columns: keep null when the reference is a file-mode slug (true value
@@ -230,7 +235,28 @@ export class PostgresStore {
     const pk = toPk(id);
     const sets = [sql`status = ${to}::autopilot.ap_status`, sql`updated_at = now()`];
     for (const [k, v] of Object.entries(patch || {})) {
+      if (k === 'feedback') {
+        // No dedicated column: feedback lives in the reserved overlays
+        // envelope. jsonb_set against the CURRENT row so a feedback-only
+        // patch never clobbers overlays (AP-815 fix).
+        sets.push(
+          v == null
+            ? sql`overlays = (coalesce(overlays, '{}'::jsonb) - '__feedback')`
+            : sql`overlays = jsonb_set(coalesce(overlays, '{}'::jsonb), '{__feedback}', ${sql.json(v)})`,
+        );
+        continue;
+      }
       if (k === 'status' || !UPDATABLE.has(k)) continue; // drop status (handled) + file-mode-only annotations
+      if (k === 'overlays') {
+        // Replacing overlays must PRESERVE the reserved __fileids envelope on
+        // the existing row (slug-id items would otherwise lose their identity
+        // mapping on regen re-drafts — latent bug found at AP-815). A fresh
+        // overlays write deliberately consumes/clears __feedback.
+        sets.push(
+          sql`overlays = ${sql.json(v || {})}::jsonb || jsonb_strip_nulls(jsonb_build_object('__fileids', overlays -> '__fileids'))`,
+        );
+        continue;
+      }
       if (JSONB_COLS.has(k)) {
         sets.push(v === null ? sql`${sql(k)} = null` : sql`${sql(k)} = ${sql.json(v)}`);
       } else if (ENUM_COLS[k]) {
@@ -278,9 +304,12 @@ export class PostgresStore {
   #rowToItem(row, overrideId) {
     const rawOverlays = row.overlays && typeof row.overlays === 'object' ? row.overlays : {};
     const env = (rawOverlays.__fileids && typeof rawOverlays.__fileids === 'object') ? rawOverlays.__fileids : {};
+    const feedback = rawOverlays.__feedback ?? null;
     const overlays = { ...rawOverlays };
     delete overlays.__fileids;
+    delete overlays.__feedback;
     return {
+      ...(feedback != null ? { feedback } : {}),
       id: overrideId ?? env.id ?? row.id,
       slot_at: iso(row.slot_at),
       platform: row.platform,

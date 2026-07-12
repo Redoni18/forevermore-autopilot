@@ -10,6 +10,8 @@
 // outbox/<item-id>/assets and are streamed by app.mjs directly (range requests
 // unchanged). This module only orchestrates the item/decision records.
 
+import { regenNext } from '../../src/state/machine.mjs';
+
 export const VALID_DECISIONS = new Set(['approved', 'edited', 'changes_requested', 'rejected']);
 export const REASON_REQUIRED_DECISIONS = new Set(['changes_requested', 'rejected']);
 
@@ -44,6 +46,7 @@ function isSafeId(id) {
  * @param {string|null} [args.note]
  * @param {string|null} [args.captionAfter]
  * @param {string} [args.via]
+ * @param {number} [args.regenMax] changes_requested bounce limit (PRD §6.1)
  */
 export async function decide({
   store,
@@ -53,6 +56,7 @@ export async function decide({
   note = null,
   captionAfter = null,
   via = 'local-station',
+  regenMax = 2,
 }) {
   if (!isSafeId(itemId)) {
     return { ok: false, status: 400, error: 'bad_request', message: 'itemId is missing or malformed.' };
@@ -123,6 +127,19 @@ export async function decide({
   let autoSkipped = [];
   if (newStatus === 'approved' && updated.candidate_group) {
     autoSkipped = await autoSkipSiblings(store, updated.candidate_group, itemId, via);
+  }
+
+  // Requested changes don't park the item: bounce it straight into the regen
+  // path (changes_requested → drafting, attempt+1, regen_count+1 — or skipped
+  // once the regen budget is spent), so the next `generate` run re-drafts it
+  // with the feedback above injected into the brain (AP-815 fix, PRD §6.1).
+  if (newStatus === 'changes_requested') {
+    const next = regenNext(updated, regenMax);
+    try {
+      updated = await store.transition(itemId, 'changes_requested', next.to, next.patch);
+    } catch (err) {
+      if (!err || err.code !== 'CAS_CONFLICT') throw err; // conflict = someone else advanced it — fine
+    }
   }
 
   return { ok: true, status: 200, item: updated, decision: decisionRecord, autoSkipped };

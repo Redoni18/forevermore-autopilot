@@ -26,13 +26,28 @@ function indexIdeas(ideas) {
 function copywriterRequest(item, idea) {
   const tail = Number(String(item.id).split('_').pop());
   const variant = Number.isFinite(tail) && tail > 0 ? tail - 1 : 0;
+  // Owner feedback from a changes_requested decision (review station embeds
+  // it on the item; cmdRegen stores regen_note) is injected as
+  // `inputs.feedback` — assemble.mjs renders it as a "Feedback to address"
+  // block, so the re-draft actually responds to the human note (AP-815 fix).
+  const feedback = [];
+  if (item.feedback && item.feedback.note) feedback.push(item.feedback.note);
+  if (item.feedback && Array.isArray(item.feedback.reason_tags) && item.feedback.reason_tags.length) {
+    feedback.push(`owner reason tags: ${item.feedback.reason_tags.join(', ')}`);
+  }
+  if (item.regen_note) feedback.push(item.regen_note);
   return {
     stage: 'copywriter',
     schema: 'copywriter',
     item,
     idea,
     context: {},
-    inputs: { idea, formatSpec: { platform: item.platform, format: item.format }, variant },
+    inputs: {
+      idea,
+      formatSpec: { platform: item.platform, format: item.format },
+      variant,
+      ...(feedback.length ? { feedback } : {}),
+    },
   };
 }
 

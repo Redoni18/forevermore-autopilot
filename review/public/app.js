@@ -234,7 +234,7 @@ function buildPendingCard(item) {
       <span class="chip">${esc(PLATFORM_LABELS[item.platform] || item.platform)}</span>
       <span class="chip">${esc(item.format)}</span>
       ${item.pillar ? `<span class="chip">${esc(item.pillar)}</span>` : ''}
-      <span class="chip risk-${esc(item.risk)}">${esc(item.risk)}</span>
+      <span class="chip risk-${esc(item.risk)}" title="Risk class controls approval strictness: evergreen may auto-publish at L2 · standard always needs your tap · sensitive requires typed confirmation">risk: ${esc(item.risk)}</span>
       ${item.hashtags?.length ? `<span class="chip hashtags">${item.hashtags.length} tag${item.hashtags.length > 1 ? 's' : ''}</span>` : ''}
     </div>
     <div class="actions">
