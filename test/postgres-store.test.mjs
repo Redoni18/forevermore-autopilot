@@ -152,6 +152,86 @@ test('pg approvals: appendApproval (incl. changes_requested + local-station) the
   assert.deepEqual(await store.listApprovals(`ci_${tag}_other`), []);
 });
 
+test('pg rationale (AP-831) roundtrips through putItem + a transition patch', async (t) => {
+  const ctx = await pgTest(t);
+  if (!ctx) return;
+  const { store, tag, cleanup } = ctx;
+  t.after(cleanup);
+
+  const rationale = {
+    summary: 'a first-person reel that lands the tension fast.',
+    hook_reasoning: 'opens on a concrete POV.',
+    strategy: {
+      idea_id: 'F03',
+      idea_title: 'gamer-partner wedge',
+      pillar: 'P4',
+      playbook_rules: [{ id: 'aee31fc7', rule: 'orientation beat' }],
+    },
+    craft: ['POV framing', 'orientation beat'],
+    limits: ['kinetic-text video — no footage yet'],
+    audience: 'partners of gamers.',
+  };
+
+  const saved = await store.putItem(pgItem(tag, 1, { rationale }));
+  assert.deepEqual(saved.rationale, rationale, 'putItem persists the jsonb thinking log');
+  assert.deepEqual((await store.getItem(`ci_${tag}_1`)).rationale, rationale, 'getItem returns it');
+
+  const drafted = await store.transition(`ci_${tag}_1`, 'planned', 'drafting', {
+    rationale: { ...rationale, summary: 'revised' },
+  });
+  assert.equal(drafted.rationale.summary, 'revised', 'transition patch updates rationale');
+  assert.equal((await store.getItem(`ci_${tag}_1`)).rationale.summary, 'revised');
+});
+
+test('pg getRun returns the row by uuid; slug id or unknown → null', async (t) => {
+  const ctx = await pgTest(t);
+  if (!ctx) return;
+  const { store, cleanup } = ctx;
+  t.after(cleanup);
+
+  const run = await store.appendRun({ stage: 'generate', driver: 'claude-cli', model: 'claude-x', tokens_in: 900, tokens_out: 120, cost_usd: 0.0042, prompt_sha: 'abc123' });
+  const got = await store.getRun(run.id);
+  assert.equal(got.id, run.id);
+  assert.equal(got.stage, 'generate');
+  assert.equal(got.model, 'claude-x');
+  assert.equal(got.tokens_in, 900);
+  assert.equal(got.cost_usd, 0.0042);
+  assert.equal(await store.getRun('run_file_mode_slug'), null, 'a file-mode slug run id has no uuid row');
+});
+
+test('pg listPlaybookRules: active owner rules, weight-desc, id/rule/weight shaped; status filter works', async (t) => {
+  const ctx = await pgTest(t);
+  if (!ctx) return;
+  const { store, tag, cleanup } = ctx;
+  t.after(cleanup);
+
+  const active = await store.listPlaybookRules('active');
+  assert.ok(active.length >= 1, 'the live DB carries active owner rules');
+  for (const r of active) {
+    assert.ok(typeof r.id === 'string' && r.id.length, 'rule has an id (for citation)');
+    assert.ok(typeof r.rule === 'string' && r.rule.length, 'rule has text');
+    assert.equal(typeof r.weight, 'number');
+    assert.equal(r.status, 'active');
+  }
+  // weight-desc ordering (the brain-injection contract).
+  for (let i = 1; i < active.length; i++) {
+    assert.ok(active[i - 1].weight >= active[i].weight, 'rules are weight-desc');
+  }
+  // the owner's orientation-beat rule is present and citable.
+  assert.ok(active.some((r) => /orientation beat/i.test(r.rule)), 'orientation-beat rule is active');
+
+  // status filter: a tagged proposed rule shows under 'proposed', not 'active'.
+  const probe = `AP831-probe-${tag}`;
+  await store.sql`insert into autopilot.playbook_rules (rule, category, status, source, weight) values (${probe}, 'hook', 'proposed', 'reflection', 4)`;
+  try {
+    const proposed = await store.listPlaybookRules('proposed');
+    assert.ok(proposed.some((r) => r.rule === probe), 'proposed rule appears under proposed');
+    assert.ok(!(await store.listPlaybookRules('active')).some((r) => r.rule === probe), 'not under active');
+  } finally {
+    await store.sql`delete from autopilot.playbook_rules where rule = ${probe}`;
+  }
+});
+
 test('pg settings: get/set roundtrip for boolean + object values', async (t) => {
   const ctx = await pgTest(t);
   if (!ctx) return;

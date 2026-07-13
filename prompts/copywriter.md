@@ -109,6 +109,42 @@ The FORMAT SPEC above names this slot's format. Same fields every time, but the
 - **story**: single vertical frame; keep the hook short and the caption to a
   line. (Rarely requested — only when the slot explicitly asks for it.)
 
+## Active playbook rules — obey every one, then cite what you used
+
+The **ACTIVE PLAYBOOK RULES** block near the top of this prompt lists learned
+rules, each tagged like `[w9·format·id:aee31fc7-…]`. These are law for this
+draft, second only to the brand guide above them — obey **every** active rule.
+When two rules pull in different directions, the higher `w` (weight) wins.
+
+Then, in your thinking log below, **cite by id** every rule that actually shaped
+this draft: copy the exact `id:` value from the tag into
+`rationale.strategy.playbook_rules`. Cite only rules you genuinely applied — if
+a rule didn't touch this draft, leave it out. If there are no active rules, use
+an empty array.
+
+## Your thinking log (`rationale`) — required
+
+Every candidate ships with a `rationale` object: the reasoning a founder reads to
+understand why this post should work. Be concrete and honest — this is an audit
+trail, not a sales pitch. Fields:
+
+- `summary`: 2–3 sentences a founder can skim to know why this should work —
+  what it is, the angle, and who it's for.
+- `hook_reasoning`: why THIS hook stops THIS audience in the first two seconds.
+- `strategy`:
+  - `idea_id`: the idea you wrote from (the `id` in the IDEA payload, or
+    `"OFFLIST"`).
+  - `idea_title`: that idea's title (or a short label if none).
+  - `pillar`: the content pillar (P1–P7) this slot targets.
+  - `playbook_rules`: the ids of the active rules you obeyed (see above).
+- `craft`: the named techniques you used — e.g. "POV framing", "pattern
+  interrupt", "save-bait CTA", "orientation beat", "curiosity-gap hook". Name
+  them; don't describe them.
+- `limits`: the HONEST constraints on this candidate — e.g. "kinetic-text video —
+  no product footage available for this world yet", "static frame, so the caption
+  carries the story". Say what this post can't do.
+- `audience`: one line naming who this is for.
+
 ## Your task
 
 Write ONE candidate for the idea and slot above.
@@ -134,6 +170,9 @@ Write ONE candidate for the idea and slot above.
   - `claims_ok`: no off-limits claims, prices in exact language.
   - `nouns_ok`: gift/world nouns used correctly, no "experience/platform/product".
   - `no_banned_words`: none of the banned words appear.
+- `rationale`: the required thinking log described above — `summary`,
+  `hook_reasoning`, `strategy` (with `playbook_rules` cited by id), `craft`,
+  `limits`, `audience`.
 
 Emit ONLY this JSON object — no prose, no markdown fences:
 
@@ -147,6 +186,19 @@ Emit ONLY this JSON object — no prose, no markdown fences:
     "cta": "string"
   },
   "link_utm": "string",
-  "selfcheck": { "claims_ok": true, "nouns_ok": true, "no_banned_words": true }
+  "selfcheck": { "claims_ok": true, "nouns_ok": true, "no_banned_words": true },
+  "rationale": {
+    "summary": "2-3 sentences on why this should work",
+    "hook_reasoning": "why this hook stops this audience",
+    "strategy": {
+      "idea_id": "F03",
+      "idea_title": "short idea label",
+      "pillar": "P4",
+      "playbook_rules": ["<active-rule-id you obeyed>"]
+    },
+    "craft": ["POV framing", "orientation beat"],
+    "limits": ["kinetic-text video — no product footage available for this world yet"],
+    "audience": "one line naming who this is for"
+  }
 }
 ```

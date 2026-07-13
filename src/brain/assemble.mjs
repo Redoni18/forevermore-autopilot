@@ -115,8 +115,16 @@ function renderPlaybookRules(rules) {
   const sorted = [...rules].sort(
     (a, b) => (b.weight ?? 5) - (a.weight ?? 5) || String(a.rule).localeCompare(String(b.rule)),
   );
+  // The `id:` tag lets the copywriter CITE the exact rule that shaped a draft in
+  // `rationale.strategy.playbook_rules` (AP-831); the pipeline joins those ids
+  // back to rule text at persist time.
   return sorted
-    .map((r) => `- [w${r.weight ?? 5}${r.category ? '·' + r.category : ''}] ${r.rule}`)
+    .map((r) => {
+      const tags = [`w${r.weight ?? 5}`];
+      if (r.category) tags.push(r.category);
+      if (r.id) tags.push(`id:${r.id}`);
+      return `- [${tags.join('·')}] ${r.rule}`;
+    })
     .join('\n');
 }
 

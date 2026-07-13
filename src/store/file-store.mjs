@@ -40,6 +40,9 @@ export class FileStore {
       state: r.state,
     };
     this.settingsPath = r.settings;
+    /** Active-rule source for brain injection (AP-831): a JSON array in the data
+     *  root, sibling to settings.json. Absent file → no rules (empty default). */
+    this.playbookPath = r.playbook || join(dirname(r.settings), 'playbook.json');
     /** lock acquisition tuning (bounded wait so a wedged lock still errors). */
     this.lock = { retries: 200, delayMs: 15 };
   }
@@ -199,6 +202,16 @@ export class FileStore {
     return record;
   }
 
+  /**
+   * Fetch one run by id (the producing-run join behind item.provenance, AP-831).
+   * Missing run file → null (graceful; the review station shows no provenance).
+   * @param {string} id @returns {Promise<import('../types.mjs').Run|null>}
+   */
+  async getRun(id) {
+    if (!id) return null;
+    return this.#readJson(join(this.dirs.runs, `${id}.json`));
+  }
+
   /** @param {string} runId @param {Object} entry */
   async appendLog(runId, entry) {
     await this.#ensureDir(this.dirs.logs);
@@ -236,6 +249,26 @@ export class FileStore {
     }
     out.sort((a, b) => String(a.decided_at).localeCompare(String(b.decided_at)));
     return out;
+  }
+
+  /* -------------------------- playbook rules -------------------------- */
+  /**
+   * Active (or other-status) learned rules for brain injection (PRD §8.1),
+   * weight-desc. Sourced from `<dataRoot>/playbook.json` (a plain JSON array);
+   * an absent/malformed file yields no rules — file mode's empty default.
+   * @param {string} [status='active'] @returns {Promise<import('../brain/schema.mjs').PlaybookRule[]>}
+   */
+  async listPlaybookRules(status = 'active') {
+    const raw = await this.#readJson(this.playbookPath);
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .filter((r) => r && typeof r === 'object' && (r.status ?? 'active') === status)
+      .sort(
+        (a, b) =>
+          (b.weight ?? 5) - (a.weight ?? 5) ||
+          String(a.created_at ?? '').localeCompare(String(b.created_at ?? '')) ||
+          String(a.id ?? a.rule ?? '').localeCompare(String(b.id ?? b.rule ?? '')),
+      );
   }
 
   /* ----------------------------- settings ----------------------------- */

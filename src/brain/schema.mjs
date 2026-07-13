@@ -70,9 +70,22 @@
 
 /**
  * @typedef {Object} PlaybookRule
+ * @property {string} [id]       DB id — rendered into the prompt so the model can
+ *   CITE the rule in `rationale.strategy.playbook_rules` (AP-831).
  * @property {string} rule
  * @property {string} [category]
  * @property {number} [weight]   1..10 injection priority (higher = earlier).
+ */
+
+/**
+ * The thinking log persisted on `content_items.rationale` (AP-831 / PRD §8).
+ * @typedef {Object} RationaleLog
+ * @property {string} summary
+ * @property {string} hook_reasoning
+ * @property {{idea_id:string, idea_title:string, pillar:string, playbook_rules:Array<string|{id:string,rule:string}>}} strategy
+ * @property {string[]} craft
+ * @property {string[]} limits
+ * @property {string} audience
  */
 
 /**
@@ -123,6 +136,34 @@ export const VERDICT_SEVERITIES = ['block', 'warn'];
  * Output schemas — one per stage (+ artdirector's judge mode)
  * ──────────────────────────────────────────────────────────────────────── */
 
+/**
+ * The thinking-log object (AP-831), reused by copywriter + regen. `playbook_rules`
+ * are CITED BY ID by the model and joined to `{id, rule}` by the generate
+ * pipeline at persist time; the union item type keeps both forms schema-valid so
+ * a stored (already-joined) rationale re-validates cleanly.
+ */
+const RATIONALE_FIELD = {
+  type: 'object',
+  required: ['summary', 'hook_reasoning', 'strategy', 'craft', 'limits', 'audience'],
+  properties: {
+    summary: { type: 'string' },
+    hook_reasoning: { type: 'string' },
+    strategy: {
+      type: 'object',
+      required: ['idea_id', 'idea_title', 'pillar', 'playbook_rules'],
+      properties: {
+        idea_id: { type: 'string' },
+        idea_title: { type: 'string' },
+        pillar: { type: 'string' },
+        playbook_rules: { type: 'array', items: { type: ['string', 'object'] } },
+      },
+    },
+    craft: { type: 'array', items: { type: 'string' } },
+    limits: { type: 'array', items: { type: 'string' } },
+    audience: { type: 'string' },
+  },
+};
+
 /** The exact ContentItem copy fields (PRD §5). Reused by copywriter + regen. */
 const COPY_FIELDS = {
   caption: { type: 'string' },
@@ -149,11 +190,25 @@ const COPY_FIELDS = {
       no_banned_words: { type: 'boolean' },
     },
   },
+  // THINKING LOG (AP-831) — REQUIRED. The model narrates WHY this draft should
+  // work so a founder can read the reasoning behind every post (PRD §8). Shape
+  // is the normative item.rationale contract:
+  //   summary        2–3 sentences a founder reads to know why this should work
+  //   hook_reasoning why THIS hook stops THIS audience
+  //   strategy       what it's referring to (idea/pillar) + which ACTIVE PLAYBOOK
+  //                  RULES shaped it, cited by ID (the generate pipeline joins
+  //                  id→rule text at persist time so the stored log is self-
+  //                  contained — this schema therefore accepts a bare id string
+  //                  OR an already-joined {id, rule} object)
+  //   craft          named techniques used ("POV framing", "pattern interrupt")
+  //   limits         HONEST constraints ("kinetic-text — no product footage yet")
+  //   audience       one line naming who this is for
+  rationale: RATIONALE_FIELD,
 };
 
 const COPYWRITER_SCHEMA = {
   type: 'object',
-  required: ['caption', 'hashtags', 'overlays', 'link_utm', 'selfcheck'],
+  required: ['caption', 'hashtags', 'overlays', 'link_utm', 'selfcheck', 'rationale'],
   properties: COPY_FIELDS,
 };
 
@@ -230,7 +285,7 @@ const ARTDIRECTOR_JUDGE_SCHEMA = {
 /** Regenerator = copywriter output + the list of feedback points it addressed. */
 const REGEN_SCHEMA = {
   type: 'object',
-  required: ['caption', 'hashtags', 'overlays', 'link_utm', 'selfcheck', 'addressed'],
+  required: ['caption', 'hashtags', 'overlays', 'link_utm', 'selfcheck', 'rationale', 'addressed'],
   properties: {
     ...COPY_FIELDS,
     addressed: { type: 'array', items: { type: 'string' } },

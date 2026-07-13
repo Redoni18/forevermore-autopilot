@@ -107,6 +107,8 @@ export const REASON_TAGS = [
  * @property {AssetRef[]} assets
  * @property {LintResult|null} lint
  * @property {Object|null} dedupe              { hook_sim, nearest_item, method }.
+ * @property {Object|null} [rationale]         Thinking log (AP-831): { summary, hook_reasoning,
+ *   strategy:{idea_id, idea_title, pillar, playbook_rules:[{id,rule}]}, craft[], limits[], audience }.
  * @property {string|null} produced_by         Run id of the stage that last produced this item.
  * @property {number} attempt                  Draft/QA attempt counter (1-based).
  * @property {string|null} regen_of            Item id this is a regeneration of.
@@ -171,8 +173,12 @@ export const REASON_TAGS = [
  * @property {(filter?:(i:ContentItem)=>boolean)=>Promise<ContentItem[]>} listItems
  * @property {(run:Partial<Run>)=>Promise<Run>} appendRun
  * @property {(id:string, patch:Partial<Run>)=>Promise<Run>} updateRun
+ * @property {(id:string)=>Promise<Run|null>} getRun
+ *   Fetch a run by id (the producing-run join behind item.provenance, AP-831).
  * @property {(approval:Partial<Approval>)=>Promise<Approval>} appendApproval
  * @property {(itemId:string)=>Promise<Approval[]>} listApprovals
+ * @property {(status?:string)=>Promise<Array<{id:string,rule:string,category?:string,weight?:number}>>} listPlaybookRules
+ *   Active learned rules for brain injection (PRD §8.1), weight-desc.
  * @property {()=>Promise<Object>} getSettings
  * @property {(key:string)=>Promise<*>} getSetting
  * @property {(key:string, value:*)=>Promise<void>} setSetting

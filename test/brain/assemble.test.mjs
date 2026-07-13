@@ -18,8 +18,8 @@ function baseReq() {
     schema: 'copywriter',
     inputs: {
       playbookRules: [
-        { rule: 'lead with tension in the first three words', category: 'hook', weight: 3 },
-        { rule: 'name the recipient or their obsession in the hook', category: 'hook', weight: 8 },
+        { id: 'rule-tension', rule: 'lead with tension in the first three words', category: 'hook', weight: 3 },
+        { id: 'rule-name-recipient', rule: 'name the recipient or their obsession in the hook', category: 'hook', weight: 8 },
       ],
       formatSpec: { platform: 'tiktok', format: 'tiktok_video' },
       idea: { id: 'F03', title: 'gamer-partner wedge', worlds: ['The Blockheart Mine'] },
@@ -74,13 +74,24 @@ test('layers appear in the fixed PRD §8.1 order', () => {
   assert.deepEqual(order, sorted, 'layers must be in the declared order');
 });
 
-test('playbook rules are sorted by weight (desc) and rendered with weight tags', () => {
+test('playbook rules are sorted by weight (desc) and rendered with weight + id tags', () => {
   const { prompt } = assemblePrompt(baseReq());
   const iHigh = prompt.indexOf('name the recipient or their obsession');
   const iLow = prompt.indexOf('lead with tension in the first three words');
   assert.ok(iHigh > -1 && iLow > -1);
   assert.ok(iHigh < iLow, 'weight-8 rule must precede weight-3 rule');
-  assert.ok(prompt.includes('[w8·hook]'));
+  // The bullet carries weight, category, AND the id so the copywriter can CITE
+  // the exact rule in rationale.strategy.playbook_rules (AP-831).
+  assert.ok(prompt.includes('[w8·hook·id:rule-name-recipient]'), 'weight+category+id tag present');
+  assert.ok(prompt.includes('id:rule-tension'), 'every rule id is citable from the prompt');
+});
+
+test('a rule without an id still renders (id tag omitted, not "id:undefined")', () => {
+  const req = baseReq();
+  req.inputs.playbookRules = [{ rule: 'keep captions under three lines', category: 'caption', weight: 6 }];
+  const { prompt } = assemblePrompt(req);
+  assert.ok(prompt.includes('[w6·caption] keep captions under three lines'));
+  assert.ok(!prompt.includes('id:undefined'));
 });
 
 test('empty playbook rules render a "none yet" placeholder', () => {

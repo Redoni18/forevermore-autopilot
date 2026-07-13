@@ -13,7 +13,20 @@
       "cta": "the blockheart mine · $45 at getforevermore.co"
     },
     "link_utm": "getforevermore.co?utm_source=tiktok&utm_medium=organic&utm_campaign=P4&utm_content=ci_mock_1",
-    "selfcheck": { "claims_ok": true, "nouns_ok": true, "no_banned_words": true }
+    "selfcheck": { "claims_ok": true, "nouns_ok": true, "no_banned_words": true },
+    "rationale": {
+      "summary": "A first-person Blockheart Mine reel that turns 'he ignores me for minecraft' into the reason the gift lands. It plays the gamer-partner wedge for an anniversary audience and sends them to getforevermore.co, with an orientation beat so a cold viewer still learns what a Forevermore world is.",
+      "hook_reasoning": "The open names a specific, true-feeling grievance every gamer's partner recognises, so the thumb stops before the payoff even arrives.",
+      "strategy": {
+        "idea_id": "F03",
+        "idea_title": "gamer-partner wedge",
+        "pillar": "P4",
+        "playbook_rules": ["tofu-orientation-beat", "tier-price-accuracy"]
+      },
+      "craft": ["POV framing", "pattern interrupt", "orientation beat"],
+      "limits": ["kinetic-text video — no real Blockheart Mine footage exists yet, so the beats are on-screen text over motion, not a screen capture of the world."],
+      "audience": "Partners of gamers shopping for an anniversary gift that meets him where he already is."
+    }
   },
   {
     "caption": "i hid an anniversary letter behind a vault door he has to mine open himself. he's going to lose it.",
@@ -29,7 +42,20 @@
       "cta": "the blockheart mine · $45 at getforevermore.co"
     },
     "link_utm": "getforevermore.co?utm_source=tiktok&utm_medium=organic&utm_campaign=P4&utm_content=ci_mock_2",
-    "selfcheck": { "claims_ok": true, "nouns_ok": true, "no_banned_words": true }
+    "selfcheck": { "claims_ok": true, "nouns_ok": true, "no_banned_words": true },
+    "rationale": {
+      "summary": "A build-anticipation Blockheart Mine reel framing the anniversary as a world he has to earn his way through. It runs the gamer-partner wedge for an anniversary audience and points to getforevermore.co, naming what the world is so a first-time viewer isn't lost.",
+      "hook_reasoning": "Reframing 'anniversary' as a place he digs toward is a curiosity gap — the viewer wants to see what's behind the vault door.",
+      "strategy": {
+        "idea_id": "F03",
+        "idea_title": "gamer-partner wedge",
+        "pillar": "P4",
+        "playbook_rules": ["tofu-orientation-beat", "tier-price-accuracy"]
+      },
+      "craft": ["curiosity-gap hook", "orientation beat", "finale-reveal pacing"],
+      "limits": ["kinetic-text video — the vault reveal is described in overlays, not shown, because no captured Blockheart Mine footage is available yet."],
+      "audience": "Partners of gamers who want an anniversary gift with a real payoff, not a card."
+    }
   },
   {
     "caption": "pov: your girlfriend built you a whole minecraft world and the diamonds are just photos of you two.",
@@ -45,6 +71,19 @@
       "cta": "the blockheart mine · $45 at getforevermore.co"
     },
     "link_utm": "getforevermore.co?utm_source=tiktok&utm_medium=organic&utm_campaign=P4&utm_content=ci_mock_3",
-    "selfcheck": { "claims_ok": true, "nouns_ok": true, "no_banned_words": true }
+    "selfcheck": { "claims_ok": true, "nouns_ok": true, "no_banned_words": true },
+    "rationale": {
+      "summary": "A second-person POV Blockheart Mine reel addressed to the recipient, making the act of mining the world the gift itself. It plays the gamer-partner wedge for a him-focused gifting audience and links to getforevermore.co, spelling out what the world does so nobody's confused.",
+      "hook_reasoning": "Second-person POV puts the viewer inside the gift; 'mining it out is the gift' reframes effort as delight and holds attention.",
+      "strategy": {
+        "idea_id": "F03",
+        "idea_title": "gamer-partner wedge",
+        "pillar": "P4",
+        "playbook_rules": ["tofu-orientation-beat", "tier-price-accuracy"]
+      },
+      "craft": ["second-person POV framing", "orientation beat", "reward-loop pacing"],
+      "limits": ["kinetic-text video — the mechanic is narrated in overlays rather than shown, since real world footage for the Blockheart Mine isn't captured yet."],
+      "audience": "People buying for a gamer partner who'd rather receive something they get to play through."
+    }
   }
 ]

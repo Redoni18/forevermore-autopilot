@@ -64,7 +64,70 @@ async function handleGetItems(req, res, ctx) {
     listGroupedItems({ store: ctx.store }),
     ctx.settingsPath ? readSettings(ctx.settingsPath) : null,
   ]);
+  await enrichGroups(ctx.store, groups);
   sendJson(res, 200, { generated_at: new Date().toISOString(), pending_count, settings, groups });
+}
+
+// The "thinking logs" payload contract (AP-831): each item is augmented with
+//   • rationale        — the model's reasoning, persisted on the item (passthrough)
+//   • provenance       — the producing run (item.produced_by → runs row)
+//   • feedback_history — every decision on the item, chronological
+// AP-830 renders these. All three are OPTIONAL + backward-compatible: an item
+// with no producing run / no approvals still returns (provenance:null,
+// feedback_history:[]). The review station's public renderer owns the display.
+async function enrichGroups(store, groups) {
+  const runCache = new Map(); // produced_by → run|null, one lookup per run per request
+  for (const group of groups) {
+    for (const item of group.items) {
+      item.rationale = item.rationale ?? null;
+      item.provenance = await provenanceFor(store, item, runCache);
+      item.feedback_history = await feedbackHistoryFor(store, item);
+    }
+  }
+}
+
+/** Build item.provenance by joining the producing run; graceful null on any miss. */
+async function provenanceFor(store, item, runCache) {
+  const runId = item.produced_by;
+  if (!runId || typeof store.getRun !== 'function') return null;
+  let run = runCache.get(runId);
+  if (run === undefined) {
+    try {
+      run = await store.getRun(runId);
+    } catch {
+      run = null;
+    }
+    runCache.set(runId, run);
+  }
+  if (!run) return null;
+  return {
+    run_id: run.id ?? runId,
+    driver: run.driver ?? null,
+    model: run.model ?? null,
+    tokens_in: run.tokens_in ?? null,
+    tokens_out: run.tokens_out ?? null,
+    cost_usd: run.cost_usd ?? null,
+    prompt_sha: run.prompt_sha ?? null,
+    generated_at: run.started_at ?? null,
+    attempt: item.attempt ?? null,
+  };
+}
+
+/** The item's decision log, chronological, in the payload's compact shape. */
+async function feedbackHistoryFor(store, item) {
+  if (typeof store.listApprovals !== 'function') return [];
+  let approvals;
+  try {
+    approvals = await store.listApprovals(item.id);
+  } catch {
+    return [];
+  }
+  return (approvals || []).map((a) => ({
+    decided_at: a.decided_at ?? null,
+    decision: a.decision ?? null,
+    reason_tags: a.reason_tags ?? [],
+    note: a.note ?? null,
+  }));
 }
 
 // ------------------------------------------------------------- /api/decide

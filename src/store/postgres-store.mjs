@@ -97,14 +97,14 @@ function iso(v) {
   return v instanceof Date ? v.toISOString() : String(v);
 }
 
-const JSONB_COLS = new Set(['overlays', 'assets', 'lint', 'dedupe']);
+const JSONB_COLS = new Set(['overlays', 'assets', 'lint', 'dedupe', 'rationale']);
 const UUID_COLS = new Set(['candidate_group', 'produced_by', 'regen_of']);
 const ENUM_COLS = { platform: 'ap_platform', format: 'ap_format', risk: 'ap_risk', status: 'ap_status' };
 /** content_items columns a `transition` patch is allowed to set (id/created_at excluded). */
 const UPDATABLE = new Set([
   'slot_at', 'platform', 'format', 'idea_id', 'series_key', 'pillar', 'risk', 'status',
   'candidate_group', 'chosen', 'caption', 'hashtags', 'overlays', 'link_utm', 'assets',
-  'lint', 'dedupe', 'produced_by', 'attempt', 'regen_of', 'regen_count', 'publish_attempts',
+  'lint', 'dedupe', 'rationale', 'produced_by', 'attempt', 'regen_of', 'regen_count', 'publish_attempts',
   'next_attempt_at',
 ]);
 /** runs columns (everything else on a Run object — item_id/from/to/note/parent_run/… — has no home here). */
@@ -190,11 +190,12 @@ export class PostgresStore {
     const assets = Array.isArray(item.assets) ? item.assets : [];
     const lint = item.lint == null ? null : item.lint;
     const dedupe = item.dedupe == null ? null : item.dedupe;
+    const rationale = item.rationale == null ? null : item.rationale; // thinking log (AP-831)
 
     const [row] = await this.sql`
       insert into autopilot.content_items (
         id, slot_at, platform, format, idea_id, series_key, pillar, risk, status,
-        candidate_group, chosen, caption, hashtags, overlays, link_utm, assets, lint, dedupe,
+        candidate_group, chosen, caption, hashtags, overlays, link_utm, assets, lint, dedupe, rationale,
         produced_by, attempt, regen_of, regen_count, publish_attempts, next_attempt_at,
         created_at, updated_at
       ) values (
@@ -204,6 +205,7 @@ export class PostgresStore {
         ${candidateGroup}, ${Boolean(item.chosen)}, ${item.caption ?? null}, ${hashtags},
         ${this.sql.json(overlays)}, ${item.link_utm ?? null}, ${this.sql.json(assets)},
         ${lint === null ? null : this.sql.json(lint)}, ${dedupe === null ? null : this.sql.json(dedupe)},
+        ${rationale === null ? null : this.sql.json(rationale)},
         ${producedBy}, ${item.attempt ?? 1}, ${regenOf}, ${item.regen_count ?? 0},
         ${item.publish_attempts ?? 0}, ${item.next_attempt_at ?? null},
         ${item.created_at ?? now}, ${item.updated_at ?? now}
@@ -214,10 +216,10 @@ export class PostgresStore {
         risk = excluded.risk, status = excluded.status, candidate_group = excluded.candidate_group,
         chosen = excluded.chosen, caption = excluded.caption, hashtags = excluded.hashtags,
         overlays = excluded.overlays, link_utm = excluded.link_utm, assets = excluded.assets,
-        lint = excluded.lint, dedupe = excluded.dedupe, produced_by = excluded.produced_by,
-        attempt = excluded.attempt, regen_of = excluded.regen_of, regen_count = excluded.regen_count,
-        publish_attempts = excluded.publish_attempts, next_attempt_at = excluded.next_attempt_at,
-        updated_at = ${now}
+        lint = excluded.lint, dedupe = excluded.dedupe, rationale = excluded.rationale,
+        produced_by = excluded.produced_by, attempt = excluded.attempt, regen_of = excluded.regen_of,
+        regen_count = excluded.regen_count, publish_attempts = excluded.publish_attempts,
+        next_attempt_at = excluded.next_attempt_at, updated_at = ${now}
       returning *`;
     return this.#rowToItem(row, item.id);
   }
@@ -328,6 +330,7 @@ export class PostgresStore {
       assets: row.assets ?? [],
       lint: row.lint ?? null,
       dedupe: row.dedupe ?? null,
+      rationale: row.rationale ?? null,
       produced_by: env.produced_by ?? row.produced_by ?? null,
       attempt: row.attempt,
       regen_of: env.regen_of ?? row.regen_of ?? null,
@@ -400,6 +403,18 @@ export class PostgresStore {
   }
 
   /**
+   * Fetch one run by id (the producing-run join behind item.provenance, AP-831).
+   * Runs are uuid-keyed; a file-mode slug run id has no row here → null (the
+   * review station's provenance enrichment treats that as "no provenance").
+   * @param {string} id @returns {Promise<import('../types.mjs').Run|null>}
+   */
+  async getRun(id) {
+    if (!isUuid(id)) return null; // slug run ids were never written to the uuid PK
+    const rows = await this.sql`select * from autopilot.runs where id = ${id}`;
+    return rows.count ? this.#rowToRun(rows[0]) : null;
+  }
+
+  /**
    * Append a structured log line. Per-run logs stay ON DISK (like assets),
    * under the configured logs dir, keyed by the run id — matching FileStore.
    * @param {string} runId @param {Object} entry
@@ -451,6 +466,33 @@ export class PostgresStore {
       note: r.note ?? null,
       caption_diff: r.caption_diff ?? null,
       via: r.via,
+      decided_at: iso(r.decided_at),
+    }));
+  }
+
+  /* ------------------------------ playbook rules ---------------------------- */
+
+  /**
+   * Active (or other-status) learned rules, weight-desc, for brain injection
+   * (PRD §8.1 "[active playbook rules by weight]"). Returns the id too so the
+   * copywriter can CITE it in rationale.strategy.playbook_rules (AP-831).
+   * @param {string} [status='active'] @returns {Promise<import('../brain/schema.mjs').PlaybookRule[]>}
+   */
+  async listPlaybookRules(status = 'active') {
+    const rows = await this.sql`
+      select id, rule, category, status, source, weight, evidence, created_at, decided_at
+      from autopilot.playbook_rules
+      where status = ${status}
+      order by weight desc, created_at asc, id asc`;
+    return rows.map((r) => ({
+      id: r.id,
+      rule: r.rule,
+      category: r.category ?? null,
+      status: r.status,
+      source: r.source ?? null,
+      weight: r.weight ?? 5,
+      evidence: r.evidence ?? null,
+      created_at: iso(r.created_at),
       decided_at: iso(r.decided_at),
     }));
   }

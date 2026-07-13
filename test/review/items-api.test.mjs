@@ -3,8 +3,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
 
 import { setupReviewTest, copyFixtureOutbox, startTestServer } from './helpers.mjs';
+import { loadConfig } from '../../src/config.mjs';
+import { createStore } from '../../src/store/index.mjs';
 
 test('GET /api/items: fixture loads as 2 groups of 3, all pending_review', async (t) => {
   const h = await setupReviewTest();

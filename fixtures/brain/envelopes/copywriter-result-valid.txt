@@ -10,7 +10,20 @@ Here's the candidate for the Blockheart Mine slot:
     "cta": "the blockheart mine · $45 at getforevermore.co"
   },
   "link_utm": "getforevermore.co?utm_source=tiktok&utm_medium=organic&utm_campaign=P4&utm_content=ci_smoke_1",
-  "selfcheck": { "claims_ok": true, "nouns_ok": true, "no_banned_words": true }
+  "selfcheck": { "claims_ok": true, "nouns_ok": true, "no_banned_words": true },
+  "rationale": {
+    "summary": "A first-person Blockheart Mine reel that turns 'he ignores me for minecraft' into the reason the gift works. It runs the gamer-partner wedge for an anniversary audience and points at getforevermore.co, with an orientation beat so a cold viewer learns what a Forevermore world is.",
+    "hook_reasoning": "The open names a specific grievance every gamer's partner recognises, so the thumb stops before the vault payoff even arrives.",
+    "strategy": {
+      "idea_id": "F03",
+      "idea_title": "gamer-partner wedge",
+      "pillar": "P4",
+      "playbook_rules": ["tofu-orientation-beat", "tier-price-accuracy"]
+    },
+    "craft": ["POV framing", "pattern interrupt", "orientation beat"],
+    "limits": ["kinetic-text video — no real Blockheart Mine footage yet, so the beats are on-screen text over motion, not a screen capture of the world."],
+    "audience": "Partners of gamers shopping for an anniversary gift that meets him where he already is."
+  }
 }
 ```
 

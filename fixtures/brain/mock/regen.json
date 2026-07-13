@@ -13,6 +13,19 @@
   },
   "link_utm": "getforevermore.co?utm_source=tiktok&utm_medium=organic&utm_campaign=P4&utm_content=ci_regen_1",
   "selfcheck": { "claims_ok": true, "nouns_ok": true, "no_banned_words": true },
+  "rationale": {
+    "summary": "A sharpened revision of the gamer-partner wedge for the Blockheart Mine: the hook now leads on the grievance in its first three words and the beats keep the earn-the-vault payoff. It stays on the live premium world at the correct $45 tier and points to getforevermore.co.",
+    "hook_reasoning": "The feedback said the hook was soft, so it now opens on 'he ignored me' — the concrete tension — instead of easing in; that is what stops the scroll for this audience.",
+    "strategy": {
+      "idea_id": "F03",
+      "idea_title": "gamer-partner wedge",
+      "pillar": "P4",
+      "playbook_rules": ["tofu-orientation-beat", "tier-price-accuracy"]
+    },
+    "craft": ["front-loaded tension", "pattern interrupt", "orientation beat"],
+    "limits": ["kinetic-text video — still no captured Blockheart Mine footage, so the world is conveyed through overlays over motion rather than a screen recording."],
+    "audience": "Partners of gamers shopping for an anniversary gift with a real, earned payoff."
+  },
   "addressed": [
     "made the hook harsher and specific in the first three words",
     "kept it on the live blockheart mine world"

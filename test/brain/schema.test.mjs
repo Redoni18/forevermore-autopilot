@@ -125,6 +125,72 @@ test('validator rejects six seeded invalids, each for the right reason', () => {
   }
 });
 
+/* ── rationale thinking log (AP-831) ────────────────────────────────────── */
+
+test('copywriter + regen now REQUIRE a rationale thinking log', () => {
+  const cw = load('copywriter.json')[0];
+  const regen = load('regen.json');
+  // The golden fixtures carry a valid rationale.
+  assert.ok(validate(getSchema('copywriter'), cw).ok);
+  assert.ok(validate(getSchema('regen'), regen).ok);
+  // Drop it → both schemas reject with a clear message.
+  const cwNo = clone(cw);
+  delete cwNo.rationale;
+  assert.match(validate(getSchema('copywriter'), cwNo).errors.join(' | '), /\$\.rationale: missing required key/);
+  const regenNo = clone(regen);
+  delete regenNo.rationale;
+  assert.match(validate(getSchema('regen'), regenNo).errors.join(' | '), /\$\.rationale: missing required key/);
+});
+
+test('rationale: five seeded invalids each rejected for the right reason', () => {
+  const cw = load('copywriter.json')[0];
+  const cases = [
+    {
+      name: 'strategy object missing',
+      build: () => { const x = clone(cw); delete x.rationale.strategy; return x; },
+      expect: /rationale\.strategy: missing required key/,
+    },
+    {
+      name: 'craft is a string, not an array',
+      build: () => { const x = clone(cw); x.rationale.craft = 'POV framing'; return x; },
+      expect: /rationale\.craft: expected array/,
+    },
+    {
+      name: 'limits is a string, not an array',
+      build: () => { const x = clone(cw); x.rationale.limits = 'no footage'; return x; },
+      expect: /rationale\.limits: expected array/,
+    },
+    {
+      name: 'strategy.playbook_rules is a string, not an array',
+      build: () => { const x = clone(cw); x.rationale.strategy.playbook_rules = 'tofu-orientation-beat'; return x; },
+      expect: /rationale\.strategy\.playbook_rules: expected array/,
+    },
+    {
+      name: 'audience is a number, not a string',
+      build: () => { const x = clone(cw); x.rationale.audience = 42; return x; },
+      expect: /rationale\.audience: expected string/,
+    },
+  ];
+  assert.equal(cases.length, 5);
+  for (const c of cases) {
+    const res = validate(getSchema('copywriter'), c.build());
+    assert.equal(res.ok, false, `${c.name} should be rejected`);
+    assert.ok(res.errors.some((e) => c.expect.test(e)), `${c.name}: got [${res.errors.join(' | ')}]`);
+  }
+});
+
+test('rationale.strategy.playbook_rules accepts bare ids OR joined {id,rule} objects', () => {
+  const cw = load('copywriter.json')[0];
+  // as cited by the model (ids)
+  const ids = clone(cw);
+  ids.rationale.strategy.playbook_rules = ['aee31fc7', 'bf819540'];
+  assert.ok(validate(getSchema('copywriter'), ids).ok, 'bare id strings validate');
+  // as persisted after the pipeline join — re-validating a stored log still passes
+  const joined = clone(cw);
+  joined.rationale.strategy.playbook_rules = [{ id: 'aee31fc7', rule: 'orientation beat rule text' }];
+  assert.ok(validate(getSchema('copywriter'), joined).ok, 'joined {id,rule} objects validate');
+});
+
 test('validator accepts optional keys absent and extra keys present', () => {
   // artdirector.video is optional — omitting it is fine.
   const ad = load('artdirector.json');

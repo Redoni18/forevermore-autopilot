@@ -1,9 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync } from 'node:fs';
+import { existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { runStage } from '../src/stages/registry.mjs';
 import { routeAdapter } from '../src/stages/render.mjs';
+import { FixtureBrain } from '../src/drivers/fixture-brain.mjs';
 import { mkEnv, brainStub, adapterStub, lintPass, lintFail, plannedItem } from './helpers.mjs';
 
 const RUN_DATE = '2026-07-13';
@@ -77,6 +78,51 @@ test('full M0 pipeline with stubs: plan → generate → render → qa → diges
   // stage idempotency across the board
   const genAgain = await runStage('generate', { config, store, date: SLOT_DATE, brain: brainStub });
   assert.equal(genAgain.status, 'skipped');
+});
+
+test('generate injects active playbook rules and cites them, joined, in every item.rationale (AP-831)', async () => {
+  const { config, store, tmp } = mkEnv();
+  // Owner rules land in the file-mode playbook; the 'proposed' one must NOT be injected.
+  writeFileSync(
+    join(tmp, 'playbook.json'),
+    JSON.stringify([
+      { id: 'r-orient', rule: 'include a plain-words orientation beat', category: 'format', weight: 9, status: 'active' },
+      { id: 'r-price', rule: 'state the correct tier price every time', category: 'caption', weight: 9, status: 'active' },
+      { id: 'r-proposed', rule: 'not adopted yet', category: 'hook', weight: 10, status: 'proposed' },
+    ]),
+  );
+
+  await runStage('plan', { config, store, date: RUN_DATE });
+  const gen = await runStage('generate', { config, store, date: SLOT_DATE, brain: new FixtureBrain() });
+  assert.equal(gen.produced, 6);
+
+  const drafted = await store.listByStatus('drafted');
+  assert.equal(drafted.length, 6);
+  for (const item of drafted) {
+    assert.ok(item.rationale, `${item.id} carries a thinking log`);
+    const cited = item.rationale.strategy.playbook_rules;
+    // cited-by-id → joined to the self-contained {id, rule} contract; proposed rule excluded.
+    assert.deepEqual(cited.map((r) => r.id).sort(), ['r-orient', 'r-price'], `${item.id} cites only the two active rules`);
+    for (const r of cited) assert.ok(typeof r.rule === 'string' && r.rule.length, 'each cited id is joined to its rule text');
+    assert.ok(item.rationale.limits.length >= 1 && item.rationale.limits[0].length, 'honest limits present');
+    assert.ok(item.rationale.summary && item.rationale.audience, 'summary + audience present');
+    assert.equal(item.rationale.strategy.idea_id, item.idea_id, 'strategy names the idea it wrote from');
+  }
+
+  // The producing run carries aggregate provenance for the review API to join.
+  const run = await store.getRun(drafted[0].produced_by);
+  assert.ok(run, 'produced_by resolves to the generate run');
+  assert.equal(run.stage, 'generate');
+  assert.equal(run.model, 'fixture');
+});
+
+test('generate with no playbook rules still drafts and cites an empty rule set', async () => {
+  const { config, store } = mkEnv(); // no playbook.json written
+  await runStage('plan', { config, store, date: RUN_DATE });
+  await runStage('generate', { config, store, date: SLOT_DATE, brain: new FixtureBrain() });
+  const drafted = await store.listByStatus('drafted');
+  assert.ok(drafted.length > 0);
+  assert.deepEqual(drafted[0].rationale.strategy.playbook_rules, [], 'no active rules → empty citation array');
 });
 
 test('generate resumes a drafting item (regen/crash recovery)', async () => {

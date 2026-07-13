@@ -1,8 +1,9 @@
 {
+  "_comment_brainDriver": "claude-cli = REAL generation on the owner's subscription auth (AP-831): daily launchd generates now produce genuine, playbook-shaped drafts. 'fixture' stays the zero-cost deterministic default in src/config.mjs and is what tests/offline runs pin explicitly (via injected brain or --driver fixture); it never depends on this file.",
   "timezone": "Europe/Tirane",
   "store": "postgres",
   "dbUrl": "postgres://postgres:autopilot@127.0.0.1:5433/autopilot",
-  "brainDriver": "fixture",
+  "brainDriver": "claude-cli",
   "lintModule": "src/drivers/brand-lint.mjs",
   "brave": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
   "cadence": {
