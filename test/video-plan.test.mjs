@@ -101,7 +101,8 @@ function fakeEnv() {
   const ideas = join(tmp, 'ideas.json');
   writeFileSync(ideas, JSON.stringify([{ id: 'F03', title: 'gamer wedge', worlds: ['The Blockheart Mine'] }]));
 
-  const config = { resolved: { repoRoot, videoStudio: studio, library, ideas, outbox: join(tmp, 'outbox') } };
+  const catalog = join(repoRoot, 'marketing', '_research', 'template-catalog.md');
+  const config = { resolved: { repoRoot, videoStudio: studio, library, ideas, catalog, outbox: join(tmp, 'outbox') } };
   return { tmp, config, outDir, thumbsDir };
 }
 

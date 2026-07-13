@@ -1,0 +1,3792 @@
+[
+  {
+    "id": "F03",
+    "cta": "the blockheart mine · getforevermore.co",
+    "hook": "he ignores me for minecraft, so i built our relationship somewhere he'd actually look.",
+    "beats": [
+      "first-person voxel world walk — 'take the pickaxe from the spawn chest'",
+      "framed memories uncovered in the caverns",
+      "mining the six heart-gems, quick cuts",
+      "the vault door opens on the golden room + the letter",
+      "'he can keep the diamonds. i want the vault.'"
+    ],
+    "notes": "Gamer-gf meme energy with a sincere payoff — the exact overlap the product owns.",
+    "score": 115,
+    "title": "Gamer-partner wedge: I said it in his language (Blockheart Mine)",
+    "assets": "Blockheart Mine capture (first-person run)",
+    "effort": "S",
+    "format": "screen-record + POV text",
+    "funnel": "TOFU",
+    "impact": 5,
+    "pillar": "P4",
+    "source": "fable",
+    "worlds": [
+      "The Blockheart Mine"
+    ],
+    "platform": "both",
+    "occasions": [
+      "anniversary",
+      "valentine's"
+    ],
+    "confidence": 5
+  },
+  {
+    "id": "A01",
+    "cta": "getforevermore.co — build one from your camera roll tonight.",
+    "hook": "no talking. just watch every memory become a lantern.",
+    "beats": [
+      "Cold open on the dark harbor, first photo lifts aboard as a lit lantern",
+      "Each following memory lands with a soft chime, boat drifts deeper into dusk",
+      "Final lantern joins the festival cove, full scene glows, cut to black on the message"
+    ],
+    "notes": "Oddly-satisfying/ASMR is one of TikTok's most reliable evergreen genres; zero editing skill required.",
+    "score": 92,
+    "title": "ASMR: lighting a sunset cruise with someone's whole summer",
+    "assets": "screen recording of cruise renderer end to end, phone-mockup frame, layered ambient/UI sound (no music needed)",
+    "effort": "S",
+    "format": "screen-record ASMR (no voiceover, ambient sound only)",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Sunset Cruise"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "anniversary",
+      "valentine's"
+    ],
+    "confidence": 5
+  },
+  {
+    "id": "A07",
+    "cta": "say the thing you can't say — getforevermore.co",
+    "hook": "I'm not good at saying it. so I built a whole sunrise instead.",
+    "beats": [
+      "Screen fills with typed confessional lines over a dawn fishing-trip world loading",
+      "Each line fades as a memory gets reeled in as a glowing catch",
+      "Final line stays on screen next to the finished sunset scene: the thing he'd never hear otherwise"
+    ],
+    "notes": "Emotional-specificity format the brief calls for; matches the site's own 'write what you never say out loud' line.",
+    "score": 92,
+    "title": "things I can't say out loud, so I built them into a sunrise",
+    "assets": "text-overlay confessional lines (pre-written), screen recording of gone-fishing renderer dawn-to-dusk",
+    "effort": "S",
+    "format": "text-on-screen confessional",
+    "funnel": "TOFU",
+    "impact": 5,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Gone Fishing: First Light"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "father's day",
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A14",
+    "cta": "getforevermore.co — plant one before bed.",
+    "hook": "this is going straight in my 3am 'oddly satisfying' saves folder.",
+    "beats": [
+      "Each memory drops into soil with a soft thud, seed sprouts in real time",
+      "Bloom sounds layer as the garden fills, colors warm across the clay scene",
+      "Final bloom opens silently on the message, hold for three seconds, cut"
+    ],
+    "notes": "ASMR/satisfying-loop genre has enormous sleep-content crossover reach; distinct sound design from the cruise chime version.",
+    "score": 92,
+    "title": "put-you-to-sleep ASMR: a clay garden that grows on memory",
+    "assets": "screen recording of memory-garden renderer, foley-style seed/soil sound layered in edit",
+    "effort": "S",
+    "format": "screen-record ASMR (soil/seed sound design)",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Memory Garden"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "mother's day",
+      "just because"
+    ],
+    "confidence": 5
+  },
+  {
+    "id": "B03",
+    "cta": "getforevermore.co — built for group gifts, everyone chips in a photo.",
+    "hook": "dad's coached rec league for 12 years. we finally put him on the teamsheet.",
+    "beats": [
+      "Teamsheet fills in one photo at a time, called up like a squad announcement",
+      "Full XI walks out under stadium lights to the finished team photo, message on the big screen"
+    ],
+    "notes": "Named 'football dad' persona from the brief; group-gift framing matches the catalog's own description of matchday.",
+    "score": 92,
+    "title": "Football dad gets his own starting XI",
+    "assets": "screen recording of matchday renderer",
+    "effort": "S",
+    "format": "screen-record world tour",
+    "funnel": "MOFU",
+    "impact": 5,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "matchday"
+    ],
+    "platform": "both",
+    "occasions": [
+      "father's day",
+      "birthday"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "B06",
+    "cta": "getforevermore.co — no shipping, no waiting on an overseas postal system.",
+    "hook": "he's deployed nine more months. I built the town he walks home to.",
+    "beats": [
+      "Train pulls in, the first neighbour on the walk home holds up a photo memory",
+      "By the front door the whole town is walking with him — then the message"
+    ],
+    "notes": "Named 'military spouse' persona from the brief. Leans on digital = no shipping without promising a scheduled delivery date.",
+    "score": 92,
+    "title": "Military spouse builds the town he's walking back to",
+    "assets": "screen recording of long-way-home renderer",
+    "effort": "S",
+    "format": "screen-record world tour",
+    "funnel": "MOFU",
+    "impact": 5,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "long-way-home"
+    ],
+    "platform": "both",
+    "occasions": [
+      "long distance",
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A25",
+    "cta": "getforevermore.co — peel your own pack.",
+    "hook": "you already watch sticker-peeling ASMR. this pack has her whole year in it.",
+    "beats": [
+      "Photo becomes a die-cut sticker, peeled from a shiny pack with the classic peel sound",
+      "Each sticker presses into its waiting spot on the album page",
+      "Gold title sticker seals the page above the final message"
+    ],
+    "notes": "Sticker-peeling ASMR is already a massive standing TikTok niche; this taps demand that exists independent of the brand.",
+    "score": 92,
+    "title": "sticker-peeling ASMR, except every sticker is a real memory",
+    "assets": "screen recording of sticker-book renderer, native peel-sound kept, close crop on the peel moment",
+    "effort": "S",
+    "format": "screen-record ASMR (sticker-peel sound)",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Sticker Book"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "best friends",
+      "just because"
+    ],
+    "confidence": 5
+  },
+  {
+    "id": "B13",
+    "cta": "getforevermore.co — most people finish in an evening.",
+    "hook": "it's 9pm, you forgot, nothing ships tonight. this does.",
+    "beats": [
+      "Real-time capture: photos dragged in, cloche courses fill with memories, no time skips",
+      "Publish tapped, link copied, sent — the whole build shown start to finish"
+    ],
+    "notes": "Honest urgency only — a real clock in frame, no countdown graphic or fake scarcity per brand rules.",
+    "score": 92,
+    "title": "It's 9pm and you forgot your anniversary",
+    "assets": "screen recording of the dashboard wizard plus dinner-table renderer, real clock visible for authenticity",
+    "effort": "S",
+    "format": "real-time build, screen-record",
+    "funnel": "BOFU",
+    "impact": 5,
+    "pillar": "P5",
+    "source": "b",
+    "worlds": [
+      "dinner-table"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "anniversary"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "B14",
+    "cta": "getforevermore.co — digital, so there's no delivery truck to miss.",
+    "hook": "flowers won't arrive by Sunday. this is ready the second you hit publish.",
+    "beats": [
+      "Split screen: a wilting-flowers stock shot next to a garden blooming live on screen",
+      "Final bloom opens on the message — sent before flowers would've even shipped"
+    ],
+    "notes": "Honest last-minute-savior framing — states digital has no shipping, never promises a specific delivery time.",
+    "score": 92,
+    "title": "Mother's Day, but you're realizing it now",
+    "assets": "screen recording of memory-garden renderer plus a simple comparison text card",
+    "effort": "S",
+    "format": "speed-run build + comparison",
+    "funnel": "BOFU",
+    "impact": 5,
+    "pillar": "P5",
+    "source": "b",
+    "worlds": [
+      "memory-garden",
+      "keepsake-desk"
+    ],
+    "platform": "both",
+    "occasions": [
+      "mother's day"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "B16",
+    "cta": "getforevermore.co — start now, most people finish in an evening.",
+    "hook": "store-bought says 'I remembered.' this says 'I remember everything.'",
+    "beats": [
+      "Doves carry sealed letters over golden-hour rooftops, one arrives per memory",
+      "The whole flock brings in the last letter — the message"
+    ],
+    "notes": "Reuses two of the brand's own approved calibration lines ('store-bought says' / 'handmade says') verbatim as the hook.",
+    "score": 92,
+    "title": "Valentine's, the version that isn't a card",
+    "assets": "screen recording of love-letters renderer",
+    "effort": "S",
+    "format": "screen-record world tour",
+    "funnel": "MOFU",
+    "impact": 5,
+    "pillar": "P5",
+    "source": "b",
+    "worlds": [
+      "love-letters",
+      "starlit-letter"
+    ],
+    "platform": "both",
+    "occasions": [
+      "valentine's"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "C09",
+    "cta": "film it, send it, see if it makes the cut",
+    "hook": "send us the moment they opened it. we might feature it, only with your ok.",
+    "beats": [
+      "add a soft opt-in prompt to the post-purchase share screen and the 'Opened' notification moment inviting senders to send in the recipient's reaction",
+      "route submissions to a simple inbox and pull the best into a themed weekly compilation, crediting senders by first name only, never without written permission",
+      "keep the ask running every week — this is the flywheel's intake valve, not a one-off post"
+    ],
+    "notes": "the core repeatable intake mechanism everything else in this batch feeds from; success metric: submissions per week and week-over-week growth; explicit consent required before any repost, per the privacy policy's no-gift-shown-without-permission rule; no email capture needed beyond what checkout already collects",
+    "score": 92,
+    "title": "Send us the moment they opened it: the standing UGC intake ritual",
+    "assets": "in-app prompt copy, a submission inbox, a weekly compilation edit template",
+    "effort": "S",
+    "format": "ugc-prompt-ritual",
+    "funnel": "retention",
+    "impact": 5,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "C33",
+    "cta": "build one tonight — $15",
+    "hook": "her name's on the door. only she can open it.",
+    "beats": [
+      "open directly on finished world footage within 2 seconds — no talking-head preamble, no logo bumper first, per the demonstrable-in-3-seconds finding",
+      "run one line of text over the footage stating the mechanic plainly: 'you send a link. they open a world.'",
+      "end on a price-plus-CTA card with native-feeling captions, no polished voiceover required"
+    ],
+    "notes": "success metric: 3-second hook-retention rate in ads manager, targeting above account median; test head-to-head against a talking-head control to confirm the finding holds for this product",
+    "score": 92,
+    "title": "ad: the 3-second payoff demo",
+    "assets": "existing world renders re-cut vertical, the brand's caption template",
+    "effort": "S",
+    "format": "ad:ugc-demo-video",
+    "funnel": "BOFU",
+    "impact": 5,
+    "pillar": "P1",
+    "source": "c",
+    "worlds": [
+      "love-letters",
+      "cruise",
+      "dinner-table"
+    ],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "F04",
+    "cta": "build theirs at getforevermore.co",
+    "hook": "wait — the gift is a WEBSITE with her name in the address?",
+    "beats": [
+      "typing maya.getforevermore.co into a browser, slow and deliberate",
+      "the greeting: 'Hi, Maya ♥' — 'only she can open it'",
+      "10s inside the world, tap tap tap",
+      "'no app. no account. one tap.'"
+    ],
+    "notes": "The single most demo-able magic moment. Premium's 'their name in the web address' made visual.",
+    "score": 92,
+    "title": "The URL reveal: every gift is a website with their name on it",
+    "assets": "browser typing shot + any world capture",
+    "effort": "S",
+    "format": "screen-record demo, single-shot",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P2",
+    "source": "fable",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 5
+  },
+  {
+    "id": "F05",
+    "cta": "the passport world · getforevermore.co",
+    "hook": "my grandma can't travel anymore. so we stamped everywhere she's ever been.",
+    "beats": [
+      "passport opens, first destination stamps down with its photo",
+      "boarding-pass stubs, world map lighting pin by pin",
+      "the final boarding pass 'carries the message home'",
+      "'destination: home. she cried at the kitchen table.' (POV framing)"
+    ],
+    "notes": "Multi-generational share-bait; the family group-chat forward is the distribution.",
+    "score": 92,
+    "title": "Grandma's passport: everywhere she's ever been",
+    "assets": "Passport world capture; family-photo placeholders",
+    "effort": "S",
+    "format": "screen-record + VO storytelling",
+    "funnel": "TOFU",
+    "impact": 5,
+    "pillar": "P4",
+    "source": "fable",
+    "worlds": [
+      "Passport"
+    ],
+    "platform": "both",
+    "occasions": [
+      "grandparents",
+      "birthday",
+      "mother's day"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "F08",
+    "cta": "pocket pal · getforevermore.co · $15",
+    "hook": "i gave my best friend a tamagotchi. except it's made of our friendship and she has to feed it our memories.",
+    "beats": [
+      "pastel handheld hatches the pixel pal",
+      "feeding it memories, playing, tucking it in",
+      "it evolves — then bursts off the screen holding the message",
+      "'2009 us would lose it.'"
+    ],
+    "notes": "Millennial/gen-z nostalgia trigger + 'she has to take care of it' is inherently funny.",
+    "score": 92,
+    "title": "Tamagotchi of our friendship (Pocket Pal nostalgia)",
+    "assets": "Pocket Pal capture",
+    "effort": "S",
+    "format": "screen-record + text overlay",
+    "funnel": "TOFU",
+    "impact": 5,
+    "pillar": "P4",
+    "source": "fable",
+    "worlds": [
+      "Pocket Pal"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "best friends",
+      "birthday"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "F09",
+    "cta": "getforevermore.co",
+    "hook": "flowers: $60, dead by friday. this: $15, she'll still open it next year.",
+    "beats": [
+      "two-panel comparison (comparison.html poster)",
+      "world footage burst 3s",
+      "'pay once. it's theirs forever. no subscription, ever.'"
+    ],
+    "notes": "The price-honesty brand rule IS the ad. Works as static, story, and paid.",
+    "score": 92,
+    "title": "Anti-flowers economics, said plainly",
+    "assets": "comparison poster / quick world capture",
+    "effort": "S",
+    "format": "static/carousel or 8s reel",
+    "funnel": "BOFU",
+    "impact": 4,
+    "pillar": "P5",
+    "source": "fable",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [
+      "anniversary",
+      "valentine's",
+      "just because"
+    ],
+    "confidence": 5
+  },
+  {
+    "id": "B04",
+    "cta": "getforevermore.co — for the traveler who's earned the rest.",
+    "hook": "her real passport expired in 2009. we stamped every place she ever told us about anyway.",
+    "beats": [
+      "Old physical passport prop in hand, cut to the digital one stamping page by page as each photo lands",
+      "World map lights up pin by pin, final boarding pass carries the message home"
+    ],
+    "notes": "Named 'traveler grandma' persona from the brief. Distinct beat (expired-passport prop) from fable-seeds' existing passport-for-grandma idea to avoid repeating it verbatim.",
+    "score": 80,
+    "title": "Grandma's passport never left the drawer",
+    "assets": "physical passport prop b-roll, screen recording of passport renderer",
+    "effort": "M",
+    "format": "world tour + prop b-roll",
+    "funnel": "MOFU",
+    "impact": 5,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "passport"
+    ],
+    "platform": "both",
+    "occasions": [
+      "grandparents",
+      "birthday"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "B01",
+    "cta": "Link in bio — build one from your camera roll tonight.",
+    "hook": "she's the gamer, not me. so I built her a world to mine through instead.",
+    "beats": [
+      "Cold open on first-person pickaxe swings down a torch-lit tunnel in the Blockheart Mine",
+      "Six heart-gems drop into the vault door, it opens on the photos and a message only she can read"
+    ],
+    "notes": "Gender-flips the fable-seeds 'gamer boyfriend' angle to a gamer girlfriend on the same mechanic — extends the seed, doesn't repeat it verbatim.",
+    "score": 74,
+    "title": "The gamer girlfriend gets her own world",
+    "assets": "screen recording of blockheart-mine renderer, phone-mockup frame overlay",
+    "effort": "S",
+    "format": "screen-record world tour",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "blockheart-mine"
+    ],
+    "platform": "both",
+    "occasions": [
+      "birthday",
+      "valentine's",
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A31",
+    "cta": "which ending gets you — comment your rank.",
+    "hook": "I've built all 32 of these. these 5 endings wrecked me the hardest.",
+    "beats": [
+      "Quick-cut countdown from 5 to 1, each clip held on its finale moment only",
+      "On-screen rank number plus one-line reason per world",
+      "Number 1 gets the longest hold, ends on that world's full reveal"
+    ],
+    "notes": "Reuses existing renderer clips from other posts, cheap to assemble; doubles as a comment-bait close.",
+    "score": 80,
+    "title": "ranking the 5 most satisfying gift endings I've ever built",
+    "assets": "5 pre-recorded renderer finale clips, ranked-countdown edit template, on-screen rank numerals",
+    "effort": "M",
+    "format": "ranked compilation / listicle",
+    "funnel": "TOFU",
+    "impact": 5,
+    "pillar": "P3",
+    "source": "a",
+    "worlds": [
+      "The Fairground",
+      "Wonderways",
+      "Love Letters",
+      "Deep Reef Dive",
+      "Candlelit Dinner"
+    ],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "A34",
+    "cta": "which one's yours — comment the number.",
+    "hook": "10 worlds. 60 seconds. pick your favorite before the beat drops.",
+    "beats": [
+      "Hard cut to a new world every 5-6 seconds, each cut landing exactly on a beat hit",
+      "On-screen world name flashes for one second per clip, no other text",
+      "Final cut holds 3 seconds longer on the strongest visual, then the coin end-card"
+    ],
+    "notes": "Single highest-reach-ceiling idea in the set — a fast, native, sound-on tour of the whole live catalog in one post.",
+    "score": 80,
+    "title": "10 gift worlds in 60 seconds, cut on the beat",
+    "assets": "10 short pre-recorded renderer clips, beat-synced hard-cut edit, trending-audio-style track (native TikTok sound, no licensed song)",
+    "effort": "M",
+    "format": "trend adapter: fast-cut beat-synced compilation",
+    "funnel": "TOFU",
+    "impact": 5,
+    "pillar": "P3",
+    "source": "a",
+    "worlds": [
+      "Birthday Trolley",
+      "Sunset Cruise",
+      "Candlelit Dinner",
+      "The Fairground",
+      "Starlit Letter",
+      "Wonderways",
+      "Sticker Book",
+      "Mixtape: Side A",
+      "Paper Wishes",
+      "Memory Ride"
+    ],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "A02",
+    "cta": "full dive is one link away — getforevermore.co",
+    "hook": "everyone stops watching before the good part. don't be everyone.",
+    "beats": [
+      "Descent begins, on-screen counter ticks '12 photos left' as shells open one by one",
+      "Counter hits zero, camera keeps sinking past where you'd expect it to end",
+      "Grotto opens at the bottom, the actual letter reveal plays in full"
+    ],
+    "notes": "Leverages TikTok's rising rewatch/completion-rate weighting by manufacturing a reason to hold to the last second.",
+    "score": 74,
+    "title": "Deep Reef Dive: the watch-till-the-end letter drop",
+    "assets": "screen recording of deep-reef-dive renderer, on-screen counter overlay added in edit",
+    "effort": "S",
+    "format": "screen-record + on-screen countdown text (watch-till-the-end finale)",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P3",
+    "source": "a",
+    "worlds": [
+      "Deep Reef Dive"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "anniversary",
+      "valentine's"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "B02",
+    "cta": "getforevermore.co — no watering reminder required.",
+    "hook": "she's killed 6 succulents this year. this garden blooms no matter what she does.",
+    "beats": [
+      "A photo drops into soil and unfurls into a flower in real time",
+      "Final bloom opens on the message at the heart of a garden grown just for her"
+    ],
+    "notes": "Named 'plant mom' persona from the brief; two garden worlds shown as a quick comparison for variety.",
+    "score": 74,
+    "title": "Plant mom, but the garden never dies",
+    "assets": "screen recording of blooming-garden and memory-garden renderers, cut back to back",
+    "effort": "S",
+    "format": "screen-record world tour",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "blooming-garden",
+      "memory-garden"
+    ],
+    "platform": "reels",
+    "occasions": [
+      "mother's day",
+      "birthday",
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "B08",
+    "cta": "getforevermore.co — nothing for her to download, just a link.",
+    "hook": "she's six time zones away now. I made her a mixtape she can open at 3am or 3pm.",
+    "beats": [
+      "Cassette reels spin, track titles write themselves onto the J-card, one per memory",
+      "The tape unfolds into liner notes wrapped around the closing message"
+    ],
+    "notes": "LDR + best friends micro-niche; nostalgia mechanic reads well across generations, not just couples.",
+    "score": 74,
+    "title": "The best friend who moved abroad",
+    "assets": "screen recording of mixtape-side-a renderer",
+    "effort": "S",
+    "format": "screen-record world tour",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "mixtape-side-a"
+    ],
+    "platform": "both",
+    "occasions": [
+      "long distance",
+      "best friends"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A06",
+    "cta": "duet it, I'm building the best one — getforevermore.co",
+    "hook": "duet this with the fair you haven't thought about in years.",
+    "beats": [
+      "Little companion strolls booth to booth in the toy-scale fair, winning photos and toys",
+      "Ferris wheel ride climbs as fireworks bloom over the string lights",
+      "Text overlay: 'duet with your own fair memory, I'll build the first one that replies'"
+    ],
+    "notes": "Explicit duet incentive with a real follow-through promise keeps it honest, not clickbait.",
+    "score": 74,
+    "title": "duet this with the last real fair you went to",
+    "assets": "screen recording of fairground renderer finale sequence, duet-ready framing (subject left-of-center)",
+    "effort": "S",
+    "format": "duet bait",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P7",
+    "source": "a",
+    "worlds": [
+      "The Fairground"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "just because",
+      "birthday"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A12",
+    "cta": "build your own starting XI — getforevermore.co",
+    "hook": "he's been called up — number 7, every photo we've ever had of him.",
+    "beats": [
+      "Voiceover in full match-commentator energy as each photo is called up to the teamsheet",
+      "Stadium fills in as the XI completes, commentary escalates with the crowd",
+      "Full squad photo freezes on the big screen, commentator goes quiet for the message"
+    ],
+    "notes": "Commentary-voiceover trend shell kept format-first rather than persona-first, distinct from existing coach/group-gift angles.",
+    "score": 74,
+    "title": "commentating my brother's gift like it's matchday",
+    "assets": "voiceover recording (commentator delivery), screen recording of matchday renderer synced to the read",
+    "effort": "S",
+    "format": "trend adapter: sports-commentary voiceover",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Matchday: Starting XI"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "birthday",
+      "retirement"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "B18",
+    "cta": "getforevermore.co — build it before the flight lands.",
+    "hook": "not the dance. the kind where he's finally walking up the driveway.",
+    "beats": [
+      "Train pulls in, every neighbour on the walk has a memory waiting",
+      "By the front door the whole town's turned out — then the message"
+    ],
+    "notes": "Reframes 'homecoming' as a literal return (military, study-abroad, long trip) rather than the school dance — a stronger emotional match for long-way-home's mechanic than B06's mid-deployment framing.",
+    "score": 74,
+    "title": "Homecoming — the actual kind",
+    "assets": "screen recording of long-way-home renderer",
+    "effort": "S",
+    "format": "screen-record world tour",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "long-way-home"
+    ],
+    "platform": "both",
+    "occasions": [
+      "homecoming"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "B30",
+    "cta": "getforevermore.co — made for one person, every time, no setting to turn on.",
+    "hook": "someone else opens the link first, it just says 'this was made for her.'",
+    "beats": [
+      "World tour of the candlelit desk of keepsake objects",
+      "Cut to the soft-gate screen a stranger would see instead — 'made for one person'"
+    ],
+    "notes": "Feature-led BOFU (recipient-claim 'Phase A' lock); confirmed automatic on every published gift with no toggle, per product-facts.md.",
+    "score": 74,
+    "title": "It only opens for her. that's not a figure of speech.",
+    "assets": "screen recording of keepsake-desk renderer plus a mockup of the soft-gate screen",
+    "effort": "S",
+    "format": "screen-record world tour + UI mockup",
+    "funnel": "BOFU",
+    "impact": 4,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "keepsake-desk"
+    ],
+    "platform": "both",
+    "occasions": [
+      "valentine's",
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A18",
+    "cta": "make the mixtape they never got — getforevermore.co",
+    "hook": "the tape-click sound alone is going to end me.",
+    "beats": [
+      "Reels spin, titles handwrite themselves onto the J-card one track at a time",
+      "Tactile cassette-click and reel-hiss sound layered under each track reveal",
+      "Liner notes unfold around the final message, hold on the handwriting"
+    ],
+    "notes": "Physical-media nostalgia is a reliable evergreen audio hook independent of any trending song.",
+    "score": 74,
+    "title": "cassette ASMR, except every track is a real memory",
+    "assets": "screen recording of mixtape-side-a renderer, cassette foley layered in edit",
+    "effort": "S",
+    "format": "screen-record ASMR (tactile/mechanical sound)",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Mixtape: Side A"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "valentine's",
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A22",
+    "cta": "the claw's rigged in your favor — getforevermore.co",
+    "hook": "this claw machine has a 100% win rate. that's the whole gift.",
+    "beats": [
+      "Coin drops, glowing button press, claw grabs a capsule memory clean every time",
+      "Rapid-cut through several successful grabs, satisfying capsule-pop sound each one",
+      "Machine hits JACKPOT, golden ticket carries the message across the screen"
+    ],
+    "notes": "Pure gameplay-loop ASMR angle, distinct from the existing countdown speed-build idea already using this world.",
+    "score": 74,
+    "title": "insert coin, win every memory: a claw machine that never loses",
+    "assets": "screen recording of prize-claw renderer, rapid-cut gameplay-loop edit, arcade sound kept native",
+    "effort": "S",
+    "format": "screen-record satisfying gameplay loop",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "The Prize Claw"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "just because",
+      "birthday"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A24",
+    "cta": "see your own constellation — getforevermore.co",
+    "hook": "I used to skip to the end of videos like this. now I build the end.",
+    "beats": [
+      "Cinematic star flight, scattered points of light with no visible pattern yet",
+      "Final stretch pulls the points into a custom constellation",
+      "Constellation resolves into shape, final message lands underneath it"
+    ],
+    "notes": "Delivers on the rewatch/completion weighting TikTok is reportedly prioritizing most heavily in 2026.",
+    "score": 74,
+    "title": "watch till the end: the stars actually spell something",
+    "assets": "screen recording of starlit-letter renderer, held on the constellation-resolve moment for the payoff",
+    "effort": "S",
+    "format": "watch-till-the-end finale reveal",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P3",
+    "source": "a",
+    "worlds": [
+      "Starlit Letter"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "anniversary",
+      "valentine's"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "C10",
+    "cta": "want yours in next week's cut? build one — link in bio",
+    "hook": "five worlds. five real reactions. this week in reactions.",
+    "beats": [
+      "every Friday, cut a 30-45 second reel from 3-5 submitted reaction clips (sourced from the C09 intake) into one compilation with a consistent title card",
+      "reuse the same intro sting and end card every week so it reads as appointment content, not a random post",
+      "always credit senders by first name or initial only, and only with permission"
+    ],
+    "notes": "repeatable weekly series; consistency itself is a ranking signal per the playbook's TikTok findings; success metric: week-over-week return-viewer rate on the series",
+    "score": 74,
+    "title": "This week in reactions: a standing Friday compilation",
+    "assets": "title card and end card templates, the weekly submitted-clip pool",
+    "effort": "S",
+    "format": "series",
+    "funnel": "retention",
+    "impact": 4,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [],
+    "platform": "reels",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "C16",
+    "cta": "this week's world — link in bio",
+    "hook": "this week's world: the one with the doves.",
+    "beats": [
+      "every Monday, spotlight one world with a 20-30 second screen-recorded run and one line on who it's for",
+      "rotate through the catalog on a visible, numbered cadence so it reads as a series, not scattered posts",
+      "once the rotation completes a full lap, start again — the reruns still work for anyone who wasn't watching the first time"
+    ],
+    "notes": "infinitely repeatable given how many worlds already exist; success metric: series watch-through rate vs one-off posts, and catalog coverage rate over a quarter",
+    "score": 74,
+    "title": "World of the week: a standing catalog spotlight series",
+    "assets": "existing screen-recorded world renders, a title-card template",
+    "effort": "S",
+    "format": "series",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P6",
+    "source": "c",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "C21",
+    "cta": "new on the shelf — link in bio",
+    "hook": "the shelf just got one bigger.",
+    "beats": [
+      "whenever a new template goes live, treat it as a scheduled drop with consistent drop-day branding instead of a quiet backend change",
+      "tease it for 1-2 posts beforehand with blurred or silhouette frames of the new world",
+      "on drop day, post the full reveal cut and add it to the reaction-wall-style archive from C14"
+    ],
+    "notes": "gives followers a real reason to check back, tied to actual product cadence rather than manufactured content; success metric: drop-day post reach vs the weekly baseline",
+    "score": 74,
+    "title": "The world drop: a recurring 'new to the shelf' moment",
+    "assets": "a drop-day title card, teaser blur cuts, the full reveal render",
+    "effort": "S",
+    "format": "series",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P6",
+    "source": "c",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "F01",
+    "cta": "getforevermore.co — from $15, finished tonight",
+    "hook": "it's 6pm. dinner is at 10. you have $15 and a camera roll.",
+    "beats": [
+      "timer starts — wizard opens, template picked in 10s",
+      "photos drag in fast-forward, captions typed live",
+      "one line of the dedication shown, rest blurred: 'write what you never say out loud'",
+      "hit publish — her-name.getforevermore.co typed into messages",
+      "timer stops at ~19 min. 'done. and it's not flowers.'"
+    ],
+    "notes": "The conversion workhorse. Re-shootable per occasion by swapping the deadline line.",
+    "score": 115,
+    "title": "POV: your anniversary is in 4 hours (real-time speed-build)",
+    "assets": "dashboard screen recording, timer overlay, messages send shot",
+    "effort": "S",
+    "format": "screen-record + timer overlay",
+    "funnel": "MOFU",
+    "impact": 5,
+    "pillar": "P2",
+    "source": "fable",
+    "worlds": [
+      "The Prize Claw"
+    ],
+    "platform": "both",
+    "occasions": [
+      "anniversary"
+    ],
+    "confidence": 5
+  },
+  {
+    "id": "A20",
+    "cta": "fold your own flock — getforevermore.co",
+    "hook": "try not to feel this crease sound in your chest. I dare you.",
+    "beats": [
+      "Each crease sound plays as a crane, boat, or lotus finishes folding",
+      "Finished fold opens to reveal one memory tucked inside",
+      "Last fold sends the whole flock up, message carried on the wind"
+    ],
+    "notes": "Origami/paper-craft ASMR is an established sub-genre; visually distinct from the garden and cassette ASMR entries.",
+    "score": 92,
+    "title": "origami ASMR: folding a whole flock out of someone's memories",
+    "assets": "screen recording of paper-wishes renderer, paper-fold foley in edit",
+    "effort": "S",
+    "format": "screen-record ASMR (paper-fold sound)",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Paper Wishes"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "graduation",
+      "just because"
+    ],
+    "confidence": 5
+  },
+  {
+    "id": "C34",
+    "cta": "(inherits the organic post's own caption and CTA, unedited)",
+    "hook": "whatever hooked it organically — we don't rewrite winners.",
+    "beats": [
+      "monitor the C09/C10 UGC intake weekly for any reaction clip clearing an organic engagement threshold, such as the week's top 10%",
+      "request Spark Ads authorization from the original creator or sender, with permission, using TikTok's code-based authorization flow",
+      "run it as a Spark Ad without re-editing — over-producing seeded content kills the native feel that makes it convert"
+    ],
+    "notes": "playbook cites 142% higher engagement, 43% higher conversion, 4% lower CPM vs brand-only paid, per TikTok's own reporting; success metric: CPA vs a brand-produced ad control; raise budget no more than 20% per 48 hours to protect the learning phase",
+    "score": 92,
+    "title": "ad: spark the real reactions",
+    "assets": "a Spark authorization code from the creator, the existing organic clip unedited",
+    "effort": "S",
+    "format": "ad:spark-boost",
+    "funnel": "BOFU",
+    "impact": 5,
+    "pillar": "P1",
+    "source": "c",
+    "worlds": [],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "F02",
+    "cta": "follow for the rest of the shelf",
+    "hook": "ranking every gift world we've built by how hard it makes people cry. ep 1.",
+    "beats": [
+      "3 worlds per episode, 8-10s each: the single most emotional beat of each",
+      "tear rating out of 5 as a chip sticker",
+      "cliffhanger: 'ep2 has the one that got ME'",
+      "comment bait: 'which one would end you? wrong answers only'"
+    ],
+    "notes": "Retention engine — 15 episodes of material on the shelf already. Covers made by reel-cover.html.",
+    "score": 80,
+    "title": "Series: 45 worlds, ranked by how hard they'll cry",
+    "assets": "world screen-recordings, reel-cover posters for each ep",
+    "effort": "M",
+    "format": "episodic ranked series, screen-record",
+    "funnel": "TOFU",
+    "impact": 5,
+    "pillar": "P3",
+    "source": "fable",
+    "worlds": [
+      "Love Letters",
+      "Starlit Letter",
+      "Blooming Message Garden"
+    ],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "F06",
+    "cta": "built for group gifts · getforevermore.co",
+    "hook": "our coach retired so the boys picked one last starting XI. every player is one of us.",
+    "beats": [
+      "teamsheet ceremony — each photo called up onto the pitch",
+      "stadium fills as the XI completes",
+      "team photo with the message on the big screen",
+      "'grown men. destroyed. worth it.'"
+    ],
+    "notes": "Male-friendship tearjerker is an underserved goldmine; football TikTok is enormous.",
+    "score": 74,
+    "title": "The boys made coach a Starting XI (group gift lane)",
+    "assets": "Matchday capture",
+    "effort": "S",
+    "format": "screen-record + group-chat frame",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P4",
+    "source": "fable",
+    "worlds": [
+      "Matchday: Starting XI"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "retirement",
+      "best friends"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "F12",
+    "cta": "mixtape: side a · getforevermore.co",
+    "hook": "in 1998 my mom made me a mixtape. today i made her one back.",
+    "beats": [
+      "cassette reels spin, track titles write onto the J-card",
+      "each track opens a memory",
+      "liner notes unfold around the message",
+      "'side A: everything you taught me.'"
+    ],
+    "notes": "Generational nostalgia flip works both directions (parent→kid, kid→parent).",
+    "score": 74,
+    "title": "Mixtape flip: I made my mom the mixtape she made me in 1998",
+    "assets": "Mixtape capture",
+    "effort": "S",
+    "format": "screen-record + VO",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P4",
+    "source": "fable",
+    "worlds": [
+      "Mixtape: Side A"
+    ],
+    "platform": "both",
+    "occasions": [
+      "mother's day",
+      "birthday"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "F14",
+    "cta": "made for the ones far away · getforevermore.co",
+    "hook": "the worst part of sending a gift from 4,000 miles away is not seeing her face. this is the next best thing.",
+    "beats": [
+      "send the link at night, timezone math on screen",
+      "morning: the dashboard badge flips to 'Opened'",
+      "'she's inside it right now.'",
+      "cut to the world she's walking through"
+    ],
+    "notes": "A real, code-confirmed feature that's pure LDR emotion. Underused everywhere.",
+    "score": 74,
+    "title": "The Opened badge moment (you'll know when she opens it)",
+    "assets": "dashboard badge capture + world footage",
+    "effort": "S",
+    "format": "screen-record, phone-notification framing",
+    "funnel": "BOFU",
+    "impact": 4,
+    "pillar": "P2",
+    "source": "fable",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [
+      "long distance"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "F16",
+    "cta": "moving day · getforevermore.co",
+    "hook": "she leaves for college in 3 weeks. i'm not crying, you're crying.",
+    "beats": [
+      "the little room furnished box by box — every box a memory",
+      "daylight rolls to dusk as the home fills",
+      "the ribbon-tied last box holds the letter",
+      "'wherever you live next, this one's already yours.'"
+    ],
+    "notes": "August-September seasonal spike; parents ARE on TikTok and they share.",
+    "score": 74,
+    "title": "College drop-off: a room that unpacks itself (Moving Day, September)",
+    "assets": "Moving Day capture",
+    "effort": "S",
+    "format": "screen-record + VO",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P5",
+    "source": "fable",
+    "worlds": [
+      "Moving Day"
+    ],
+    "platform": "both",
+    "occasions": [
+      "graduation",
+      "long distance",
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A03",
+    "cta": "drop your guess — real one's under it in part 2.",
+    "hook": "freezing it right here. comment what you think is under the cloche.",
+    "beats": [
+      "Camera pans the rooftop table, stops on an unlifted cloche, freeze-frame + comment prompt",
+      "Text overlay: 'most-liked guess gets pinned tomorrow'",
+      "Part 2 (next post) lifts the cloche on the actual memory and reads the guesses"
+    ],
+    "notes": "Comments become the algorithmic engagement signal; sets up a guaranteed part 2 without scripting one in advance.",
+    "score": 74,
+    "title": "guess what's under the cloche before I show you",
+    "assets": "screen recording of dinner-table renderer paused mid-course, freeze-frame edit, pinned-comment follow-up planned",
+    "effort": "S",
+    "format": "comment-bait freeze-frame",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P7",
+    "source": "a",
+    "worlds": [
+      "Candlelit Dinner"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "anniversary",
+      "valentine's"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A10",
+    "cta": "duet it with your actual reaction — getforevermore.co",
+    "hook": "the wax seal is still intact in this shot. duet it before I break it.",
+    "beats": [
+      "Dove post arrives at golden hour, camera holds on the still-sealed letter",
+      "Freeze-frame with a duet prompt overlay",
+      "Full flock carries in the last letter after the duet cuts back"
+    ],
+    "notes": "Pure duet freeze-frame mechanic, kept distinct from the dove-rebuild devlog and ranked-series ideas already in the pipeline.",
+    "score": 74,
+    "title": "duet this the second before the wax seal cracks",
+    "assets": "screen recording of love-letters renderer paused pre-reveal, duet-safe framing",
+    "effort": "S",
+    "format": "duet bait freeze-frame",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Love Letters"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "long distance",
+      "anniversary"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A15",
+    "cta": "the 'game' is getforevermore.co — link in bio.",
+    "hook": "found this indie mining game. plot twist: I built the mine myself.",
+    "beats": [
+      "Torch-lit tunnels, pickaxe swings, chest opens on a real photo memory",
+      "Six gems collected one by one, satisfying chest-open sound each time",
+      "Vault door opens on the message, text reveals: 'this is a gift, not a game'"
+    ],
+    "notes": "Bait-and-reveal is honest — never claims it IS a game, reveals the twist on-screen — so it stays inside the no-dishonest-hook rule.",
+    "score": 74,
+    "title": "playing a pixel mine like a cozy indie game (it's actually a gift)",
+    "assets": "screen recording of memory-mine renderer, native gameplay UI sounds kept in",
+    "effort": "S",
+    "format": "screen-record satisfying gameplay",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P2",
+    "source": "a",
+    "worlds": [
+      "The Memory Mine"
+    ],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "A28",
+    "cta": "mine your own — getforevermore.co",
+    "hook": "the vault door needs six gems before it opens. here's all six, back to back.",
+    "beats": [
+      "First-person pickaxe swings through torch-lit tunnels, framed memories in the caverns",
+      "Six heart-gems collected in quick succession, each one setting into the vault door",
+      "Vault opens on the golden room, camera holds on the message"
+    ],
+    "notes": "Framed as a pure gameplay/world-tour countdown, not the gamer-partner persona angle already used elsewhere in the catalog.",
+    "score": 74,
+    "title": "first-person mining, but the vault door opens on a real message",
+    "assets": "screen recording of blockheart-mine renderer, first-person framing kept native",
+    "effort": "S",
+    "format": "screen-record first-person gameplay, watch-till-end vault reveal",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P3",
+    "source": "a",
+    "worlds": [
+      "The Blockheart Mine"
+    ],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "A30",
+    "cta": "say it in stars — getforevermore.co",
+    "hook": "each star is a sentence I've never said to her out loud.",
+    "beats": [
+      "Night sky fills star by star, each one a memory with a confessional line typed beneath it",
+      "Trace lines connect the stars as more lines type on screen",
+      "Final star completes the constellation over the closing message, lines fade to just the message"
+    ],
+    "notes": "Pairs the confessional text format with the world's own visual trace mechanic for a tight hook-to-payoff match.",
+    "score": 74,
+    "title": "every star is something I never said out loud",
+    "assets": "screen recording of constellation-reveal renderer, typed-text overlay timed to star reveals",
+    "effort": "S",
+    "format": "text-on-screen confessional + trace ASMR",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Constellation Reveal"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "anniversary",
+      "valentine's"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A35",
+    "cta": "comment below — next match posts tomorrow.",
+    "hook": "comment your relationship in 5 words, I'm matching you to a world.",
+    "beats": [
+      "Green-screen reading a real comment out loud, reacting in character",
+      "Cut to the matched world's screen recording as the 'verdict'",
+      "Text overlay: 'comment yours for the next one', ends on a new comment prompt"
+    ],
+    "notes": "Recurring low-effort format once the first episode seeds real comments; scales indefinitely without new creative concepts.",
+    "score": 74,
+    "title": "tell me your situationship, I'll match you to a gift world",
+    "assets": "green-screen self-tape reacting to screenshotted comments, matched renderer clip per episode",
+    "effort": "S",
+    "format": "green-screen comment-reply series",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P7",
+    "source": "a",
+    "worlds": [],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "B15",
+    "cta": "getforevermore.co — from $15, no shipping cutoff to miss.",
+    "hook": "you've got three days and a camera roll. that's enough.",
+    "beats": [
+      "Dawn-to-sunset fishing-trip world tour, each catch a memory reeled in",
+      "Cut to the passport world stamping his favorite trips — pick whichever fits your dad"
+    ],
+    "notes": "Matches market-playbook's Father's Day note that ~30% of purchases land in the final week — sustain urgency to the wire.",
+    "score": 74,
+    "title": "Father's Day, the week-of scramble",
+    "assets": "screen recording of gone-fishing and passport renderers",
+    "effort": "S",
+    "format": "screen-record world tour + build",
+    "funnel": "BOFU",
+    "impact": 4,
+    "pillar": "P5",
+    "source": "b",
+    "worlds": [
+      "gone-fishing",
+      "passport"
+    ],
+    "platform": "both",
+    "occasions": [
+      "father's day"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "B22",
+    "cta": "getforevermore.co — if you can text photos, you can build one of these.",
+    "hook": "you don't need a new idea. you need the photos already sitting in your camera roll.",
+    "beats": [
+      "Camera-roll scroll transitions into the claw machine winning each photo as a capsule",
+      "JACKPOT hits, the golden ticket carries the message"
+    ],
+    "notes": "Reuses the brand's own approved line ('If you can text photos, you can build one of these') verbatim.",
+    "score": 74,
+    "title": "Your camera roll already has this year's birthday gift in it",
+    "assets": "screen recording of prize-claw renderer, phone camera-roll scroll b-roll",
+    "effort": "S",
+    "format": "speed-run build, faceless",
+    "funnel": "BOFU",
+    "impact": 4,
+    "pillar": "P2",
+    "source": "b",
+    "worlds": [
+      "prize-claw"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "birthday"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "B26",
+    "cta": "getforevermore.co — built for group gifts, everyone on the team chips in a photo.",
+    "hook": "twenty-two seasons, one retiring coach, and a teamsheet with every year she gave us.",
+    "beats": [
+      "Teamsheet fills with players spanning decades, not just one season",
+      "Stadium lights up for the full squad photo, message on the big screen"
+    ],
+    "notes": "Extends fable-seeds' coach-retirement idea with a different frame (female coach, multi-decade span, alumni players pooling photos) rather than repeating 'the boys' verbatim.",
+    "score": 74,
+    "title": "Coach's last season",
+    "assets": "screen recording of matchday renderer",
+    "effort": "S",
+    "format": "screen-record world tour",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "matchday"
+    ],
+    "platform": "both",
+    "occasions": [
+      "retirement"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "B28",
+    "cta": "getforevermore.co — 1 tap, no app, no customs form.",
+    "hook": "customs doesn't hold up a link. it just opens.",
+    "beats": [
+      "Photos ride the wind as lantern-kites across the dunes, caught mid-flight",
+      "Cut to a dove carrying the last letter home — either world crosses any border for free"
+    ],
+    "notes": "Digital/no-shipping angle applied specifically to the cross-border LDR pain point — states the gift opens instantly, makes no scheduled-delivery claim.",
+    "score": 74,
+    "title": "Long distance doesn't have a shipping address",
+    "assets": "screen recording of dune-glider and love-letters renderers",
+    "effort": "S",
+    "format": "text-overlay explainer + world tour",
+    "funnel": "BOFU",
+    "impact": 4,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "dune-glider",
+      "love-letters"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "long distance"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "B31",
+    "cta": "getforevermore.co — every gift gets its own address.",
+    "hook": "typing her name into a url and hitting enter shouldn't feel this good.",
+    "beats": [
+      "Type 'maya' into the browser bar, .getforevermore.co autocompletes, hit enter",
+      "The world loads instantly on her name — no folder, no generic link"
+    ],
+    "notes": "Live-demo version of fable-seeds' 'URL reveal' concept — extends it into an actual typing beat rather than just stating the fact. Uses 'Maya,' one of the site's own approved fictional demo names.",
+    "score": 74,
+    "title": "Her name is literally in the address bar",
+    "assets": "screen recording of a browser address-bar demo, sticker-book renderer load",
+    "effort": "S",
+    "format": "URL-typing demo",
+    "funnel": "BOFU",
+    "impact": 4,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "sticker-book"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "birthday",
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "B40",
+    "cta": "getforevermore.co — pay once. it's theirs forever.",
+    "hook": "you're not signing up for anything. you pay once and it's theirs.",
+    "beats": [
+      "Fairground world tour: booths won one by one, Ferris-wheel finale with fireworks",
+      "Cut to the checkout screen — one price, no recurring charge, no account required for her"
+    ],
+    "notes": "Objection-handling BOFU using the approved verbatim brand line — targets subscription-fatigue skepticism common in app-buying audiences.",
+    "score": 74,
+    "title": "No, it's not a subscription",
+    "assets": "screen recording of fairground renderer plus checkout screen recording",
+    "effort": "S",
+    "format": "myth-busting text overlay",
+    "funnel": "BOFU",
+    "impact": 4,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "fairground"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "C39",
+    "cta": "build one for no reason at all — $15",
+    "hook": "it's not her birthday. it's not your anniversary. it's just because.",
+    "beats": [
+      "build the creative entirely around the 'just because' occasion — the one tag that never goes seasonally stale",
+      "run it always-on, year-round, as a baseline while other occasion pushes ramp and fall with the calendar",
+      "rotate the creative every 4-6 weeks to avoid fatigue while keeping the 'just because' angle constant"
+    ],
+    "notes": "fills the gap between seasonal spikes, per the playbook's note that LDR and 'just because' content can run evergreen; success metric: always-on CPA stability across non-peak weeks, used as the baseline seasonal campaigns get compared against",
+    "score": 74,
+    "title": "ad: it's not her birthday. that's the point.",
+    "assets": "a poster-kit static or 15-second video, rotating world footage",
+    "effort": "S",
+    "format": "ad:static-poster",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P5",
+    "source": "c",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "C40",
+    "cta": "find theirs — link in bio",
+    "hook": "5 people in your life. 5 worlds that fit them.",
+    "beats": [
+      "listicle carousel built from the existing poster-kit thumbnails, one slide per world with one line naming who it's for, like 'the gamer who won't text back' or 'the grandma who can't travel'",
+      "final slide is the price-plus-CTA card, running the organic gift-guide carousel format as paid creative to a cold interest-based audience",
+      "keep it to 8-10 slides total, matching the engagement-depth data on where carousels dip and recover"
+    ],
+    "notes": "reuses existing poster-kit assets at near-zero new production cost; success metric: save-and-share rate per slide position and completion-to-last-slide rate",
+    "score": 74,
+    "title": "ad: 5 people in your life, 5 worlds that fit them",
+    "assets": "existing world poster thumbnails, a carousel template",
+    "effort": "S",
+    "format": "ad:ig-carousel-listicle",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P4",
+    "source": "c",
+    "worlds": [
+      "gone-fishing",
+      "blockheart-mine",
+      "passport",
+      "pocket-pal",
+      "matchday"
+    ],
+    "platform": "ig-carousel",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "F10",
+    "cta": "open when letters · getforevermore.co",
+    "hook": "for my friend who's moving away: open when you can't sleep. open when you doubt yourself. open when you miss home.",
+    "beats": [
+      "the lamplit keepsake box, wax seals cracking one by one",
+      "an unfolded letter (words half-blurred — theirs, not ours)",
+      "photos tucked into the lid",
+      "'the one you save for last is theirs to keep.'"
+    ],
+    "notes": "Sincere lane: no meme audio, no jokes. BLOCKED until the open-when-letter template ships.",
+    "score": 69,
+    "title": "Open When Letters for the hard days (sincere lane)",
+    "assets": "Open When Letters capture (NOTE: world not yet active — hold until live)",
+    "effort": "S",
+    "format": "quiet screen-record + plain captions",
+    "funnel": "TOFU",
+    "impact": 5,
+    "pillar": "P4",
+    "source": "fable",
+    "worlds": [
+      "Open When Letters"
+    ],
+    "platform": "reels",
+    "occasions": [
+      "long distance",
+      "just because"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "F13",
+    "cta": "both live at getforevermore.co",
+    "hook": "date night, but you can only pick one. A or B?",
+    "beats": [
+      "5s of Candlelit Dinner (cloche lifts on a memory)",
+      "5s of Drive-In Night (marquee with their name)",
+      "'A or B. defend your answer in the comments.'"
+    ],
+    "notes": "Weekly ritual format; the comment section does the marketing.",
+    "score": 69,
+    "title": "Which world would wreck you? (comment-bait battle)",
+    "assets": "two world captures; story-poll.html for the IG version",
+    "effort": "S",
+    "format": "split-screen A/B + poll",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P7",
+    "source": "fable",
+    "worlds": [
+      "Candlelit Dinner",
+      "Drive-In Night"
+    ],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 5
+  },
+  {
+    "id": "F18",
+    "cta": "on the shelf now · getforevermore.co",
+    "hook": "a new world just opened. 15 seconds inside.",
+    "beats": [
+      "15s of the new world's best moment, no VO, ambient",
+      "world-drop poster as the end frame (name + tier + price)",
+      "IG: matching world-drop static same day"
+    ],
+    "notes": "Standing ritual; the 5 newest worlds aren't even on the landing shelf yet — announce them here first.",
+    "score": 69,
+    "title": "New-world drop ritual (whenever a template ships)",
+    "assets": "world-drop.html poster + capture",
+    "effort": "S",
+    "format": "teaser capture + world-drop poster",
+    "funnel": "retention",
+    "impact": 3,
+    "pillar": "P6",
+    "source": "fable",
+    "worlds": [
+      "Birthday Trolley",
+      "Sunset Cruise",
+      "Gallery Wall",
+      "Love Letters",
+      "Candlelit Dinner"
+    ],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 5
+  },
+  {
+    "id": "C01",
+    "cta": "link in bio — build theirs before the excuses run out",
+    "hook": "the distance is real. the gift shouldn't feel like it.",
+    "beats": [
+      "identify 15-30 LDR-niche nano/micro creators (1k-100k) who already post 'missing my person' content",
+      "gift each a premium credit plus a unique tracked code; brief them to film their partner's unscripted reaction, not a scripted read",
+      "repost the strongest clips to the brand account within 48 hours, always tagging and crediting the creator"
+    ],
+    "notes": "long distance is the one occasion that's evergreen, not calendar-locked, so this roster can run year-round; success metric: gift purchases per unique code / creators seeded, target 15%+ activation, tracked against Cal AI-style CPA benchmarks ($15-60)",
+    "score": 68,
+    "title": "The long-distance roster: monthly world credits seeded to 15-30 LDR creators",
+    "assets": "premium credits across gone-fishing/love-letters/starlit-letter/cruise, a 7-part UGC brief doc, unique per-creator discount codes",
+    "effort": "L",
+    "format": "creator-seeding-program",
+    "funnel": "TOFU",
+    "impact": 5,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [
+      "gone-fishing",
+      "love-letters",
+      "starlit-letter",
+      "cruise"
+    ],
+    "platform": "both",
+    "occasions": [
+      "long distance",
+      "just because",
+      "valentine's"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "F07",
+    "cta": "custom builds from $250 · tell us your idea",
+    "hook": "someone paid us $250 to build a world only one person on earth will ever see.",
+    "beats": [
+      "'we can't show you theirs. that's the whole point.' — 1 OF 1 stamp",
+      "what we CAN show: sketches/blueprint aesthetic, the three calls, three build rounds",
+      "'half up front. half only after they've seen it finished.'",
+      "'tell us the story. we'll build the place it lives.'"
+    ],
+    "notes": "Sells the $250+ tier AND makes the $15 tier feel like a bargain. Mystique compounds.",
+    "score": 64,
+    "title": "Concierge lore: someone paid $250 for a world only one person will ever see",
+    "assets": "blueprint-style poster frames, concierge section motifs",
+    "effort": "M",
+    "format": "green-screen/VO storytelling, anonymized",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P6",
+    "source": "fable",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [
+      "proposal"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A04",
+    "cta": "the marquee's got a blank where their name goes — getforevermore.co",
+    "hook": "tonight's screening has an audience of exactly one.",
+    "beats": [
+      "Green-screen self in front of the drive-in marquee footage, narrating like a real projectionist",
+      "Cut to acts, subtitles, and credits rolling with real photos as the film about them",
+      "Marquee spells their name, narrator breaks character: 'that's the whole gift.'"
+    ],
+    "notes": "Green-screen narration is a native TikTok explainer format; requires face-cam, bumps this to M effort.",
+    "score": 64,
+    "title": "green-screen bit: projectionist for a movie only one person sees",
+    "assets": "green-screen self-tape + screen recording of drive-in-night renderer as background layer",
+    "effort": "M",
+    "format": "green-screen narration over world footage",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P2",
+    "source": "a",
+    "worlds": [
+      "Drive-In Night"
+    ],
+    "platform": "both",
+    "occasions": [
+      "anniversary",
+      "valentine's"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A09",
+    "cta": "part 2 is up tomorrow — follow so you don't miss the door.",
+    "hook": "every single neighbor on this street stops you. that's not a metaphor.",
+    "beats": [
+      "Step off the train, first neighbor stops you with a memory or a question",
+      "End on the second neighbor's door, text: 'part 2 tomorrow'",
+      "Part 3 (posted separately): whole town walking with you to your own front door"
+    ],
+    "notes": "Native cliffhanger structure; a render this long naturally splits into 3 posts without padding anything out.",
+    "score": 64,
+    "title": "series: walking home through a town built about you, part 1",
+    "assets": "screen recording of long-way-home renderer split across 3 posts, consistent end-card cliffhanger text",
+    "effort": "M",
+    "format": "series with cliffhanger",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P3",
+    "source": "a",
+    "worlds": [
+      "The Long Way Home"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "homecoming",
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A11",
+    "cta": "vote in the comments — I build whatever wins.",
+    "hook": "I've got six rooms and one ring of brass keys. you pick the order.",
+    "beats": [
+      "Walk the open-roof manor room by room, stopping outside three unopened doors",
+      "Text overlay: 'comment a room, most votes wins tomorrow's post'",
+      "Follow-up post opens the winning room and the garden finale"
+    ],
+    "notes": "Turns a linear walkthrough into an audience-directed format, a strong comment-volume driver.",
+    "score": 64,
+    "title": "comment which room I open next",
+    "assets": "screen recording of manor renderer paused at room doors, comment-tally graphic for the follow-up",
+    "effort": "M",
+    "format": "comment-bait + poll-driven sequel",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P7",
+    "source": "a",
+    "worlds": [
+      "The Manor"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A23",
+    "cta": "duet your answers — getforevermore.co",
+    "hook": "three questions. only one person on earth gets all three right.",
+    "beats": [
+      "Pop-up book page folds open on a challenge only the recipient could answer",
+      "Two more challenges fold upright as correct answers land, book grows taller",
+      "Duet prompt: 'answer these about your person, I'll build the book if you get 3/3'"
+    ],
+    "notes": "The product's own Q&A mechanic is inherently duet-shaped — needs almost no invention to make it work.",
+    "score": 64,
+    "title": "answer these 3 questions only they'd know (duet if you dare)",
+    "assets": "screen recording of quest-book renderer, on-screen question cards, duet call-to-action end card",
+    "effort": "M",
+    "format": "duet-bait interactive Q&A",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P7",
+    "source": "a",
+    "worlds": [
+      "The Questbook"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "best friends",
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A32",
+    "cta": "vote, then build whichever one won — getforevermore.co",
+    "hook": "passport or memory ride. comment before you scroll, then watch both.",
+    "beats": [
+      "Split screen: left plays Passport stamping a destination, right plays Memory Ride's opening scene",
+      "Text overlay: 'comment P for passport, R for ride'",
+      "Both sides finish on their own final message beat, screen holds the split to the end"
+    ],
+    "notes": "Split-screen this-or-that is a proven comment-volume format; both options are genuinely good so the poll doesn't feel rigged.",
+    "score": 64,
+    "title": "long-distance couples: passport or memory ride, comment your pick",
+    "assets": "screen recordings of passport and memory-ride renderers, split-screen edit, poll sticker (Reels) or comment prompt (TikTok)",
+    "effort": "M",
+    "format": "this-or-that split-screen poll",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P7",
+    "source": "a",
+    "worlds": [
+      "Passport",
+      "Memory Ride"
+    ],
+    "platform": "reels",
+    "occasions": [
+      "long distance"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A33",
+    "cta": "follow for day 2 — or just build your own tonight.",
+    "hook": "day 1: fed it one memory. by day 7 it doesn't look like this anymore.",
+    "beats": [
+      "Day 1 post: pastel handheld hatches the pal, first memory fed in",
+      "Days 2 through 6: quick daily clips of feeding, playing, tucking it in as it visibly evolves",
+      "Day 7: pal bursts off the screen holding the finished message, full evolution recap"
+    ],
+    "notes": "Daily cliffhanger structure is a strong follow-driver; distinct from any single-post Pocket Pal angle already in the pipeline.",
+    "score": 64,
+    "title": "7-day series: watch a pixel pal grow on someone else's memories",
+    "assets": "7 short screen recordings of pocket-pal renderer at each growth stage, consistent daily posting slot",
+    "effort": "M",
+    "format": "series with daily cliffhanger",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P2",
+    "source": "a",
+    "worlds": [
+      "Pocket Pal"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "long distance",
+      "best friends"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A37",
+    "cta": "reality's one link away — getforevermore.co",
+    "hook": "expectation: a slideshow with music. reality: he sank into a whole reef.",
+    "beats": [
+      "Left side: a flat, generic slideshow-card mockup labeled 'expectation'",
+      "Right side: Deep Reef Dive's real sunlit-to-glowing-deep descent labeled 'reality'",
+      "Slideshow side freezes and grays out, reef side keeps playing to the grotto letter"
+    ],
+    "notes": "Direct anti-slideshow positioning matches the brand's own anti-positioning without naming a competitor by name.",
+    "score": 64,
+    "title": "expectation vs reality: what a digital gift actually looks like now",
+    "assets": "one mocked-up generic slideshow clip (built once, reusable), screen recording of deep-reef-dive renderer, split-screen edit",
+    "effort": "M",
+    "format": "trend adapter: expectation-vs-reality split screen",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Deep Reef Dive"
+    ],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "B29",
+    "cta": "getforevermore.co — you'll get a notice the moment it's opened.",
+    "hook": "you don't have to wonder if she opened it. the badge just turns green.",
+    "beats": [
+      "Dashboard screen-record: the 'Opened' badge appears the moment the link is tapped on her end",
+      "Cut to the world loading on her phone — the reaction is the payoff, the badge is the proof"
+    ],
+    "notes": "Feature-led BOFU (opened-notice moment); confirmed in product-facts.md — green 'Opened' badge plus email/in-app notification on first_opened_at.",
+    "score": 64,
+    "title": "You'll know the exact second she opens it",
+    "assets": "dashboard screen recording of the Opened badge/notification, phone-in-hand reaction shot",
+    "effort": "M",
+    "format": "UI screen-record + reaction inset",
+    "funnel": "BOFU",
+    "impact": 4,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "love-letters"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "birthday",
+      "anniversary",
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "B35",
+    "cta": "getforevermore.co — 45 worlds, one probably already fits them.",
+    "hook": "the traveler gets stamps. the gamer gets a mine. here's who gets what.",
+    "beats": [
+      "Slide 1: 'tell us who you're buying for' framing",
+      "Slides 2-6: one persona-to-world match per slide — traveler, coach, plant person, music person, gamer"
+    ],
+    "notes": "Direct execution of the matchmaking lens as a standalone, evergreen format — reusable template, swap personas month to month.",
+    "score": 64,
+    "title": "Which world fits the person you're buying for",
+    "assets": "6-slide carousel, one renderer screenshot per world",
+    "effort": "M",
+    "format": "ig-carousel matchmaking listicle",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P3",
+    "source": "b",
+    "worlds": [
+      "passport",
+      "matchday",
+      "memory-garden",
+      "mixtape-side-a",
+      "blockheart-mine"
+    ],
+    "platform": "ig-carousel",
+    "occasions": [
+      "birthday",
+      "just because",
+      "grandparents"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "C07",
+    "cta": "make her feed your friendship — link in bio",
+    "hook": "she has to feed our friendship now. it's a whole tamagotchi.",
+    "beats": [
+      "seed 12-15 best-friend duo creator accounts — a proven two-person-channel format",
+      "brief: each friend builds the other a Pocket Pal in secret, swap and film the reveal same day",
+      "let the format stay genuinely funny — this is comedy-forward, not just sentimental"
+    ],
+    "notes": "best-friend niche is underused relative to couples across gifting marketing generally; success metric: creator-to-creator referral rate, i.e. do seeded duos tag other duo accounts unprompted",
+    "score": 64,
+    "title": "Tamagotchi for your best friend: duo creators build Pocket Pal for each other",
+    "assets": "pocket-pal credits, a duo-swap brief",
+    "effort": "M",
+    "format": "creator-seeding-program",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [
+      "pocket-pal",
+      "mixtape-side-a",
+      "small-world"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "best friends",
+      "just because",
+      "graduation"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A08",
+    "cta": "stitch it, or just build the desk — getforevermore.co",
+    "hook": "everyone's got one object they never threw away. stitch me yours.",
+    "beats": [
+      "Close-up pan across the candlelit desk of keepsake objects and notes",
+      "Stitch intro clip of a real kept object (ticket stub, a note, whatever's on hand)",
+      "Cut to the desk's final letter reveal, text: 'this is what I did with mine'"
+    ],
+    "notes": "Stitch format invites low-effort UGC replies, which is the flywheel P7 is meant to generate.",
+    "score": 55,
+    "title": "stitch this with the one thing you kept from someone",
+    "assets": "screen recording of keepsake-desk renderer, one real prop close-up for the stitch intro",
+    "effort": "S",
+    "format": "stitch bait",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P7",
+    "source": "a",
+    "worlds": [
+      "Keepsake Desk"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "just because",
+      "anniversary"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A13",
+    "cta": "build the level — getforevermore.co",
+    "hook": "every tile you light up is a real memory. this level doesn't end in a boss fight.",
+    "beats": [
+      "Block-world quest lights tile by tile like a real level-completion trend clip",
+      "On-screen '% complete' counter climbs with each memory lit",
+      "Completed map fills the screen, counter hits 100%, cut to the keepsake reveal"
+    ],
+    "notes": "Gameplay-completion is a recognizable trend shape for the cozy-gaming audience the brief flags as overlapping.",
+    "score": 55,
+    "title": "the 'complete the level' trend, but it's someone's childhood",
+    "assets": "screen recording of memory-arcade renderer, on-screen percentage-counter overlay in edit",
+    "effort": "S",
+    "format": "trend adapter: gameplay-completion trend",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Memory Arcade"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "graduation",
+      "best friends"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A17",
+    "cta": "map your own route — getforevermore.co",
+    "hook": "POV: the car stops at every single memory you have together.",
+    "beats": [
+      "First-person dash-cam angle as the little car drives the neighbourhood street",
+      "Car stops at each photo memory, on-screen text narrates like a passenger's thoughts",
+      "Route completes at the final message, car parks, text: 'that's the whole map'"
+    ],
+    "notes": "Simple POV crop of existing renderer footage — no new filming needed.",
+    "score": 55,
+    "title": "POV: you're riding shotgun through someone's whole friendship",
+    "assets": "screen recording of memory-timeline renderer cropped to a dash-cam angle, POV text overlay",
+    "effort": "S",
+    "format": "POV confessional",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Ribbon Path"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "best friends"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A19",
+    "cta": "furnish one in an evening — getforevermore.co",
+    "hook": "this apartment isn't real. the memories furnishing it are.",
+    "beats": [
+      "Empty room, first box opens into a photo frame on the wall",
+      "Sped-up montage: shelves fill, daylight rolls toward dusk as the home fills in",
+      "Ribbon-tied last box opens on the letter, room fully lit and lived-in"
+    ],
+    "notes": "Rides the apartment-tour trend format with a fresh new-place framing, distinct from the college-drop-off angle already in the pipeline.",
+    "score": 55,
+    "title": "furnishing a first apartment box by box (it's a gift, not a flex)",
+    "assets": "screen recording of moving-day renderer, sped-up cut synced to a steady beat",
+    "effort": "S",
+    "format": "screen-record satisfying build, sped up",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P2",
+    "source": "a",
+    "worlds": [
+      "Moving Day"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A21",
+    "cta": "comment which polaroid hit hardest.",
+    "hook": "wait for it — the seal peels back slower than you think.",
+    "beats": [
+      "Envelope seal peels back in real time, first polaroid edge appears",
+      "Each polaroid pulls fully out with its handwritten caption visible",
+      "Closing message polaroid pulls last, held on screen"
+    ],
+    "notes": "Classic 'wait for it' suspense-hook structure; doubles as comment bait via the caption ask.",
+    "score": 55,
+    "title": "wait for it: the polaroid pull-out is the whole appeal",
+    "assets": "screen recording of polaroid-envelope renderer, slowed pull-out moments in edit",
+    "effort": "S",
+    "format": "screen-record ASMR (wait-for-it pull-out)",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Polaroid Envelope"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "long distance",
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A26",
+    "cta": "solve your own — getforevermore.co",
+    "hook": "this looks unsolvable for the first 20 seconds. it isn't.",
+    "beats": [
+      "Pieces of the impossible world turn with no visible path through yet, dawn light",
+      "Paths start connecting one by one as memories carry home along each one",
+      "Final turn builds one glowing tower from every piece solved, dusk settles"
+    ],
+    "notes": "Puzzle-solve suspense format works even for viewers with zero context on the product.",
+    "score": 55,
+    "title": "watch till the end: the impossible path finally connects",
+    "assets": "screen recording of wonderways renderer dawn-to-dusk, no cuts until the final tower",
+    "effort": "S",
+    "format": "watch-till-the-end puzzle-solve",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P3",
+    "source": "a",
+    "worlds": [
+      "Wonderways"
+    ],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "A27",
+    "cta": "your turn — build the trolley at getforevermore.co",
+    "hook": "tell me it's their birthday without telling me. I'll go first.",
+    "beats": [
+      "Text overlay: 'I punched a ticket for a trolley that only stops for them'",
+      "Trolley rides the celebration line, one photo boarding a window seat per stop",
+      "Full crew leans out at the party terminus, text: 'that's how you tell me'"
+    ],
+    "notes": "Classic fill-in-the-trend format lowers the bar for viewers to reply with their own version in the comments.",
+    "score": 55,
+    "title": "tell me it's their birthday without telling me",
+    "assets": "screen recording of birthday-trolley renderer, trend-format text overlay",
+    "effort": "S",
+    "format": "trend adapter: 'tell me without telling me' text trend",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Birthday Trolley"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "birthday"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A36",
+    "cta": "getforevermore.co — the quiet version is still the whole gift.",
+    "hook": "screenshot this at 0:03, tell me you don't want to live there.",
+    "beats": [
+      "Unbroken first-person walk room to room through the open-roof manor, ambient sound only",
+      "Each room quietly wakes its memory as you pass, no on-screen text at all",
+      "Garden finale opens on the last brass key, one line of text appears for the first time: the message"
+    ],
+    "notes": "Rides the liminal-space/ambient trend instead of a manufactured hook; distinct from the comment-bait room-vote entry on the same world.",
+    "score": 55,
+    "title": "the quiet, unbroken walk through a house built for one person",
+    "assets": "screen recording of manor renderer as one continuous unbroken take, ambient room-tone only, no music",
+    "effort": "S",
+    "format": "ambient/liminal-space trend, no talking or text until the end",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "The Manor"
+    ],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "A38",
+    "cta": "which track would get you — getforevermore.co",
+    "hook": "one of these tracks is about to hit a core memory. guess which.",
+    "beats": [
+      "Reels spin through track titles handwriting onto the J-card, casual pace",
+      "One title triggers a hard freeze-zoom with a single flashback-style caption",
+      "Snap back to full speed, liner notes unfold around the final message"
+    ],
+    "notes": "Freeze-zoom trend shell is generic and reusable across any world in the catalog with a one-clip swap.",
+    "score": 55,
+    "title": "the 'core memory' trend, except it's a real mixtape playing",
+    "assets": "screen recording of mixtape-side-a renderer, one freeze-zoom edit moment, flashback-style caption card",
+    "effort": "S",
+    "format": "trend adapter: freeze-zoom flashback moment",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Mixtape: Side A"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "valentine's"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "A39",
+    "cta": "rate yours before you send it — getforevermore.co",
+    "hook": "giving my own gift a rating before she even sees it. be honest with me.",
+    "beats": [
+      "Text overlay: 'rating my gift out of 10 before I send it' over the envelope opening",
+      "Deadpan on-screen commentary rating each polaroid as it pulls out ('handwriting: 9, I got nervous')",
+      "Final score card appears next to the closing message: '10/10, sending it'"
+    ],
+    "notes": "Light self-deprecating humor format; low risk, easy weekly filler between higher-impact posts.",
+    "score": 55,
+    "title": "rating my own gift out of 10 before I send it",
+    "assets": "screen recording of polaroid-envelope renderer, on-screen rating captions added per beat",
+    "effort": "S",
+    "format": "comedic self-review, text-on-screen",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Polaroid Envelope"
+    ],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "A40",
+    "cta": "comment your pick — winner posts full length next Friday.",
+    "hook": "you've picked the world of the week 4 times now. you have taste.",
+    "beats": [
+      "Recap clip of last week's winning world's best moment",
+      "Text overlay presents 3 new candidate worlds side by side",
+      "Comment prompt: 'vote for next week's world of the week'"
+    ],
+    "notes": "Weekly ritual builds a reason to follow and return; the set's only retention-funnel entry, closing the P7 flywheel loop.",
+    "score": 55,
+    "title": "world of the week: you vote, I screen-record the winner",
+    "assets": "3 short pre-recorded renderer teaser clips, recurring Friday posting slot, running tally graphic",
+    "effort": "S",
+    "format": "recurring community vote ritual",
+    "funnel": "retention",
+    "impact": 3,
+    "pillar": "P7",
+    "source": "a",
+    "worlds": [],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "B07",
+    "cta": "getforevermore.co — send the link, she opens each letter whenever she needs it.",
+    "hook": "packed her whole dorm room. this is the one thing I didn't put in a box.",
+    "beats": [
+      "Lamplit keepsake box of sealed letters, a wax seal cracks open on the first one",
+      "Photos tuck into the lid as each letter unfolds — the last one is saved for the hardest day"
+    ],
+    "notes": "Named 'college kid moving away' persona from the brief. Note: open-when-letter is currently isActive:false in the manifest (mid-edit per repo status) — confirm it's live before this runs; market research flags 'open when' letters as a proven organic LDR/graduation/deployment format, worth the wait if needed.",
+    "score": 55,
+    "title": "College kid, one box left to pack",
+    "assets": "screen recording of open-when-letter renderer",
+    "effort": "S",
+    "format": "world tour + parent voiceover",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "open-when-letter"
+    ],
+    "platform": "both",
+    "occasions": [
+      "graduation",
+      "just because"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "B12",
+    "cta": "getforevermore.co — built for kids, siblings, grandkids, and proud-of-you days.",
+    "hook": "first place at the science fair. we built her a whole level to celebrate it.",
+    "beats": [
+      "Block-world map lights tile by tile as each memory is placed",
+      "Completed map glows whole, finished with the message"
+    ],
+    "notes": "Direct match to the catalog's own description of memory-arcade ('built for kids, siblings, grandchildren and proud-of-you moments').",
+    "score": 55,
+    "title": "The proud-of-you gift for a kid who did something big",
+    "assets": "screen recording of memory-arcade renderer",
+    "effort": "S",
+    "format": "screen-record world tour",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "memory-arcade"
+    ],
+    "platform": "both",
+    "occasions": [
+      "graduation",
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "B32",
+    "cta": "getforevermore.co — edits keep updating for them, even after you've sent the link.",
+    "hook": "hit publish, then noticed the typo. good news: it's not too late.",
+    "beats": [
+      "Editor screen: the dedication text gets edited after the 'published' badge is already showing",
+      "Cut to the live gift updating in real time on the recipient's end"
+    ],
+    "notes": "Feature-led BOFU (post-publish editability); defuses a real purchase-anxiety objection — 'what if I make a mistake.'",
+    "score": 55,
+    "title": "Sent it already? you can still fix the typo.",
+    "assets": "dashboard editor screen recording, split-screen with the live experience updating",
+    "effort": "S",
+    "format": "UI screen-record, split-screen",
+    "funnel": "BOFU",
+    "impact": 3,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "moving-day"
+    ],
+    "platform": "reels",
+    "occasions": [
+      "just because"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "B33",
+    "cta": "getforevermore.co — private by choice, one tap to switch it back.",
+    "hook": "6 characters, and only the two of you will ever see what's inside.",
+    "beats": [
+      "Toggle from public to private in the share screen, a 6-character code appears",
+      "World tour of the manor, brass keys, garden finale — nobody finds this by accident"
+    ],
+    "notes": "Feature-led BOFU (private visibility toggle + 6-char access code); useful where discretion matters, e.g. shared family devices.",
+    "score": 55,
+    "title": "A gift with a lock on it",
+    "assets": "dashboard share-modal screen recording plus manor renderer",
+    "effort": "S",
+    "format": "UI screen-record + world tour",
+    "funnel": "BOFU",
+    "impact": 3,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "manor"
+    ],
+    "platform": "both",
+    "occasions": [
+      "valentine's",
+      "wedding"
+    ],
+    "confidence": 4
+  },
+  {
+    "id": "C13",
+    "cta": "guess it. we'll tell you tomorrow.",
+    "hook": "we're not telling you which world this is. guess in the comments.",
+    "beats": [
+      "post a submitted reaction clip cropped to show only the recipient's face, hiding the screen itself",
+      "caption invites guesses at which of the worlds it is; pin the first correct comment",
+      "reveal the world in a follow-up post the next day, buying a second touch from the same submission"
+    ],
+    "notes": "two posts from one submission; success metric: comment volume on the guessing post plus return-viewer rate on the reveal",
+    "score": 55,
+    "title": "Guess what world made her cry: teaser-only reaction posts",
+    "assets": "a cropped reaction clip, a same-week reveal follow-up post",
+    "effort": "S",
+    "format": "ugc-prompt-ritual",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [],
+    "platform": "reels",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "C14",
+    "cta": "see real reactions — link in bio, highlight: reactions",
+    "hook": "every reaction we've ever been allowed to share, in one place.",
+    "beats": [
+      "maintain a standing IG highlight called 'reactions' that only ever grows, one frame per permissioned clip or screenshot",
+      "add a new frame the moment a fresh submission clears permission — pure curation, no new production",
+      "reference the highlight in creator briefs and bio as real proof, without ever needing an invented testimonial"
+    ],
+    "notes": "zero-cost, compounding proof asset that grows forever; success metric: highlight view trend over time; never post without written permission per the privacy policy",
+    "score": 55,
+    "title": "The reaction wall: a permanent, opt-in Story highlight",
+    "assets": "a Story highlight cover, rolling frame additions from the C09 intake",
+    "effort": "S",
+    "format": "community-archive",
+    "funnel": "retention",
+    "impact": 3,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [],
+    "platform": "ig-story",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "C17",
+    "cta": "follow the build — devlog #[n]",
+    "hook": "it took three rebuilds to get a dove's wings to tuck right. here's devlog one.",
+    "beats": [
+      "record short, unpolished founder-voice clips narrating real build problems on whatever template is next in progress",
+      "post as a numbered ongoing series so followers can track progress toward a launch",
+      "end each entry on a genuine cliffhanger — an unsolved bug, an undecided direction — to pull the next watch"
+    ],
+    "notes": "formalizes the founder-devlog seed into a recurring series; success metric: devlog-to-devlog retention, i.e. what share of viewers return for the next numbered entry",
+    "score": 55,
+    "title": "Building world #46: a public devlog series",
+    "assets": "founder voice/camera, screen capture of in-progress renders",
+    "effort": "S",
+    "format": "series",
+    "funnel": "retention",
+    "impact": 4,
+    "pillar": "P6",
+    "source": "c",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "C22",
+    "cta": "got credits left? someone else is due for a world",
+    "hook": "you already know how to do this. who's next?",
+    "beats": [
+      "post recurring content about the occasions people forget count — half-birthdays, friendship anniversaries, plain 'just because' — aimed at people who've already bought once",
+      "reference credit packs never expiring as the natural next step for repeat senders, without inventing any urgency",
+      "run monthly since these occasions aren't calendar-locked, unlike Valentine's or Mother's Day pushes"
+    ],
+    "notes": "organic, public complement to the existing draft-nudge/shared-not-opened lifecycle emails — not a duplicate, since it needs no email address; success metric: code redemptions attributed to bio-link traffic among known repeat senders",
+    "score": 55,
+    "title": "Second world energy: nudging past buyers toward occasion two",
+    "assets": "occasion-reminder hook clips, a credit-pack reference graphic",
+    "effort": "S",
+    "format": "community-ritual",
+    "funnel": "retention",
+    "impact": 4,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [
+      "anniversary",
+      "birthday",
+      "just because"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "C26",
+    "cta": "comment their name — one winner next Friday",
+    "hook": "gift is giving away a gift. comment who you'd build one for.",
+    "beats": [
+      "monthly, run a mascot-hosted giveaway: comment who you'd build a world for to be entered to win a standard credit",
+      "announce the winner publicly the following week and feature their finished world if they choose to share it once built",
+      "keep entry mechanics simple — no email capture, nothing beyond the platform's native comment mechanic"
+    ],
+    "notes": "monthly repeatable, low fulfillment cost since one credit is a fixed, known cost; success metric: comments per giveaway post and the follow-through rate of winners actually publishing",
+    "score": 55,
+    "title": "Free world Friday: a mascot-hosted comment giveaway",
+    "assets": "a mascot host graphic, a winner-announcement template",
+    "effort": "S",
+    "format": "community-ritual",
+    "funnel": "retention",
+    "impact": 4,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "C35",
+    "cta": "$15. theirs forever.",
+    "hook": "flowers say sorry for a week. this says it forever.",
+    "beats": [
+      "single static image, split composition — wilted flowers on one side, a glowing world-open moment on the other, in brand palette with jet outline and pink accent",
+      "restrict copy to confirmed claims only: price, 'pay once', 'stays theirs' — no invented flower price point on the other side of the comparison",
+      "run as a static card inside a mixed video-plus-static ad set to diversify creative types"
+    ],
+    "notes": "keep the comparison qualitative — never invent a specific flower price, that would be a fake-stat pattern the brand explicitly bans; success metric: static vs video CTR inside the same ad set",
+    "score": 55,
+    "title": "ad: flowers die. this doesn't.",
+    "assets": "a poster-kit static graphic in brand palette and Schibsted type",
+    "effort": "S",
+    "format": "ad:static-poster",
+    "funnel": "BOFU",
+    "impact": 4,
+    "pillar": "P1",
+    "source": "c",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [
+      "anniversary",
+      "valentine's",
+      "just because"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "C37",
+    "cta": "finish it — it's already half done",
+    "hook": "you already picked the photos. it's just sitting there.",
+    "beats": [
+      "retarget site visitors and draft-starters who never published — a paid complement to the existing draft-nudge emails, on a channel that needs no email address",
+      "carousel: slide 1 mocks up the draft state, slides 2-4 show finished-world payoff shots, final slide is price plus CTA",
+      "cap frequency low since this is a warm, already-interested audience — don't over-serve it"
+    ],
+    "notes": "no countdown or fake-urgency copy — 'still sitting there' is a true-to-state observation, not manufactured pressure; success metric: retargeted CTR and publish-completion rate vs the email-only nudge baseline, read as incremental lift not a replacement",
+    "score": 55,
+    "title": "ad: it's still sitting there, unfinished",
+    "assets": "a draft-state mockup, finished-world renders, a carousel template",
+    "effort": "S",
+    "format": "ad:retarget-carousel",
+    "funnel": "BOFU",
+    "impact": 4,
+    "pillar": "P2",
+    "source": "c",
+    "worlds": [],
+    "platform": "ig-carousel",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "F11",
+    "cta": "follow for the next world",
+    "hook": "we rebuilt this dove 3 times because her wings wouldn't tuck right. here's why it mattered.",
+    "beats": [
+      "before/after wing tuck, nerdy zoom",
+      "'every world is hand-built. this is what hand-built means.'",
+      "the finale: the whole flock carries in the last letter",
+      "'made, not generated.'"
+    ],
+    "notes": "Indie-devlog audience overlaps cozy-gaming + gifting; builds the craft moat story.",
+    "score": 48,
+    "title": "Devlog: the dove took 3 rebuilds before she tucked her wings right",
+    "assets": "Love Letters capture + dev anecdotes",
+    "effort": "M",
+    "format": "cozy-devlog VO over capture",
+    "funnel": "retention",
+    "impact": 3,
+    "pillar": "P6",
+    "source": "fable",
+    "worlds": [
+      "Love Letters"
+    ],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 4
+  },
+  {
+    "id": "A16",
+    "cta": "watch the full ride — getforevermore.co",
+    "hook": "in a world where your camera roll becomes a movie —",
+    "beats": [
+      "Text-card opens like a trailer: 'this july, one photo album becomes...'",
+      "Fast cuts through the Memory Ride's guided scenes, held on peak visual beats",
+      "Final text card with the recipient's name and 'available now at getforevermore.co'"
+    ],
+    "notes": "Movie-trailer parody format is trend-agnostic and reusable for every future world drop; risks reading gimmicky if overused.",
+    "score": 48,
+    "title": "this gift has a trailer now",
+    "assets": "screen recording of memory-ride renderer, trailer-style text-card edit, reusable title-card template",
+    "effort": "M",
+    "format": "teaser-trailer cut (text cards + score-style pacing)",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P3",
+    "source": "a",
+    "worlds": [
+      "Memory Ride"
+    ],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "B19",
+    "cta": "getforevermore.co — build it the week before, so it's ready for the morning-of.",
+    "hook": "she opens it in the getting-ready suite, thirty minutes before she walks.",
+    "beats": [
+      "Room-by-room manor walkthrough waking each memory, brass keys turn to open the garden",
+      "Finale: the garden opens with the message, timed for the quiet minutes before the ceremony"
+    ],
+    "notes": "Wedding-morning micro-moment (in the brand's own occasion vocabulary); higher-effort cut given the emotional weight of the moment.",
+    "score": 48,
+    "title": "The wedding morning present that isn't a card",
+    "assets": "screen recording of manor renderer",
+    "effort": "M",
+    "format": "screen-record world tour, cinematic cut",
+    "funnel": "BOFU",
+    "impact": 4,
+    "pillar": "P5",
+    "source": "b",
+    "worlds": [
+      "manor",
+      "wonderways"
+    ],
+    "platform": "both",
+    "occasions": [
+      "wedding"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "B20",
+    "cta": "getforevermore.co — $45 per gift, edit it as many times as you need before the night.",
+    "hook": "he built the constellation first, then got down on one knee when it ended.",
+    "beats": [
+      "Starlit world tour ending in a custom constellation shaped like something only they'd recognize",
+      "Final message reveal is the cue for the actual proposal moment, not a delivery mechanic"
+    ],
+    "notes": "The gift is explicitly framed as the emotional lead-in a sender stages themselves — never implies the product delivers or reveals a physical ring.",
+    "score": 48,
+    "title": "The proposal, staged inside the gift",
+    "assets": "screen recording of starlit-letter renderer",
+    "effort": "M",
+    "format": "screen-record world tour, cinematic cut",
+    "funnel": "BOFU",
+    "impact": 4,
+    "pillar": "P5",
+    "source": "b",
+    "worlds": [
+      "starlit-letter"
+    ],
+    "platform": "both",
+    "occasions": [
+      "proposal"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "C02",
+    "cta": "speak his language — link in bio",
+    "hook": "he'll scroll past a card. he won't scroll past a vault only he can dig open.",
+    "beats": [
+      "seed 15-20 cozy-gaming/Minecraft-adjacent nano creators who post 'gamer boyfriend' or 'my partner games too much' content",
+      "brief: build a world about your gamer partner, screen-record the moment the pickaxe hits the vault door",
+      "cross-post the best reactions on the brand account captioned from the sender's point of view"
+    ],
+    "notes": "success metric: watch-through rate on seeded videos vs brand-account baseline; only escalate spend on creators clearing 50%+ completion",
+    "score": 48,
+    "title": "Mine the vault, not the card: Blockheart Mine + Memory Mine seeded to cozy-gaming creators",
+    "assets": "blockheart-mine and memory-mine premium credits, a screen-record capture guide, tracked codes",
+    "effort": "M",
+    "format": "creator-seeding-program",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [
+      "blockheart-mine",
+      "memory-mine"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "long distance",
+      "anniversary",
+      "just because"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "C03",
+    "cta": "get the whole family in the squad — link in bio",
+    "hook": "dad doesn't want another tie. dad wants to see his own starting XI.",
+    "beats": [
+      "seed 12-15 football/sports-dad and 'girl dad' creators, leaning into the group-gift angle of kids pooling for dad",
+      "brief: build it together with siblings, film dad's reaction the moment the squad photo completes",
+      "hold the strongest clip for the Father's Day paid rotation instead of spending it early"
+    ],
+    "notes": "start seeding 5-6 weeks before Father's Day per playbook lead-time guidance; success metric: codes redeemed inside Father's Day week",
+    "score": 48,
+    "title": "Starting XI for dad: Matchday seeded to sports-dad and girl-dad creators",
+    "assets": "matchday credits, a group-gift messaging one-pager, tracked codes",
+    "effort": "M",
+    "format": "creator-seeding-program",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [
+      "matchday",
+      "passport",
+      "fairground"
+    ],
+    "platform": "both",
+    "occasions": [
+      "father's day",
+      "birthday",
+      "retirement"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "C04",
+    "cta": "build the letters before they ship out — link in bio",
+    "hook": "'open when you miss me' used to be an envelope. now it's a whole world.",
+    "beats": [
+      "seed 10-15 military-spouse and deployment-niche creators — a proven sub-genre already built around countdown chains and homecoming videos",
+      "brief: build the open-when world before deployment; film the letters being opened overseas only if the creator is comfortable sharing that footage",
+      "keep every repost sincere — no meme captions, no jokes layered on top of this niche"
+    ],
+    "notes": "handle with care per brand direction — sincere lane only; success metric: save-to-view ratio, since this audience over-indexes on saves and shares over likes",
+    "score": 48,
+    "title": "Open When, from far away: deployment and military-spouse creator seeding",
+    "assets": "open-when-letter and love-letters credits, a sincere-tone caption guide, tracked codes",
+    "effort": "M",
+    "format": "creator-seeding-program",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [
+      "open-when-letter",
+      "love-letters",
+      "starlit-letter"
+    ],
+    "platform": "both",
+    "occasions": [
+      "long distance",
+      "just because"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "C18",
+    "cta": "want one nobody else will ever have? link in bio",
+    "hook": "the world only one person will ever see. here's how it gets made.",
+    "beats": [
+      "with the buyer's permission, post an anonymized walkthrough of a concierge build — the ask, the constraint, the finished scene, no names or identifying photos unless separately cleared",
+      "stamp every entry '1 OF 1' as a running visual motif across the series",
+      "build the permission ask into the concierge process's third call, so it's never a cold follow-up request"
+    ],
+    "notes": "concierge volume won't support weekly cadence, so this runs occasional-but-numbered; success metric: concierge intake-form starts in the 72 hours after a case-study post",
+    "score": 48,
+    "title": "1 OF 1: an anonymized concierge case-study series",
+    "assets": "anonymized concierge build renders, a '1 OF 1' stamp graphic",
+    "effort": "M",
+    "format": "series",
+    "funnel": "MOFU",
+    "impact": 4,
+    "pillar": "P6",
+    "source": "c",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "C30",
+    "cta": "would you trust a stranger to build theirs? link in bio",
+    "hook": "we built worlds for each other's partners. neither of us knew what was inside.",
+    "beats": [
+      "pair two creators from different niches (say, a couples creator and a gaming creator) who each build a world for the other's partner, sight-unseen",
+      "both post their own reveal cut natively, re-cut per platform rather than cross-posted with a watermark, cross-tagging each other",
+      "run quarterly with a fresh creator pair each time to keep the format from feeling repeated"
+    ],
+    "notes": "cross-pollinates two creator audiences from a single format; success metric: net-new follower overlap between the two creators' audiences after the collab posts",
+    "score": 48,
+    "title": "The swap: two creators build gifts for each other's people",
+    "assets": "two premium credits, a coordination brief shared with both creators",
+    "effort": "M",
+    "format": "creator-collab",
+    "funnel": "TOFU",
+    "impact": 4,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [
+      "best friends",
+      "just because"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "C36",
+    "cta": "build the real one — link in bio",
+    "hook": "you were about to build her a website with a free template at 1am. don't.",
+    "beats": [
+      "open on a mocked-up DIY-tutorial look — messy cursor, generic template — for a second or two, then hard-cut to the real, finished, cinematic world",
+      "text or voiceover: 'or skip the templates — build it here in less time than it takes to find a font'",
+      "target the LDR audience directly, since this DIY-website trend is already circulating organically per the research"
+    ],
+    "notes": "leans on proven organic search intent (the LDR personalized-website DIY trend) without naming any competitor by name; success metric: CTR against a control ad with a straight, non-bait-and-switch opening",
+    "score": 48,
+    "title": "ad: the website you were about to DIY, already made",
+    "assets": "a mocked DIY screen-record intro, a finished world render",
+    "effort": "M",
+    "format": "ad:search-intent-video",
+    "funnel": "BOFU",
+    "impact": 4,
+    "pillar": "P4",
+    "source": "c",
+    "worlds": [
+      "gone-fishing",
+      "love-letters",
+      "starlit-letter"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "long distance"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "F15",
+    "cta": "none — brand bit",
+    "hook": "pov: you're the little guy who delivers every forevermore gift.",
+    "beats": [
+      "mascot stickers (gift/phone/balloon/sleep poses) hopping across the paper background",
+      "delivers a world, tips an imaginary hat, falls asleep (sleep.png)",
+      "recurring character energy, 8-12s loops"
+    ],
+    "notes": "Duolingo-adjacent but soft; only works as a recurring bit, not a one-off.",
+    "score": 41,
+    "title": "Mascot bit: the little guy who carries your gift",
+    "assets": "mascot PNGs + video kit paper scenes",
+    "effort": "S",
+    "format": "sticker-mascot skit (animated stickers over paper)",
+    "funnel": "retention",
+    "impact": 3,
+    "pillar": "P6",
+    "source": "fable",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "F17",
+    "cta": "getforevermore.co",
+    "hook": "(depends on the week's trend — the world footage is the constant)",
+    "beats": [
+      "pick the week's dominant audio/text format",
+      "overlay on the most visually matching world's best 10s",
+      "caption stays in brand voice regardless of trend"
+    ],
+    "notes": "The always-on slot: 1/week max so the account doesn't become trend-soup.",
+    "score": 41,
+    "title": "Trend adapter shell: world footage + current audio format",
+    "assets": "world capture library",
+    "effort": "S",
+    "format": "trend format over world capture",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P1",
+    "source": "fable",
+    "worlds": [],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "A29",
+    "cta": "grow the real one — getforevermore.co",
+    "hook": "filmed this normally. posting it reversed. still works.",
+    "beats": [
+      "Full bloom shown first, then footage plays in reverse back to a bare garden",
+      "Text overlay explains: 'this is actually the order it grew in, forwards'",
+      "Cut to real forward playback: each photo unfurling into its own flower"
+    ],
+    "notes": "Lightweight novelty hook; reads better against a full-length render than a very short clip, so keep it at least 20s.",
+    "score": 41,
+    "title": "posting this backwards on purpose (the bloom trend)",
+    "assets": "screen recording of blooming-garden renderer, forward and reversed cuts edited back to back",
+    "effort": "S",
+    "format": "trend adapter: reverse-footage bloom trick",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Blooming Message Garden"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "mother's day"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "B05",
+    "cta": "getforevermore.co — most people finish in an evening.",
+    "hook": "new baby, new apartment, zero free hours. this took less time than a nap.",
+    "beats": [
+      "Timelapse of the room furnishing itself box by box as photos load",
+      "Ribbon-tied last box opens on the letter — done before the baby wakes up"
+    ],
+    "notes": "Named 'new parents' persona from the brief; moving-day's box-by-box mechanic doubles as the new-home-with-baby framing.",
+    "score": 41,
+    "title": "New parents don't have time to scrapbook",
+    "assets": "screen recording of moving-day renderer, phone-in-hand shot beside unpacked boxes",
+    "effort": "S",
+    "format": "speed-run build timelapse",
+    "funnel": "BOFU",
+    "impact": 3,
+    "pillar": "P2",
+    "source": "b",
+    "worlds": [
+      "moving-day",
+      "blooming-garden"
+    ],
+    "platform": "reels",
+    "occasions": [
+      "new baby",
+      "just because"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "B09",
+    "cta": "getforevermore.co — bring the whole camera roll, there's room.",
+    "hook": "her camera roll is 80% dog photos. we finally gave them somewhere to live.",
+    "beats": [
+      "Each dog photo peels off the sticker sheet like a fresh pack and presses into its spot",
+      "Gold title sticker seals the finished page above the message"
+    ],
+    "notes": "Light, easy-effort persona extension beyond the brief's named list — pet-parent angle, comedic tone.",
+    "score": 41,
+    "title": "For the dog mom whose 'baby' has four legs",
+    "assets": "screen recording of sticker-book renderer",
+    "effort": "S",
+    "format": "screen-record world tour, comedic",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "sticker-book"
+    ],
+    "platform": "reels",
+    "occasions": [
+      "birthday",
+      "just because"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "B10",
+    "cta": "getforevermore.co — everyone's the main character of something.",
+    "hook": "he's told the same three stories since 2004. we turned them into his own movie.",
+    "beats": [
+      "Marquee lights up with his name, the film opens on act one",
+      "Credits roll with the closing message as the drive-in screen fades"
+    ],
+    "notes": "Comedic dad/uncle persona; drive-in-night is underused in existing creative seeds, good variety pick.",
+    "score": 41,
+    "title": "For the guy who still talks about his glory days",
+    "assets": "screen recording of drive-in-night renderer",
+    "effort": "S",
+    "format": "screen-record world tour, comedic voiceover",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "drive-in-night"
+    ],
+    "platform": "tiktok",
+    "occasions": [
+      "birthday",
+      "just because"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "B11",
+    "cta": "getforevermore.co — from $15, ready before Friday.",
+    "hook": "she's leaving for the new job Friday. skip the card everyone signs in five seconds.",
+    "beats": [
+      "Slide 1: the problem — an office card nobody reads twice",
+      "Slides 2-4: three worlds that fit a send-off — the walk-home town, the moving-day room, the passport for the next chapter"
+    ],
+    "notes": "Office send-off micro-niche; carousel format follows the 2026 IG-carousel engagement research in market-playbook.md.",
+    "score": 41,
+    "title": "The coworker who's leaving for a new job",
+    "assets": "5-slide carousel, one world screenshot per slide, closing price slide",
+    "effort": "S",
+    "format": "ig-carousel listicle",
+    "funnel": "BOFU",
+    "impact": 3,
+    "pillar": "P3",
+    "source": "b",
+    "worlds": [
+      "long-way-home",
+      "moving-day",
+      "passport"
+    ],
+    "platform": "ig-carousel",
+    "occasions": [
+      "just because",
+      "graduation"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "B17",
+    "cta": "getforevermore.co — build it now, edit it right up until you hit send.",
+    "hook": "the good valentine's gifts get built in January, not February 13th.",
+    "beats": [
+      "Slide 1: a simple calendar, January through February 14",
+      "Slides 2-4: three romance worlds with a one-line pitch each, closing slide is the price"
+    ],
+    "notes": "Early-lead-time seasonal push per market-playbook's Valentine's timing research; deliberately avoids citing a specific stat to stay clear of the 'never invent stats' rule.",
+    "score": 41,
+    "title": "Get ahead of Valentine's, not behind it",
+    "assets": "5-slide carousel",
+    "effort": "S",
+    "format": "ig-carousel, planning-ahead",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P5",
+    "source": "b",
+    "worlds": [
+      "love-letters",
+      "dinner-table",
+      "starlit-letter"
+    ],
+    "platform": "ig-carousel",
+    "occasions": [
+      "valentine's"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "B21",
+    "cta": "getforevermore.co — from $15.",
+    "hook": "cap and gown for an hour, but the four years before it get their own world.",
+    "beats": [
+      "Train pulls into a town built from four years of memories",
+      "Cut to the passport world flipping to a fresh, unstamped page — the next destination"
+    ],
+    "notes": "Graduation occasion; the passport's unstamped-page beat frames the gift as looking forward, not just back.",
+    "score": 41,
+    "title": "Graduation, from the version of you three years ago",
+    "assets": "screen recording split between long-way-home and passport renderers",
+    "effort": "S",
+    "format": "screen-record world tour",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P5",
+    "source": "b",
+    "worlds": [
+      "long-way-home",
+      "passport"
+    ],
+    "platform": "both",
+    "occasions": [
+      "graduation"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "B23",
+    "cta": "getforevermore.co — some of the best ones don't have a reason at all.",
+    "hook": "no birthday, no anniversary, not even a reason. just a random tuesday.",
+    "beats": [
+      "Sealed envelope opens to pull-out polaroids, each with a handwritten caption",
+      "Cut to paper-wishes folding a crane that opens on a memory — either world, zero occasion needed"
+    ],
+    "notes": "Direct coverage of the 'just because' occasion; positions two evergreen, calendar-independent worlds as year-round content.",
+    "score": 41,
+    "title": "Just because, no occasion required",
+    "assets": "screen recording of polaroid-envelope and paper-wishes renderers",
+    "effort": "S",
+    "format": "screen-record world tour",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P5",
+    "source": "b",
+    "worlds": [
+      "polaroid-envelope",
+      "paper-wishes"
+    ],
+    "platform": "reels",
+    "occasions": [
+      "just because"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "B25",
+    "cta": "getforevermore.co — for the proud-of-you days that don't have a card aisle.",
+    "hook": "she studied for the bar for 14 months. we turned the finish line into a world.",
+    "beats": [
+      "Impossible-looking pieces turn and connect, the path lighting up dawn to dusk",
+      "The final turn builds one glowing tower from everything solved — the message"
+    ],
+    "notes": "Adult-milestone version of proud-of-you (bar exam, promotion, sobriety, first marathon) — distinct from B12's kid/school framing.",
+    "score": 41,
+    "title": "The 'I can't believe you did it' gift",
+    "assets": "screen recording of wonderways renderer",
+    "effort": "S",
+    "format": "screen-record world tour",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "wonderways"
+    ],
+    "platform": "both",
+    "occasions": [
+      "just because",
+      "graduation"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "B27",
+    "cta": "getforevermore.co — from $15, start the tradition yourselves.",
+    "hook": "year one. before you're even supposed to know what 'your' song is yet.",
+    "beats": [
+      "Cassette world tour: track titles write themselves as the year's memories load",
+      "Dinner-table world tour: the first course under the cloche is the day you met"
+    ],
+    "notes": "First-anniversary micro-niche; two-world comparison doubles as light 'which world fits us' content.",
+    "score": 41,
+    "title": "The first anniversary, before the traditions start",
+    "assets": "screen recording of mixtape-side-a and dinner-table renderers",
+    "effort": "S",
+    "format": "screen-record world tour, comparison",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P5",
+    "source": "b",
+    "worlds": [
+      "mixtape-side-a",
+      "dinner-table"
+    ],
+    "platform": "both",
+    "occasions": [
+      "anniversary"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "B34",
+    "cta": "getforevermore.co — credits never expire, spend them whenever the next birthday hits.",
+    "hook": "if you're the friend group's designated gift buyer, this is for you.",
+    "beats": [
+      "Slide 1: the problem — six different birthdays a year, six different scrambles",
+      "Slides 2-4: three worlds you could send this year, closing slide is buy-a-bundle-once and save"
+    ],
+    "notes": "Retention/repeat-purchase angle using the approved claims-table language ('Buy a bundle and save up to $41,' 'Credits never expire') verbatim.",
+    "score": 41,
+    "title": "The friend who's always the one buying gifts",
+    "assets": "5-slide carousel with renderer screenshots",
+    "effort": "S",
+    "format": "ig-carousel listicle",
+    "funnel": "retention",
+    "impact": 3,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "prize-claw",
+      "pocket-pal",
+      "sticker-book"
+    ],
+    "platform": "ig-carousel",
+    "occasions": [
+      "birthday",
+      "best friends"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "B36",
+    "cta": "getforevermore.co — for the grandparent who has more stories than photos.",
+    "hook": "he's told the fishing story 40 times. we finally put a picture to it.",
+    "beats": [
+      "Candlelit desk world tour, each keepsake object holding a note and a photo",
+      "Final letter reveal at the desk — the story finally has proof"
+    ],
+    "notes": "Second grandparents angle, distinct from B04's travel/passport framing — storytelling and keepsake-object framing instead.",
+    "score": 41,
+    "title": "Grandpa tells the same story every dinner. now it's got photos.",
+    "assets": "screen recording of keepsake-desk renderer",
+    "effort": "S",
+    "format": "screen-record world tour",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "keepsake-desk",
+      "constellation-reveal"
+    ],
+    "platform": "both",
+    "occasions": [
+      "grandparents"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "B38",
+    "cta": "getforevermore.co — $45 per gift, for the anniversary that isn't the first one anymore.",
+    "hook": "fifteen years. we didn't get lazy about this one either.",
+    "beats": [
+      "Evening-voyage world tour, every memory lifted aboard as a harbor lantern",
+      "Dusk deepens toward the festival cove — the message waiting at the end"
+    ],
+    "notes": "Milestone-anniversary angle, distinct from B27's first-anniversary framing — addresses the real drop-off in gift effort after the early years.",
+    "score": 41,
+    "title": "Fifteen years in, still worth the whole production",
+    "assets": "screen recording of cruise renderer",
+    "effort": "S",
+    "format": "screen-record world tour",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P5",
+    "source": "b",
+    "worlds": [
+      "cruise"
+    ],
+    "platform": "both",
+    "occasions": [
+      "anniversary"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "B39",
+    "cta": "getforevermore.co — write what you never say out loud.",
+    "hook": "she remembers your coffee order from 2019. build her something that remembers back.",
+    "beats": [
+      "Pop-up book world tour: every right answer folds the next paper world upright",
+      "The last page opens the treasure — the message, written the way you'd actually text her"
+    ],
+    "notes": "Reuses the approved brand line 'Write what you never say out loud'; best-friends-specific, non-romantic framing.",
+    "score": 41,
+    "title": "The best friend who deserves more than a group-chat 'happy bday'",
+    "assets": "screen recording of quest-book renderer",
+    "effort": "S",
+    "format": "screen-record world tour",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "quest-book"
+    ],
+    "platform": "reels",
+    "occasions": [
+      "best friends"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "C11",
+    "cta": "stitch it. show us who you'd build for.",
+    "hook": "stitch this with the world you'd build for your person.",
+    "beats": [
+      "post a muted, text-only 'guess what happens next' clip of a world mid-build, captioned to explicitly invite stitches and duets",
+      "reshare the best stitches — whether that's someone imagining their own build or an actual sender showing theirs",
+      "run monthly to keep production cost low and the format from feeling stale"
+    ],
+    "notes": "duet and stitch formats are native UGC-begets-UGC mechanics; success metric: number of stitches generated per source post",
+    "score": 41,
+    "title": "Duet the reveal: an open invitation to stitch the build",
+    "assets": "one stitch-ready source clip with no faces required, a duet-friendly caption",
+    "effort": "S",
+    "format": "duet-challenge",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "B37",
+    "cta": "getforevermore.co — $45 per gift, built before the baby's even sleeping through the night.",
+    "hook": "everyone else brought onesies. this one's a whole tiny world under glass.",
+    "beats": [
+      "Wind-the-key opening, world tour of the tiny world building zone by zone",
+      "The wooden train completes the last zone — the message"
+    ],
+    "notes": "our-little-world is currently isActive:false in the catalog — confirm it's purchasable before this runs; swap to blooming-garden or moving-day as a safe substitute otherwise.",
+    "score": 28,
+    "title": "Baby shower gift that isn't a onesie",
+    "assets": "screen recording of our-little-world renderer",
+    "effort": "S",
+    "format": "screen-record world tour",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "our-little-world"
+    ],
+    "platform": "both",
+    "occasions": [
+      "new baby"
+    ],
+    "confidence": 2
+  },
+  {
+    "id": "C12",
+    "cta": "record your screen while you build it — send us the chaos",
+    "hook": "we want the messy part too: the 11pm, three tabs open, 'does this photo even work' part.",
+    "beats": [
+      "prompt senders, through the same opt-in ask as C09, to screen-record their own build process instead of only the recipient's reaction",
+      "this costs nothing extra to produce — it's a light-edit repost of footage the sender already has",
+      "when a sender submits both halves, pair the build clip and the reaction clip into one 'before and after' post"
+    ],
+    "notes": "doubles the UGC intake surface — builder-side plus recipient-side — from a single purchase; success metric: percentage of C09 submitters who also send a build clip",
+    "score": 41,
+    "title": "Show us the build, not just the open",
+    "assets": "submission prompt copy, a before/after edit template",
+    "effort": "S",
+    "format": "ugc-prompt-ritual",
+    "funnel": "retention",
+    "impact": 3,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "C15",
+    "cta": "tag them. we'll wait.",
+    "hook": "tag the friend who's been 'meaning to do something nice' for eight months.",
+    "beats": [
+      "post a relatable world-building clip captioned to explicitly ask for a tag, not a follow",
+      "reply to tag threads with a genuine, specific world suggestion where context allows — human replies, not automated-sounding ones",
+      "run monthly as an ongoing low-cost engagement ritual rather than a one-off"
+    ],
+    "notes": "email-capture-free engagement ritual; success metric: tags per post and the resulting profile-visit rate",
+    "score": 41,
+    "title": "Tag someone who owes their person a real gift",
+    "assets": "a relatable hook clip, a reply bank mapping occasions to world suggestions",
+    "effort": "S",
+    "format": "ugc-prompt-ritual",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [
+      "just because",
+      "long distance"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "C19",
+    "cta": "vote now, see the finished world Friday",
+    "hook": "which photo should go last? you decide.",
+    "beats": [
+      "post a real, permissioned in-progress build to Stories with a poll or slider sticker asking one small creative choice — cover photo, song vibe, closing line tone",
+      "run this 2-3 times a week, matching the platform's own guidance on interactive-sticker frequency",
+      "occasionally let the actual sender see the poll result before they finalize, then close the loop publicly once it ships"
+    ],
+    "notes": "cap at 2-3 polls a week so it doesn't read as gimmicky, per playbook guidance; no email required, pure Stories-native engagement; success metric: poll response-rate trend over time",
+    "score": 41,
+    "title": "Rate my draft: a Stories poll ritual for in-progress builds",
+    "assets": "Stories poll and slider stickers, in-progress build screenshots",
+    "effort": "S",
+    "format": "community-ritual",
+    "funnel": "retention",
+    "impact": 3,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [],
+    "platform": "ig-story",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "C20",
+    "cta": "craft over shortcuts — see the finished world: link in bio",
+    "hook": "v1 got rejected. here's why v2 is the one that shipped.",
+    "beats": [
+      "pull from real build history — several worlds had a first version scrapped and rebuilt — and narrate the before/after as a craft standard, not a confession",
+      "show a few seconds of the abandoned direction next to the shipped world for contrast",
+      "post opportunistically whenever a genuine rebuild story exists, filed under the same devlog series umbrella as C17"
+    ],
+    "notes": "reinforces the 'made, not generated' claim with proof instead of assertion; success metric: craft-appreciation comment share vs standard posts",
+    "score": 41,
+    "title": "They said no the first time: template rebuild origin stories",
+    "assets": "archived early-concept stills or renders, shipped world footage",
+    "effort": "S",
+    "format": "series",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P6",
+    "source": "c",
+    "worlds": [
+      "golden-claw",
+      "small-world",
+      "up-we-go"
+    ],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "C23",
+    "cta": "gift really thinks you should link in bio",
+    "hook": "gift is anxious about being picked. phone won't stop vibrating. sleep is asleep.",
+    "beats": [
+      "give each of the 6 mascot stickers a stable, simple personality trait and keep it consistent every time they appear",
+      "post short sticker skits, back.out overshoot pops per the brand's own motion spec, reacting to real product moments like an unfinished draft or a gift getting opened",
+      "keep the humor Duolingo-adjacent but softer, per the brand's own direction — never mean, never edgy for its own sake"
+    ],
+    "notes": "test an off-brand/absurd variant against a safe one, per the Duolingo finding that off-brand content consistently outperformed; success metric: watch-through rate of mascot skits vs non-mascot posts",
+    "score": 41,
+    "title": "The mascot six: recurring lo-fi character skits",
+    "assets": "the 6 mascot sticker PNGs, a simple pop/bob animation template",
+    "effort": "S",
+    "format": "series",
+    "funnel": "retention",
+    "impact": 3,
+    "pillar": "P6",
+    "source": "c",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "C24",
+    "cta": "which world should sleep rate next? comment a name",
+    "hook": "sleep watched every world so you don't have to.",
+    "beats": [
+      "pair the World of the Week spotlight (C16) with a mascot reaction overlay — a sticker in the corner mock-reacting to the same footage",
+      "reuse the same 3-4 animation states across episodes (a bob, a gasp-pop, a heart-eyes swap) so it stays cheap to produce",
+      "let 'sleep' rate everything unenthusiastically as the running joke — 'four pillows out of five'"
+    ],
+    "notes": "compounds with C16 rather than duplicating it — same footage, second cut; success metric: incremental engagement lift of the mascot-overlay cut vs the plain cut of the same clip, tested as an A/B pair",
+    "score": 41,
+    "title": "Sleep rates the worlds: mascot commentary on the catalog",
+    "assets": "mascot reaction animation states, the same footage used for World of the Week",
+    "effort": "S",
+    "format": "series",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P6",
+    "source": "c",
+    "worlds": [],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "C27",
+    "cta": "guess in the comments",
+    "hook": "3 seconds. name the world.",
+    "beats": [
+      "cut a 3-second, out-of-context clip from any existing world render, no title card",
+      "caption invites a comment guess and pins the fastest correct answer",
+      "post the reveal as a same-day comment reply instead of a separate post, keeping the format cheap and frequent"
+    ],
+    "notes": "the cheapest possible repeatable format — one existing render clip is one full game; success metric: comment count and correct-guess rate over time, rising familiarity being a proxy for brand recall",
+    "score": 41,
+    "title": "3-second world ID: a comment-guessing game",
+    "assets": "a 3-second crop from any existing world render",
+    "effort": "S",
+    "format": "community-ritual",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "C28",
+    "cta": "finish the sentence",
+    "hook": "'for every sunday pancake, and every burnt one too…' you finish it.",
+    "beats": [
+      "post a single graphic with a half-written example dedication line in the brand's own voice, clearly marked as an example, cut off at an obvious blank",
+      "invite comments finishing the sentence in their own words",
+      "feature the warmest or funniest completions in a follow-up post, crediting the commenter, without implying any of them are a real customer's actual gift text"
+    ],
+    "notes": "doubles as organic proof of the 'people don't write like this in cards' claim; success metric: comment count and completion quality as a proxy for how well the format teaches the product's voice",
+    "score": 41,
+    "title": "Finish the dedication: a fill-in-the-blank comment game",
+    "assets": "a half-written dedication graphic in brand type and palette",
+    "effort": "S",
+    "format": "community-ritual",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [],
+    "platform": "ig-carousel",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "C29",
+    "cta": "describe them, get matched",
+    "hook": "describe them in 3 words. we'll match them to a world.",
+    "beats": [
+      "ask followers to describe their partner, friend, or parent in 3 words in the comments",
+      "reply to as many as possible with a genuine, specific world match — human-sounding, not automated ('gamer who never texts back, blockheart-mine')",
+      "compile the best matches into a follow-up 'best matches this week' post"
+    ],
+    "notes": "manual reply effort scales with founder time only, no build cost; success metric: thread depth, i.e. whether people pile on with more detail, a sign of real engagement rather than drive-by comments",
+    "score": 41,
+    "title": "Tell us their vibe, we'll name their world",
+    "assets": "a prompt graphic, a reply bank mapping traits to worlds",
+    "effort": "S",
+    "format": "community-ritual",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "C32",
+    "cta": "duet it with yours",
+    "hook": "duet this with your own build. show us what you picked.",
+    "beats": [
+      "post a clean, faceless speed-run of the wizard, captioned explicitly as duet-friendly",
+      "seeded creators from the C01-C08 rosters duet it with their own real build, side-by-side, showing their actual photo and song choices",
+      "compile a monthly duet roundup from the best submissions, crediting each creator"
+    ],
+    "notes": "turns the existing speed-run format into a UGC-generating template instead of a single post; success metric: duet count per source video",
+    "score": 41,
+    "title": "Duet the build: creators film their real build next to the demo",
+    "assets": "a clean speed-run source clip, a monthly roundup edit template",
+    "effort": "S",
+    "format": "duet-challenge",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "A05",
+    "cta": "link in bio — the whip-pan works on any of the 32 worlds.",
+    "hook": "watch me disappear into the dunes I built for him.",
+    "beats": [
+      "Filmed self mid-step toward the laptop screen, whip-pan transition timed to a beat drop",
+      "Emerge inside the Dune Glider world, gliding down toward the lantern-kites",
+      "Snap back to real self at the temple-finale letter, mouth the closing line on screen"
+    ],
+    "notes": "Requires filming a real transition match-cut, not just screen capture — worth testing once before scaling the format.",
+    "score": 36,
+    "title": "the 'walk into the world' transition trend, but the world is real",
+    "assets": "self-filmed walk + whip-pan, screen recording of dune-glider renderer, matched cut on movement",
+    "effort": "M",
+    "format": "trend adapter: walk-through transition wipe",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P1",
+    "source": "a",
+    "worlds": [
+      "Dune Glider"
+    ],
+    "platform": "tiktok",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "C05",
+    "cta": "your craft, animated — link in bio",
+    "hook": "you already scrapbook by hand. this is the version that plays their song.",
+    "beats": [
+      "seed 12-15 junk-journal, scrapbook, and craft creators — an audience already making physical open-when kits and keepsake boxes",
+      "brief them to shoot it like a process video, narrating the digital build the way they'd narrate a physical craft",
+      "position it as a complement to their craft, never a replacement — no copy implying the handmade version is inferior"
+    ],
+    "notes": "respect the craft-creator audience explicitly in the brief; success metric: creator reply-to-post rate, target 20%+ per the Cal AI outreach-funnel benchmark",
+    "score": 36,
+    "title": "The Etsy-to-TikTok crossover: craft creators build the digital version of what they already make by hand",
+    "assets": "polaroid-envelope/sticker-book/keepsake-desk/paper-wishes credits, a process-video brief",
+    "effort": "M",
+    "format": "creator-seeding-program",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [
+      "polaroid-envelope",
+      "sticker-book",
+      "keepsake-desk",
+      "paper-wishes"
+    ],
+    "platform": "both",
+    "occasions": [
+      "anniversary",
+      "best friends",
+      "just because"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "C08",
+    "cta": "before everyone scatters — link in bio",
+    "hook": "everyone's scattering after grad. give the send-off a place to live.",
+    "beats": [
+      "seed 10-12 college-senior and grad creators already posting 'friend group moving away' content",
+      "brief: build it for whoever's moving furthest, film the group watching them open it",
+      "time the seeding push to start about 4 weeks before the May-June grad wave"
+    ],
+    "notes": "ride the seasonal June wave rather than fight it, per playbook guidance; success metric: redemption rate inside the May-June window",
+    "score": 36,
+    "title": "The going-away roster: grad and 'moving away' creators seed Moving Day and The Long Way Home",
+    "assets": "moving-day and long-way-home credits, a grad-season timing brief",
+    "effort": "M",
+    "format": "creator-seeding-program",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [
+      "moving-day",
+      "long-way-home",
+      "passport"
+    ],
+    "platform": "both",
+    "occasions": [
+      "graduation",
+      "long distance"
+    ],
+    "confidence": 3
+  },
+  {
+    "id": "C38",
+    "cta": "from $250 · about three weeks · link in bio",
+    "hook": "want one nobody else will ever have?",
+    "beats": [
+      "founder-narrated, real voice not stock VO, 60-90 seconds walking through the concierge process using the confirmed real steps: 3 calls, 3 build rounds, a hand-built world, a private link",
+      "show anonymized concierge renders as proof, from the same pool as C18, stamped '1 OF 1'",
+      "state the real price anchor plainly — 'from $250' — with no invented range beyond what's confirmed"
+    ],
+    "notes": "MOFU, not BOFU — a $250+ concierge build is a considered purchase, not an impulse click; success metric: concierge intake-form starts per 1,000 views",
+    "score": 36,
+    "title": "ad: the world only one person will ever see",
+    "assets": "founder voiceover, anonymized concierge renders, the '1 OF 1' stamp graphic",
+    "effort": "M",
+    "format": "ad:concierge-video",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P6",
+    "source": "c",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "C25",
+    "cta": "follow along — a new mascot every week",
+    "hook": "balloon's whole job is showing up on someone's best day. balloon takes it very seriously.",
+    "beats": [
+      "give one mascot a 15-second 'day in the life' bit loosely tied to what it represents — balloon for birthdays, book for the dedication, sleep for 'stays theirs'",
+      "rotate through all 6 mascots across six weeks, then start a fresh joke cycle",
+      "keep production minimal: sticker, simple background, text captions, no voiceover needed"
+    ],
+    "notes": "lowest-lift brand-personality filler for slow content weeks; success metric: follower growth rate on weeks this runs vs weeks it doesn't",
+    "score": 28,
+    "title": "A day in the life of 'balloon'",
+    "assets": "the 6 mascot PNGs, simple background plates, a caption template",
+    "effort": "S",
+    "format": "series",
+    "funnel": "retention",
+    "impact": 2,
+    "pillar": "P6",
+    "source": "c",
+    "worlds": [],
+    "platform": "reels",
+    "occasions": [],
+    "confidence": 3
+  },
+  {
+    "id": "B24",
+    "cta": "getforevermore.co — a private link, yours to keep or to share with family.",
+    "hook": "some of these get built for someone who's already gone. we treat those the same.",
+    "beats": [
+      "Each photo becomes a star in a quiet night sky, a soft trace of light left behind",
+      "The constellation completes above a closing message — no upsell tone, just the world"
+    ],
+    "notes": "HANDLE WITH CARE: sincere lane only, no meme tone, no urgency language, no upbeat trend audio. Recommend a human sensitivity review before this one ships. No 'memorial' value exists in the occasions enum, so tagged as 'just because'.",
+    "score": 24,
+    "title": "For the person who isn't there to open it",
+    "assets": "screen recording of constellation-reveal renderer, minimal on-screen text, quiet instrumental only",
+    "effort": "M",
+    "format": "quiet screen-record, no overlay text",
+    "funnel": "MOFU",
+    "impact": 3,
+    "pillar": "P4",
+    "source": "b",
+    "worlds": [
+      "constellation-reveal",
+      "keepsake-desk"
+    ],
+    "platform": "ig-story",
+    "occasions": [
+      "just because"
+    ],
+    "confidence": 2
+  },
+  {
+    "id": "C31",
+    "cta": "comment now, tune in [day/time]",
+    "hook": "drop who you'd build one for. we're picking someone and doing it live.",
+    "beats": [
+      "announce a live build session and ask followers to comment who they'd build a world for and why",
+      "go live, or post an as-live screen-recorded session, building one world start to finish for a randomly chosen commenter while narrating decisions out loud",
+      "gift the finished world to the winning commenter to actually send, then invite them into the C09 reaction-collection ask afterward"
+    ],
+    "notes": "higher scheduling effort than most of this batch; test it quarterly before committing to a monthly cadence; success metric: concurrent live viewers plus resulting comment volume",
+    "score": 24,
+    "title": "Build one live for a random commenter",
+    "assets": "livestream setup or a screen-recorded capture, one gift credit",
+    "effort": "M",
+    "format": "livestream",
+    "funnel": "TOFU",
+    "impact": 3,
+    "pillar": "P7",
+    "source": "c",
+    "worlds": [],
+    "platform": "both",
+    "occasions": [],
+    "confidence": 2
+  }
+]

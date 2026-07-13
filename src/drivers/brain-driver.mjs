@@ -25,7 +25,10 @@ function brainConfig(config) {
   const r = (config && config.resolved) || {};
   return {
     promptsDir: r.pkgRoot ? join(r.pkgRoot, 'prompts') : undefined,
-    brandGuidePath: r.repoRoot ? join(r.repoRoot, 'marketing', '00-brand', 'brand-guide.md') : undefined,
+    // Brand guide moved in-repo with the §3.12 kit move (2026-07-13): prefer the
+    // resolved kit path, falling back to <pkgRoot>/kit for older configs.
+    brandGuidePath:
+      r.brandGuide || (r.pkgRoot ? join(r.pkgRoot, 'kit', '00-brand', 'brand-guide.md') : undefined),
     cwd: r.repoRoot,
     ...((config && config.brain) || {}),
   };

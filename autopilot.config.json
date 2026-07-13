@@ -37,9 +37,11 @@
     "state": "state",
     "library": "library",
     "settings": "settings.json",
-    "ideas": "marketing/02-idea-database/ideas.json",
-    "render": "marketing/04-assets/render.mjs",
-    "videoStudio": "marketing/05-video-studio",
-    "posters": "marketing/04-assets/posters"
+    "ideas": "kit/02-idea-database/ideas.json",
+    "render": "kit/04-assets/render.mjs",
+    "videoStudio": "kit/05-video-studio",
+    "posters": "kit/04-assets/posters",
+    "catalog": "kit/_research/template-catalog.md",
+    "brandGuide": "kit/00-brand/brand-guide.md"
   }
 }

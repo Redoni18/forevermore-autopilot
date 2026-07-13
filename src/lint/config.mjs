@@ -27,9 +27,12 @@ export const REPO_ROOT =
   path.join(path.dirname(AUTOPILOT_ROOT), 'forevermore');
 
 export const DEFAULT_CONFIG_PATH = path.join(AUTOPILOT_ROOT, 'autopilot.config.json');
+// Since the §3.12 kit move (2026-07-13) the world/template catalog lives IN
+// this repo under kit/, not the platform checkout — resolve it under
+// AUTOPILOT_ROOT. (REPO_ROOT is retained above for the FOREVERMORE_ROOT seam.)
 export const DEFAULT_CATALOG_PATH = path.join(
-  REPO_ROOT,
-  'marketing/_research/template-catalog.md',
+  AUTOPILOT_ROOT,
+  'kit/_research/template-catalog.md',
 );
 
 export const DEFAULTS = Object.freeze({

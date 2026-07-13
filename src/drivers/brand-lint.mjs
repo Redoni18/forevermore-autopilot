@@ -32,11 +32,12 @@ let catalogCache = null;
 
 function loadCatalogOnce(config) {
   if (catalogCache) return catalogCache;
-  // standalone layout: the platform checkout is config.resolved.repoRoot
-  // (FOREVERMORE_ROOT env > config > sibling ../forevermore)
+  // Catalog moved in-repo with the §3.12 kit move (2026-07-13): prefer the
+  // resolved kit path, then an explicit lint override, then legacy fallbacks.
   const fmRoot = config?.resolved?.repoRoot;
   const candidates = [
     config?.lint?.catalogPath,
+    config?.resolved?.catalog,
     fmRoot && join(fmRoot, 'marketing', '_research', 'template-catalog.md'),
     'marketing/_research/template-catalog.md', // cwd = platform repo (legacy)
   ].filter(Boolean);

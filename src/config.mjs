@@ -68,11 +68,18 @@ const DEFAULTS = {
     state: 'state',
     library: 'library',
     settings: 'settings.json',
-    // repo asset locations (relative to REPO_ROOT unless absolute)
-    ideas: 'marketing/02-idea-database/ideas.json',
-    render: 'marketing/04-assets/render.mjs',
-    videoStudio: 'marketing/05-video-studio',
-    posters: 'marketing/04-assets/posters',
+    // Marketing-kit asset locations. Since the §3.12 kit move (2026-07-13,
+    // after the marketing/ kit was lost from the platform repo) these live
+    // IN THIS repo under kit/ and resolve relative to PKG_ROOT, not the
+    // platform checkout. FOREVERMORE_ROOT now only backs the two remaining
+    // seams (template thumbnails' upstream + dev-server world captures).
+    // (relative to PKG_ROOT unless absolute)
+    ideas: 'kit/02-idea-database/ideas.json',
+    render: 'kit/04-assets/render.mjs',
+    videoStudio: 'kit/05-video-studio',
+    posters: 'kit/04-assets/posters',
+    catalog: 'kit/_research/template-catalog.md',
+    brandGuide: 'kit/00-brand/brand-guide.md',
   },
 };
 
@@ -153,10 +160,16 @@ export function loadConfig(opts = {}) {
     state: abs(P.state, dataRoot),
     library: abs(P.library, dataRoot),
     settings: abs(P.settings, dataRoot),
-    ideas: abs(P.ideas, fmRoot),
-    render: abs(P.render, fmRoot),
-    videoStudio: abs(P.videoStudio, fmRoot),
-    posters: abs(P.posters, fmRoot),
+    // Kit assets now live in THIS repo (§3.12 kit move) — resolve under
+    // PKG_ROOT, not the platform checkout. An absolute path in config still
+    // wins (abs()), and an explicit override in autopilot.config.json still
+    // layers on top, so env/config override precedence is unchanged.
+    ideas: abs(P.ideas, PKG_ROOT),
+    render: abs(P.render, PKG_ROOT),
+    videoStudio: abs(P.videoStudio, PKG_ROOT),
+    posters: abs(P.posters, PKG_ROOT),
+    catalog: abs(P.catalog, PKG_ROOT),
+    brandGuide: abs(P.brandGuide, PKG_ROOT),
     lintModule: cfg.lintModule ? abs(cfg.lintModule, PKG_ROOT) : null,
   };
 

@@ -95,7 +95,8 @@ function catalogIndex(config) {
   if (c.catalog) return c.catalog;
   c.catalog = {};
   try {
-    const catalogPath = join(config.resolved.repoRoot, 'marketing', '_research', 'template-catalog.md');
+    // Catalog moved in-repo with the §3.12 kit move (2026-07-13).
+    const catalogPath = config.resolved.catalog;
     for (const r of loadCatalog(catalogPath)) {
       const rec = { slug: r.slug, name: r.name, tier: r.tier || 'standard', isActive: r.isActive !== false };
       for (const k of new Set([normKey(r.slug), normKey(r.name)].filter(Boolean))) c.catalog[k] = rec;

@@ -32,9 +32,10 @@ it shares no directory, no schema, and no database with it.
 
 ## Consequences
 
-- The platform repo's `marketing/` kit remains the content source Autopilot
+- ~~The platform repo's `marketing/` kit remains the content source Autopilot
   operates on (by explicit design — it's the employee's toolbox). If the kit
-  ever needs to move too, only FOREVERMORE_ROOT-relative paths change.
+  ever needs to move too, only FOREVERMORE_ROOT-relative paths change.~~
+  **Superseded 2026-07-13 (see Amendment below).**
 - Anything in docs/PRD.md that assumed shared-Supabase (`is_admin_self()`
   gating for Atlas Studio, main-repo migration flow) is superseded by this
   ADR: review UI auth is Autopilot's own concern; the M1 "Studio" ships in
@@ -42,3 +43,26 @@ it shares no directory, no schema, and no database with it.
 - `db/migrations/0001` must be fully self-contained (own `private`-schema
   helpers, own roles guard, own admin gate) — no dependency on any migration
   from the platform project.
+
+## Amendment — 2026-07-13: the marketing kit moved in-repo (WAVE2 §3.12)
+
+The untracked `marketing/` kit in the platform checkout was destroyed by a
+`git clean -fd` on 2026-07-13 (~17:21); no backup existed. Rather than restore
+it to the same fragile location, the kit was reconstructed directly into this
+repo as `kit/` (per the owner's pre-existing §3.12 decision in
+docs/WAVE2_BRIEF.md, executed early by necessity):
+
+- `kit/00-brand/brand-guide.md` — reconstructed from the lint engine's encoded
+  brand law, approved outbox captions, and live product copy; owner review
+  pending.
+- `kit/02-idea-database/ideas.json` — lossless recovery: the `autopilot.ideas`
+  table's `payload` column held every original idea object verbatim (137/137).
+- `kit/_research/template-catalog.md` — regenerated from its true upstream,
+  the platform's tracked template registry (`packages/templates`).
+- `kit/04-assets/` + `kit/05-video-studio/` — render tooling and Remotion
+  studio, reconstructed separately (render-path workstream).
+
+The FOREVERMORE_ROOT connection surface consequently **shrinks to two seams**:
+template thumbnails (their upstream stays the platform's thumbnail pipeline)
+and dev-server world captures for the library. Everything else the employee
+consumes is now in-repo and versioned — this failure mode is closed.

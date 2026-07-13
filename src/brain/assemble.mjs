@@ -26,13 +26,14 @@ import { fileURLToPath } from 'node:url';
 import { join as pathJoin, relative, isAbsolute } from 'node:path';
 import { PKG_ROOT, REPO_ROOT } from '../config.mjs';
 
-/** Prompts live in THIS repo; brand/catalog/ideas live in the Forevermore
- *  platform checkout (standalone layout — REPO_ROOT resolves it via
- *  FOREVERMORE_ROOT env > config > sibling ../forevermore). */
+/** Prompts, brand guide, catalog and ideas all live in THIS repo. Since the
+ *  §3.12 kit move (2026-07-13, after the marketing/ kit was lost from the
+ *  platform checkout) the brand/catalog/ideas sources are the in-repo kit/
+ *  files under PKG_ROOT — no longer resolved through FOREVERMORE_ROOT. */
 export const DEFAULT_PROMPTS_DIR = fileURLToPath(new URL('../../prompts/', import.meta.url));
-export const DEFAULT_BRAND_GUIDE = pathJoin(REPO_ROOT, 'marketing/00-brand/brand-guide.md');
-export const DEFAULT_CATALOG = pathJoin(REPO_ROOT, 'marketing/_research/template-catalog.md');
-export const DEFAULT_IDEAS = pathJoin(REPO_ROOT, 'marketing/02-idea-database/ideas.json');
+export const DEFAULT_BRAND_GUIDE = pathJoin(PKG_ROOT, 'kit/00-brand/brand-guide.md');
+export const DEFAULT_CATALOG = pathJoin(PKG_ROOT, 'kit/_research/template-catalog.md');
+export const DEFAULT_IDEAS = pathJoin(PKG_ROOT, 'kit/02-idea-database/ideas.json');
 
 /** SHA-256 hex of a string. (Node runner only; not CF Workers — see MEMORY.) */
 export function sha256(text) {
