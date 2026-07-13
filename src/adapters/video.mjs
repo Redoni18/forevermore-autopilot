@@ -1,20 +1,20 @@
 /**
- * @file Video adapter (AP-203 + AP-835). Renders a vertical reel into
- * `outbox/<id>/assets/final.mp4`, choosing one of two bodies by whether the
- * item's world can be SHOWN — i.e. it resolves to an active catalog world that
- * has BOTH captured footage in `library/manifest.json` (for a real
- * in-experience frame) AND a poster thumbnail in the studio's
- * `public/template-thumbs/`:
+ * @file Video adapter (AP-203 + AP-835/836). Renders a vertical reel into
+ * `outbox/<id>/assets/final.mp4`. Every reel is Hook → [product act] → End;
+ * the middle act is chosen by how well the item's world can be SHOWN:
  *
- *   - SHOWCASE path — HookCard (kinetic hook, unchanged) → ShowcaseCard (the
- *     world's poster art + a real in-experience still popping up, same
- *     paper-and-stickers language) → EndCard. This is AP-835's replacement
- *     for the OverlayReel footage treatment the owner rejected as too busy:
- *     the reel keeps the HookCard style he liked and adds ONE quiet beat that
- *     shows the product. The still is extracted from the library master with
- *     ffmpeg (`still_s` in the manifest entry overrides the default 60% mark).
- *   - HOOK path — no footage or no thumbnail: the original kinetic `HookCard`
- *     → EndCard, byte-for-byte the AP-203 behaviour.
+ *   - SHOWCASE — the world resolves to an active catalog entry with BOTH
+ *     captured footage in `library/manifest.json` AND a staged poster in the
+ *     studio's `public/template-thumbs/`: ShowcaseCard pops the poster
+ *     ("their world") and a real in-experience still ("inside it"). The still
+ *     is ffmpeg-extracted from the library master (`still_s` in the manifest
+ *     entry overrides the default 60% mark).
+ *   - SHELF — no footage for the world (or no world at all) but the studio
+ *     has staged posters: WorldShelfCard pops a card grid of real world
+ *     posters — the owner's "show a card layout of all the worlds" note. The
+ *     item's own world leads the shelf when it has a poster.
+ *   - HOOK — no posters staged at all (bare checkout): the original AP-203
+ *     kinetic HookCard → EndCard, byte-for-byte.
  *
  * All parts concatenate via the ffmpeg concat demuxer with `-c copy` (stream
  * copy, NO re-encode). That is valid because every clip comes out of the SAME
@@ -26,7 +26,7 @@
  * `proc` (opts.proc) to assert routing + props without launching anything.
  */
 
-import { promises as fsp, readFileSync, existsSync } from 'node:fs';
+import { promises as fsp, readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { sha256File } from '../util/hash.mjs';
 import * as realProc from './proc.mjs';
@@ -35,7 +35,7 @@ import { loadCatalog } from '../lint/catalog.mjs';
 
 // Studio composition durations (frames) at 30fps — see 05-video-studio/src/Root.tsx.
 const HOOK_FRAMES = 165;
-const SHOWCASE_FRAMES = 150;
+const MIDDLE_FRAMES = 150; // ShowcaseCard and WorldShelfCard are both 150
 const END_FRAMES = 120;
 const FPS = 30;
 
@@ -43,6 +43,13 @@ const FPS = 30;
 const CLIP_DIR = '__autopilot-clips';
 /** Poster thumbnails staged in the studio (all 40+ worlds, committed with the kit). */
 const THUMBS_DIR = 'template-thumbs';
+/** A shelf needs at least this many posters to read as a shelf. */
+const MIN_SHELF = 4;
+/** Shelf leads: recognisable, high-contrast worlds first; the rest fill alphabetically. */
+const SHELF_CURATION = [
+  'gone-fishing', 'love-letters', 'prize-claw', 'blockheart-mine', 'passport',
+  'pocket-pal', 'memory-garden', 'starlit-letter', 'keepsake-desk',
+];
 
 /* ------------------------- world + asset resolution ------------------------- *
  * Mirrors poster.mjs's catalog approach (idea.worlds[0] → catalog slug via
@@ -148,6 +155,33 @@ export function thumbFor(config, world) {
   return existsSync(join(config.resolved.videoStudio, 'public', rel)) ? rel : null;
 }
 
+/**
+ * The shelf: up to 9 staged posters, deterministic order — the item's own
+ * world first (when it has a poster), then the curated leads, then the rest
+ * alphabetically. Empty array when the studio has no posters staged.
+ * @returns {string[]} staticFile-relative paths
+ */
+export function shelfThumbs(config, world) {
+  let slugs;
+  try {
+    slugs = readdirSync(join(config.resolved.videoStudio, 'public', THUMBS_DIR))
+      .filter((f) => f.endsWith('.webp'))
+      .map((f) => f.slice(0, -'.webp'.length))
+      .sort();
+  } catch {
+    return []; // no posters staged → shelf never fires
+  }
+  const have = new Set(slugs);
+  const ordered = [];
+  const push = (slug) => {
+    if (have.has(slug) && !ordered.includes(slug)) ordered.push(slug);
+  };
+  if (world) push(world.slug);
+  for (const slug of SHELF_CURATION) push(slug);
+  for (const slug of slugs) push(slug);
+  return ordered.slice(0, 9).map((slug) => `${THUMBS_DIR}/${slug}.webp`);
+}
+
 /* ------------------------------- prop planning (pure) ------------------------------- */
 
 function firstLine(s) {
@@ -190,22 +224,31 @@ export function showcaseProps(world, thumb, slug) {
 }
 
 /**
- * Pure routing decision: the showcase reel when the world has BOTH footage
- * (for the still) and a staged thumbnail, else the hook reel. Returns each
- * comp's render props so tests can assert the decision and the exact props
- * without spawning Remotion.
+ * Pure routing decision: showcase when the world has BOTH footage (for the
+ * still) and a staged thumbnail; else the world-shelf when enough posters are
+ * staged; else the bare hook reel. Returns each comp's render props so tests
+ * can assert the decision and the exact props without spawning Remotion.
  * @param {import('../types.mjs').ContentItem} item
- * @param {{world?:Object|null, footage?:Object|null, thumb?:string|null}} [ctx]
+ * @param {{world?:Object|null, footage?:Object|null, thumb?:string|null, thumbs?:string[]}} [ctx]
  */
-export function planVideo(item, { world = null, footage = null, thumb = null } = {}) {
+export function planVideo(item, { world = null, footage = null, thumb = null, thumbs = [] } = {}) {
   if (world && footage && footage.file && thumb) {
     return {
       route: 'showcase',
+      middleComp: 'ShowcaseCard',
+      middleProps: showcaseProps(world, thumb, world.slug),
       slug: world.slug,
       clipFile: footage.file,
       stillAt: stillSeconds(footage),
       hookProps: hookProps(item),
-      showcaseProps: showcaseProps(world, thumb, world.slug),
+    };
+  }
+  if (Array.isArray(thumbs) && thumbs.length >= MIN_SHELF) {
+    return {
+      route: 'shelf',
+      middleComp: 'WorldShelfCard',
+      middleProps: { kicker: 'pick their world', thumbs: thumbs.slice(0, 9) },
+      hookProps: hookProps(item),
     };
   }
   return { route: 'hook', props: hookProps(item) };
@@ -238,30 +281,30 @@ async function stageStill(config, plan, P) {
   return dest;
 }
 
-/** SHOWCASE body: HookCard → ShowcaseCard(poster + real still) → EndCard, stream-copy concat. */
-async function renderShowcaseReel(item, plan, { config, studio, outDir, P }) {
+/** SHOWCASE/SHELF body: HookCard → middle product act → EndCard, stream-copy concat. */
+async function renderMiddleReel(item, plan, { config, studio, outDir, P }) {
   const hookMp4 = join(outDir, 'hook.mp4');
-  const showcaseMp4 = join(outDir, 'showcase.mp4');
+  const middleMp4 = join(outDir, 'middle.mp4');
   const endMp4 = join(outDir, 'end.mp4');
   const finalMp4 = join(outDir, 'final.mp4');
   const hookPropsFile = join(outDir, 'hook.props.json');
-  const showcasePropsFile = join(outDir, 'showcase.props.json');
+  const middlePropsFile = join(outDir, 'middle.props.json');
   const listFile = join(outDir, 'concat.txt');
   const bin = P.remotionBin(config);
 
-  await stageStill(config, plan, P);
+  if (plan.route === 'showcase') await stageStill(config, plan, P);
   await fsp.writeFile(hookPropsFile, JSON.stringify(plan.hookProps), 'utf8');
-  await fsp.writeFile(showcasePropsFile, JSON.stringify(plan.showcaseProps), 'utf8');
+  await fsp.writeFile(middlePropsFile, JSON.stringify(plan.middleProps), 'utf8');
 
   P.run(bin, ['render', 'src/index.ts', 'HookCard', hookMp4, `--props=${hookPropsFile}`], { cwd: studio });
-  P.run(bin, ['render', 'src/index.ts', 'ShowcaseCard', showcaseMp4, `--props=${showcasePropsFile}`], { cwd: studio });
+  P.run(bin, ['render', 'src/index.ts', plan.middleComp, middleMp4, `--props=${middlePropsFile}`], { cwd: studio });
   P.run(bin, ['render', 'src/index.ts', 'EndCard', endMp4], { cwd: studio });
 
-  const list = `file '${hookMp4}'\nfile '${showcaseMp4}'\nfile '${endMp4}'\n`;
+  const list = `file '${hookMp4}'\nfile '${middleMp4}'\nfile '${endMp4}'\n`;
   await fsp.writeFile(listFile, list, 'utf8');
   P.ffmpeg(config, ['-y', '-f', 'concat', '-safe', '0', '-i', listFile, '-c', 'copy', finalMp4]);
 
-  const durS = (HOOK_FRAMES + SHOWCASE_FRAMES + END_FRAMES) / FPS; // 14.5s (fixed comp durations)
+  const durS = (HOOK_FRAMES + MIDDLE_FRAMES + END_FRAMES) / FPS; // 14.5s (fixed comp durations)
   return [finalAsset(durS, await sha256File(finalMp4))];
 }
 
@@ -304,13 +347,14 @@ export async function renderVideo(item, opts) {
   const world = resolveVideoWorld(config, item);
   const footage = footageFor(config, world);
   const thumb = thumbFor(config, world);
-  const plan = planVideo(item, { world, footage, thumb });
+  const thumbs = shelfThumbs(config, world);
+  const plan = planVideo(item, { world, footage, thumb, thumbs });
 
   if (typeof log === 'function') {
     await log({ event: 'video.route', id: item.id, route: plan.route, world: world ? world.slug : null });
   }
 
-  return plan.route === 'showcase'
-    ? renderShowcaseReel(item, plan, { config, studio, outDir, P })
-    : renderHookReel(item, plan, { config, studio, outDir, P });
+  return plan.route === 'hook'
+    ? renderHookReel(item, plan, { config, studio, outDir, P })
+    : renderMiddleReel(item, plan, { config, studio, outDir, P });
 }

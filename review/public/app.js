@@ -28,6 +28,17 @@ const OUTCOME_LABELS = {
 const RULE_CATEGORIES = ['hook', 'caption', 'format', 'timing', 'world', 'visual'];
 const RISK_TOOLTIP =
   'Risk class controls approval strictness: evergreen may auto-publish at L2 · standard always needs your tap · sensitive requires typed confirmation';
+// Items the EMPLOYEE currently owes work on (your change requests + QA
+// bounces + mid-render). The tick sweeps these every ~30 minutes; each label
+// says which stage the item is waiting on / inside.
+const REWORK_LABELS = {
+  drafting: 'queued for redraft',
+  drafted: 'redrafted — waiting to render',
+  rendering: 'rendering now',
+  rendered: 'in QA',
+  qa_failed: 'failed QA — retrying',
+};
+const REWORK_STATUSES = new Set(Object.keys(REWORK_LABELS));
 
 const state = {
   view: 'review', // review | planned | history | playbook | activity
@@ -175,16 +186,26 @@ function ingest(data) {
   state.data = data;
   state.items = new Map();
   state.pendingOrder = [];
+  state.reworkOrder = [];
   for (const group of data.groups || []) {
     for (const item of group.items) {
       item._group = { candidate_group: group.candidate_group, slot_at: group.slot_at, platform: group.platform, format: group.format };
       state.items.set(item.id, item);
       if (item.status === 'pending_review') state.pendingOrder.push(item.id);
+      else if (REWORK_STATUSES.has(item.status) && (item.attempt || 1) > 1) state.reworkOrder.push(item.id);
     }
   }
-  if (!state.selectedId || !state.items.has(state.selectedId) || state.items.get(state.selectedId).status !== 'pending_review') {
-    state.selectedId = state.pendingOrder[0] || null;
+  // rework list: soonest slot first, so tonight's redrafts sit on top
+  state.reworkOrder.sort((a, b) => new Date(state.items.get(a).slot_at) - new Date(state.items.get(b).slot_at));
+  const selectable = new Set([...state.pendingOrder, ...state.reworkOrder]);
+  if (!state.selectedId || !selectable.has(state.selectedId)) {
+    state.selectedId = state.pendingOrder[0] || state.reworkOrder[0] || null;
   }
+}
+
+/** j/k travel order: your queue first, then everything in rework. */
+function navOrder() {
+  return [...state.pendingOrder, ...state.reworkOrder];
 }
 
 function selectedItem() {
@@ -199,6 +220,19 @@ function decidedItems() {
   return [...state.items.values()]
     .filter((i) => i.decision)
     .sort((a, b) => new Date(b.decision.decided_at || 0) - new Date(a.decision.decided_at || 0));
+}
+
+/** EVERY decision on record, newest first — sourced from each item's full
+ *  decision history, so a redrafted (re-pending) item's past decisions still
+ *  count in stats and the activity feed. */
+function allDecisions() {
+  const out = [];
+  for (const it of state.items.values()) {
+    for (const f of it.feedback_history || []) {
+      out.push({ item: it, ...f });
+    }
+  }
+  return out.sort((a, b) => new Date(b.decided_at || 0) - new Date(a.decided_at || 0));
 }
 
 /* ------------------------------------------------------------------ header */
@@ -293,10 +327,10 @@ function platformBadge(platform) {
 function renderReview(content) {
   content.appendChild(buildStatStrip());
 
-  if (!state.pendingOrder.length) {
+  if (!state.pendingOrder.length && !state.reworkOrder.length) {
     content.appendChild(emptyState(
       'Queue is clear',
-      'Nothing is waiting on you. New candidates land here after the next <code>generate</code> run — see <b>Planned</b> for what\'s coming.',
+      'Nothing is waiting on you and nothing is in rework. New candidates land here after the next <code>generate</code> run — see <b>Planned</b> for what\'s coming.',
     ));
     return;
   }
@@ -308,6 +342,10 @@ function renderReview(content) {
   pane.className = 'detail-pane';
   const it = selectedItem();
   if (it) pane.appendChild(buildDetail(it));
+  else if (!state.pendingOrder.length) {
+    pane.appendChild(emptyState('Nothing waiting on you',
+      `${state.reworkOrder.length} item${state.reworkOrder.length === 1 ? ' is' : 's are'} being reworked — select one on the left to watch its progress.`));
+  }
   split.appendChild(pane);
   content.appendChild(split);
 }
@@ -333,27 +371,32 @@ function buildStatStrip() {
     .filter((g) => g.items.some((i) => i.status === 'pending_review'))
     .sort((a, b) => new Date(a.slot_at) - new Date(b.slot_at))[0];
 
-  // approvals this week (Mon–Sun)
+  // your decisions this week (Mon–Sun) — from the FULL decision log, so a
+  // change request still counts after its item re-enters the queue
   const [ws, we] = weekWindow();
-  const decisions = decidedItems();
-  const approvedWeek = decisions.filter((i) => {
-    const d = new Date(i.decision.decided_at || 0);
-    return (i.decision.decision === 'approved' || i.decision.decision === 'edited') && d >= ws && d < we;
-  }).length;
-  const decidedWeek = decisions.filter((i) => {
-    const d = new Date(i.decision.decided_at || 0);
-    return d >= ws && d < we && !(i.decision.reason_tags || []).includes('candidate-not-chosen');
-  }).length;
+  const weekDecisions = allDecisions().filter((f) => {
+    const d = new Date(f.decided_at || 0);
+    return d >= ws && d < we && !(f.reason_tags || []).includes('candidate-not-chosen');
+  });
+  const approvedWeek = weekDecisions.filter((f) => f.decision === 'approved' || f.decision === 'edited').length;
+  const decidedWeek = weekDecisions.length;
 
   // last pipeline run
   const lastRun = (state.activity?.runs || [])[0] || null;
   const runFailed = lastRun && lastRun.status === 'failed';
+
+  const rework = state.reworkOrder.length;
 
   strip.innerHTML = `
     <div class="stat">
       <div class="stat-label">Waiting on you</div>
       <div class="stat-value">${pending}</div>
       <div class="stat-hint">${pending ? 'candidates to review' : 'queue clear'}</div>
+    </div>
+    <div class="stat${rework ? ' stat-work' : ''}">
+      <div class="stat-label">In rework</div>
+      <div class="stat-value">${rework}</div>
+      <div class="stat-hint">${rework ? 'redrafts in the pipeline' : 'no open change requests'}</div>
     </div>
     <div class="stat">
       <div class="stat-label">Next slot</div>
@@ -438,7 +481,55 @@ function buildQueueRail() {
     sec.appendChild(cards);
     rail.appendChild(sec);
   }
+
+  // In rework — the employee's open workload from your change requests + QA
+  // bounces. Selectable to inspect progress; decided elsewhere never.
+  if (state.reworkOrder.length) {
+    const sec = document.createElement('div');
+    sec.className = 'rail-group';
+    sec.innerHTML = `
+      <div class="rail-group-head rail-group-rework">
+        <span class="work-pulse" aria-hidden="true"></span>
+        In rework
+        <span class="slot-when">${state.reworkOrder.length} item${state.reworkOrder.length === 1 ? '' : 's'}</span>
+      </div>`;
+    const cards = document.createElement('div');
+    cards.className = 'rail-cards';
+    for (const id of state.reworkOrder) {
+      const item = state.items.get(id);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'rail-card is-rework';
+      btn.dataset.id = item.id;
+      if (item.id === state.selectedId) btn.classList.add('is-selected');
+      const note = reworkNote(item);
+      btn.innerHTML = `
+        ${railThumb(item)}
+        <span class="rail-body">
+          <span class="rail-hook">${esc(item.overlays?.hook || item.caption || item.id)}</span>
+          <span class="rail-meta">
+            <span class="chip chip-work">${esc(REWORK_LABELS[item.status] || item.status)}</span>
+            <span class="chip">attempt ${item.attempt || 1}</span>
+          </span>
+          ${note ? `<span class="rail-note">“${esc(note.length > 70 ? `${note.slice(0, 70)}…` : note)}”</span>` : ''}
+        </span>`;
+      btn.addEventListener('click', () => selectItem(item.id));
+      cards.appendChild(btn);
+    }
+    sec.appendChild(cards);
+    rail.appendChild(sec);
+  }
   return rail;
+}
+
+/** The owner note driving an item's rework: the live feedback envelope, else
+ *  the most recent changes_requested decision on record. */
+function reworkNote(item) {
+  if (item.feedback?.note) return item.feedback.note;
+  const fh = Array.isArray(item.feedback_history) ? item.feedback_history : [];
+  const last = fh.filter((f) => f.decision === 'changes_requested')
+    .sort((a, b) => new Date(b.decided_at || 0) - new Date(a.decided_at || 0))[0];
+  return last?.note || null;
 }
 
 function selectItem(id) {
@@ -452,11 +543,12 @@ function selectItem(id) {
 }
 
 function moveSelection(delta) {
-  if (!state.pendingOrder.length) return;
-  let idx = state.pendingOrder.indexOf(state.selectedId);
+  const order = navOrder();
+  if (!order.length) return;
+  let idx = order.indexOf(state.selectedId);
   if (idx === -1) idx = 0;
-  const next = Math.min(Math.max(idx + delta, 0), state.pendingOrder.length - 1);
-  if (state.pendingOrder[next] !== state.selectedId) selectItem(state.pendingOrder[next]);
+  const next = Math.min(Math.max(idx + delta, 0), order.length - 1);
+  if (order[next] !== state.selectedId) selectItem(order[next]);
 }
 
 /* ----------------------------------------------------------- detail panel */
@@ -487,7 +579,9 @@ function buildDetail(item) {
 
   const body = document.createElement('div');
   body.className = 'detail-body';
-  if (item.feedback && (item.attempt || 1) > 1) body.appendChild(buildFeedbackBanner(item));
+  const isRework = item.status !== 'pending_review';
+  if (isRework) body.appendChild(buildReworkBanner(item));
+  else if ((item.attempt || 1) > 1 && reworkNote(item)) body.appendChild(buildFeedbackBanner(item));
   body.appendChild(buildCaptionSection(item));
   body.appendChild(buildThinkingSection(item));
   body.appendChild(buildSourcesSection(item));
@@ -495,6 +589,18 @@ function buildDetail(item) {
   if (tl) body.appendChild(tl);
   grid.appendChild(body);
   card.appendChild(grid);
+
+  if (isRework) {
+    // No decisions on an item the employee still owes work on — show where it
+    // is instead. (The media above is the PREVIOUS render until it re-renders.)
+    const bar = document.createElement('div');
+    bar.className = 'rework-bar';
+    bar.innerHTML = `
+      <span class="work-pulse" aria-hidden="true"></span>
+      <span><b>${esc(REWORK_LABELS[item.status] || item.status)}</b> · attempt ${item.attempt || 1} — the tick sweeps every ~30 minutes; the redraft lands back in your queue when QA passes.</span>`;
+    card.appendChild(bar);
+    return card;
+  }
 
   // sensitive gate
   if (item.risk === 'sensitive' && !state.detail.unlocked) {
@@ -529,11 +635,21 @@ function buildDetail(item) {
 }
 
 function buildFeedbackBanner(item) {
-  const fb = item.feedback || {};
+  // Post-redraft the live feedback envelope is consumed by the pipeline; the
+  // note survives in the decision history, so derive from either.
+  const note = reworkNote(item);
+  const tags = (item.feedback?.reason_tags || []).join(', ');
   const el = document.createElement('div');
   el.className = 'feedback-banner';
-  const tags = (fb.reason_tags || []).join(', ');
-  el.innerHTML = `<b>Redraft — attempt ${item.attempt}.</b> Addressing your feedback${tags ? ` (${esc(tags)})` : ''}${fb.note ? `: “${esc(fb.note)}”` : '.'}`;
+  el.innerHTML = `<b>Redraft — attempt ${item.attempt}.</b> Addressing your feedback${tags ? ` (${esc(tags)})` : ''}${note ? `: “${esc(note)}”` : '.'}`;
+  return el;
+}
+
+function buildReworkBanner(item) {
+  const note = reworkNote(item);
+  const el = document.createElement('div');
+  el.className = 'feedback-banner';
+  el.innerHTML = `<b>Being reworked — ${esc(REWORK_LABELS[item.status] || item.status)}.</b>${note ? ` Your note in the redraft prompt: “${esc(note)}”` : ''}`;
   return el;
 }
 
@@ -623,13 +739,14 @@ function buildMediaCol(item) {
 function buildCaptionSection(item) {
   const sec = document.createElement('section');
   sec.className = 'section';
+  const editable = item.status === 'pending_review';
   const tags = Array.isArray(item.hashtags) ? item.hashtags : [];
   sec.innerHTML = `
-    <div class="section-head">Caption <span class="section-note">click text to edit</span></div>
+    <div class="section-head">Caption ${editable ? '<span class="section-note">click text to edit</span>' : '<span class="section-note">previous draft — being rewritten</span>'}</div>
     <div class="section-body"></div>`;
   const body = sec.querySelector('.section-body');
 
-  if (state.detail.editing) {
+  if (state.detail.editing && editable) {
     const ta = document.createElement('textarea');
     ta.className = 'caption-edit';
     ta.value = state.detail.captionValue ?? (item.caption || '');
@@ -643,10 +760,12 @@ function buildCaptionSection(item) {
     setTimeout(() => { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }, 0);
   } else {
     const cap = document.createElement('div');
-    cap.className = `caption-text${item.caption ? '' : ' is-empty'}`;
-    cap.textContent = item.caption || 'no caption — click to add one';
-    cap.title = 'Click to edit';
-    cap.addEventListener('click', () => startEdit(item));
+    cap.className = `caption-text${item.caption ? '' : ' is-empty'}${editable ? '' : ' is-readonly'}`;
+    cap.textContent = item.caption || (editable ? 'no caption — click to add one' : 'no caption yet');
+    if (editable) {
+      cap.title = 'Click to edit';
+      cap.addEventListener('click', () => startEdit(item));
+    }
     body.appendChild(cap);
   }
 
@@ -1329,10 +1448,10 @@ function renderActivity(content) {
     when: r.started_at,
     run: r,
   }));
-  const decisions = decidedItems().map((it) => ({
+  const decisions = allDecisions().map((f) => ({
     kind: 'decision',
-    when: it.decision.decided_at,
-    item: it,
+    when: f.decided_at,
+    entry: f,
   }));
   const entries = [...runs, ...decisions]
     .filter((e) => e.when)
@@ -1361,7 +1480,7 @@ function renderActivity(content) {
       h.textContent = formatDay(e.when);
       list.appendChild(h);
     }
-    list.appendChild(e.kind === 'run' ? buildRunRow(e.run) : buildDecisionRow(e.item));
+    list.appendChild(e.kind === 'run' ? buildRunRow(e.run) : buildDecisionRow(e.entry));
   }
   content.appendChild(list);
 }
@@ -1398,9 +1517,11 @@ function buildRunRow(r) {
   return row;
 }
 
-function buildDecisionRow(it) {
-  const d = it.decision;
+function buildDecisionRow(d) {
+  const it = d.item;
   const auto = (d.reason_tags || []).includes('candidate-not-chosen');
+  const reworking = d.decision === 'changes_requested' && REWORK_STATUSES.has(it.status);
+  const redone = d.decision === 'changes_requested' && it.status === 'pending_review' && (it.attempt || 1) > 1;
   const row = document.createElement('div');
   row.className = 'act-row';
   row.innerHTML = `
@@ -1409,6 +1530,8 @@ function buildDecisionRow(it) {
       <div class="act-title">${esc(OUTCOME_LABELS[d.decision] || d.decision)}${auto ? ' (auto)' : ''} <span class="mono">${esc(d.via || '')}</span></div>
       <div class="act-sub">${esc(it.overlays?.hook || it.caption || it.id)}</div>
       ${d.note && !auto ? `<div class="act-sub" style="font-style:italic">“${esc(d.note)}”</div>` : ''}
+      ${reworking ? `<div class="act-sub" style="color:var(--violet);font-weight:600">→ ${esc(REWORK_LABELS[it.status])} (attempt ${it.attempt || 1})</div>` : ''}
+      ${redone ? '<div class="act-sub" style="color:var(--green);font-weight:600">→ redrafted — back in your review queue</div>' : ''}
     </div>
     <span class="act-when">${esc(formatTime(d.decided_at))}</span>`;
   return row;
@@ -1439,13 +1562,14 @@ function wireGlobalKeyboard() {
     if (state.view !== 'review') return;
 
     const it = selectedItem();
+    const decidable = it && it.status === 'pending_review';
     switch (e.key) {
       case 'j': moveSelection(1); break;
       case 'k': moveSelection(-1); break;
-      case 'a': if (it) actApprove(it); break;
-      case 'e': if (it) (state.detail.editing ? cancelEdit() : startEdit(it)); break;
-      case 'c': if (it) openReason(it, 'changes_requested'); break;
-      case 'r': if (it) openReason(it, 'rejected'); break;
+      case 'a': if (decidable) actApprove(it); break;
+      case 'e': if (decidable) (state.detail.editing ? cancelEdit() : startEdit(it)); break;
+      case 'c': if (decidable) openReason(it, 'changes_requested'); break;
+      case 'r': if (decidable) openReason(it, 'rejected'); break;
       case 'ArrowLeft': if (it && (it.assets || []).length > 1 && state.detail.slide > 0) { state.detail.slide--; render(); } break;
       case 'ArrowRight': if (it && (it.assets || []).length > 1 && state.detail.slide < it.assets.length - 1) { state.detail.slide++; render(); } break;
       default: return;

@@ -1,10 +1,10 @@
-// AP-835: the showcase reel replaces the OverlayReel footage treatment.
-// planVideo routes to 'showcase' only when the world can actually be SHOWN
-// (active catalog world + library footage + staged thumbnail); renderVideo's
-// showcase body stages a real still and concats Hook → Showcase → End.
+// AP-835/836: every reel is Hook → [product act] → End. planVideo picks the
+// middle act — 'showcase' (world poster + real in-experience still) when the
+// world has footage AND a staged thumbnail, 'shelf' (card grid of real world
+// posters) when only posters exist, bare 'hook' when nothing is staged.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -13,12 +13,19 @@ import {
   stillSeconds,
   hookProps,
   showcaseProps,
+  shelfThumbs,
   renderVideo,
 } from '../src/adapters/video.mjs';
 
 const WORLD = { slug: 'blockheart-mine', name: 'The Blockheart Mine', tier: 'premium', isActive: true };
 const FOOTAGE = { slug: 'blockheart-mine', file: 'blockheart-mine.mp4', dur_s: 46.6 };
 const THUMB = 'template-thumbs/blockheart-mine.webp';
+const SHELF = [
+  'template-thumbs/gone-fishing.webp',
+  'template-thumbs/love-letters.webp',
+  'template-thumbs/prize-claw.webp',
+  'template-thumbs/passport.webp',
+];
 
 function itemFixture() {
   return {
@@ -36,33 +43,36 @@ test('stillSeconds: manifest still_s wins (end-clamped); default is the 60% mark
   assert.equal(stillSeconds({}), 15, 'no duration → sane fixed fallback');
 });
 
-test('planVideo: hook route when the world cannot be shown', () => {
+test('planVideo: showcase > shelf > hook, by what can actually be shown', () => {
   const item = itemFixture();
-  const noWorld = planVideo(item, {});
-  assert.equal(noWorld.route, 'hook');
-  assert.deepEqual(noWorld.props, hookProps(item));
 
-  const noThumb = planVideo(item, { world: WORLD, footage: FOOTAGE, thumb: null });
-  assert.equal(noThumb.route, 'hook', 'footage without a staged thumbnail still takes the hook path');
-
-  const noFootage = planVideo(item, { world: WORLD, footage: null, thumb: THUMB });
-  assert.equal(noFootage.route, 'hook', 'a thumbnail without footage still takes the hook path');
-});
-
-test('planVideo: showcase route carries both comps\' exact props', () => {
-  const item = itemFixture();
-  const plan = planVideo(item, { world: WORLD, footage: FOOTAGE, thumb: THUMB });
-  assert.equal(plan.route, 'showcase');
-  assert.equal(plan.slug, 'blockheart-mine');
-  assert.equal(plan.clipFile, 'blockheart-mine.mp4');
-  assert.equal(plan.stillAt, 28);
-  assert.deepEqual(plan.hookProps, hookProps(item), 'part 1 is the unchanged kinetic HookCard');
-  assert.deepEqual(plan.showcaseProps, showcaseProps(WORLD, THUMB, 'blockheart-mine'));
-  assert.deepEqual(plan.showcaseProps, {
+  const showcase = planVideo(item, { world: WORLD, footage: FOOTAGE, thumb: THUMB, thumbs: SHELF });
+  assert.equal(showcase.route, 'showcase', 'footage + thumbnail wins even when a shelf exists');
+  assert.equal(showcase.middleComp, 'ShowcaseCard');
+  assert.deepEqual(showcase.middleProps, showcaseProps(WORLD, THUMB, 'blockheart-mine'));
+  assert.deepEqual(showcase.middleProps, {
     world: 'The Blockheart Mine',
     thumb: 'template-thumbs/blockheart-mine.webp',
     still: '__autopilot-clips/blockheart-mine-still.jpg',
   });
+  assert.equal(showcase.stillAt, 28);
+  assert.deepEqual(showcase.hookProps, hookProps(item), 'part 1 is the unchanged kinetic HookCard');
+
+  const shelf = planVideo(item, { world: WORLD, footage: FOOTAGE, thumb: null, thumbs: SHELF });
+  assert.equal(shelf.route, 'shelf', 'footage without the world\'s own poster → shelf');
+  assert.equal(shelf.middleComp, 'WorldShelfCard');
+  assert.deepEqual(shelf.middleProps.thumbs, SHELF);
+  assert.equal(shelf.middleProps.kicker, 'pick their world');
+
+  const noWorld = planVideo(item, { thumbs: SHELF });
+  assert.equal(noWorld.route, 'shelf', 'off-list items still get a product act');
+
+  const bare = planVideo(item, {});
+  assert.equal(bare.route, 'hook', 'nothing staged → the original hook reel');
+  assert.deepEqual(bare.props, hookProps(item));
+
+  const thin = planVideo(item, { thumbs: SHELF.slice(0, 2) });
+  assert.equal(thin.route, 'hook', 'fewer than 4 posters does not read as a shelf');
 });
 
 /** A fake platform+studio tree so renderVideo's resolution chain runs for real. */
@@ -73,8 +83,11 @@ function fakeEnv() {
   const library = join(tmp, 'library');
   const outDir = join(tmp, 'out');
 
-  mkdirSync(join(studio, 'public', 'template-thumbs'), { recursive: true });
-  writeFileSync(join(studio, 'public', 'template-thumbs', 'blockheart-mine.webp'), 'webp');
+  const thumbsDir = join(studio, 'public', 'template-thumbs');
+  mkdirSync(thumbsDir, { recursive: true });
+  for (const slug of ['blockheart-mine', 'gone-fishing', 'love-letters', 'prize-claw', 'passport']) {
+    writeFileSync(join(thumbsDir, `${slug}.webp`), 'webp');
+  }
   mkdirSync(join(repoRoot, 'marketing', '_research'), { recursive: true });
   writeFileSync(
     join(repoRoot, 'marketing', '_research', 'template-catalog.md'),
@@ -89,7 +102,7 @@ function fakeEnv() {
   writeFileSync(ideas, JSON.stringify([{ id: 'F03', title: 'gamer wedge', worlds: ['The Blockheart Mine'] }]));
 
   const config = { resolved: { repoRoot, videoStudio: studio, library, ideas, outbox: join(tmp, 'outbox') } };
-  return { tmp, config, outDir };
+  return { tmp, config, outDir, thumbsDir };
 }
 
 /** Records every subprocess the adapter would spawn. The concat "produces"
@@ -107,6 +120,18 @@ function stubProc() {
     },
   };
 }
+
+test('shelfThumbs: the item\'s world leads, curation follows, capped at 9, staticFile-relative', () => {
+  const { config } = fakeEnv();
+  const list = shelfThumbs(config, WORLD);
+  assert.equal(list[0], 'template-thumbs/blockheart-mine.webp', 'own world first');
+  assert.deepEqual(
+    list.slice(1),
+    ['template-thumbs/gone-fishing.webp', 'template-thumbs/love-letters.webp', 'template-thumbs/prize-claw.webp', 'template-thumbs/passport.webp'],
+    'then the curated order',
+  );
+  assert.deepEqual(shelfThumbs({ resolved: { videoStudio: '/nope' } }, WORLD), [], 'no staged posters → empty');
+});
 
 test('renderVideo showcase body: still extraction + Hook/Showcase/End renders + 3-part concat', async () => {
   const { config, outDir } = fakeEnv();
@@ -137,11 +162,25 @@ test('renderVideo showcase body: still extraction + Hook/Showcase/End renders + 
   assert.equal(assets[0].path, 'assets/final.mp4');
 });
 
-test('renderVideo hook body is untouched when the world has no staged thumbnail', async () => {
-  const { config, outDir } = fakeEnv();
-  // remove the thumbnail gate → hook path
-  const { rmSync } = await import('node:fs');
-  rmSync(join(config.resolved.videoStudio, 'public', 'template-thumbs', 'blockheart-mine.webp'));
+test('renderVideo shelf body: no world poster → WorldShelfCard grid, no still extraction', async () => {
+  const { config, outDir, thumbsDir } = fakeEnv();
+  // The world's own poster is gone but four others remain → shelf.
+  rmSync(join(thumbsDir, 'blockheart-mine.webp'));
+
+  const P = stubProc();
+  const events = [];
+  const assets = await renderVideo(itemFixture(), { config, outDir, proc: P, log: async (e) => events.push(e) });
+
+  assert.equal(events[0].route, 'shelf');
+  const renders = P.calls.filter((c) => c.kind === 'run').map((c) => c.args[2]);
+  assert.deepEqual(renders, ['HookCard', 'WorldShelfCard', 'EndCard']);
+  assert.ok(!P.calls.some((c) => c.kind === 'ffmpeg' && c.args.includes('-frames:v')), 'no still extraction on the shelf path');
+  assert.equal(assets[0].dur_s, 14.5);
+});
+
+test('renderVideo hook body survives as the bare fallback (nothing staged at all)', async () => {
+  const { config, outDir, thumbsDir } = fakeEnv();
+  rmSync(thumbsDir, { recursive: true, force: true });
 
   const P = stubProc();
   const assets = await renderVideo(itemFixture(), { config, outDir, proc: P });

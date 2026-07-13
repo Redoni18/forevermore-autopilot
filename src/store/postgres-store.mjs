@@ -119,14 +119,16 @@ const RUN_STAGES = new Set([
 
 /**
  * Normalise a stage label to satisfy the runs.stage CHECK. The state machine
- * writes compound labels for audit rows ("approve:transition", "regen:transition",
- * "transition:transition"); those all collapse to the canonical 'transition'.
+ * writes compound labels for audit rows ("qa:transition", "approve:transition",
+ * "regen:transition"); ALL compound labels collapse to the canonical
+ * 'transition' — mapping "qa:transition" to 'qa' (the pre-AP-836 behaviour)
+ * made per-item audit rows indistinguishable from real stage runs and flooded
+ * the station's activity feed.
  */
 function normalizeStage(stage) {
   const s = String(stage || '').trim();
   if (RUN_STAGES.has(s)) return s;
-  const base = s.split(':')[0];
-  if (RUN_STAGES.has(base)) return base;
+  if (s.includes(':')) return 'transition'; // every compound label is a bookkeeping row
   return 'transition';
 }
 

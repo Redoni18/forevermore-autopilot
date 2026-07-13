@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>co.getforevermore.autopilot.tick</string>
+	<!-- The employee's heartbeat (AP-836): plan today once, then sweep EVERY
+	     slot date carrying in-flight work (drafting→generate, drafted→render,
+	     rendered→qa), then digest once. This is what turns a station
+	     "Request changes" into a redraft back in the review feed within ~30
+	     minutes, unattended. A pid lockfile makes overlapping ticks no-ops;
+	     the kill switch (autopilot pause) halts it within one tick. -->
+	<key>ProgramArguments</key>
+	<array>
+		<string>/bin/zsh</string>
+		<string>-lc</string>
+		<string>cd /Users/redonemini/Desktop/Code/Personal/forevermore-autopilot &amp;&amp; node bin/autopilot.mjs tick >> logs/launchd-tick.log 2>&amp;1</string>
+	</array>
+	<key>StartInterval</key>
+	<integer>1800</integer>
+	<key>RunAtLoad</key>
+	<true/>
+	<!-- TimeZone: Europe/Tirane (system TZ) -->
+</dict>
+</plist>

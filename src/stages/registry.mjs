@@ -86,21 +86,14 @@ export async function runStage(name, opts) {
     return { status: 'paused', stage: name, date, produced: 0, run: run.id };
   }
 
-  // 2) idempotency (skip completed unless force/dry-run)
+  // 2) idempotency (skip completed unless force/dry-run). A skip is a
+  // NON-event: it writes no run row — the 30-minute tick would otherwise
+  // append ~100 "already_completed" rows a day and bury the activity feed
+  // (AP-836). The completion marker itself is the durable record.
   const ckey = completionKey(name, date);
   if (!dryRun && !force) {
     const done = await store.getSetting(ckey);
     if (done) {
-      const run = await store.appendRun({
-        stage: name,
-        status: 'ok',
-        driver: 'deterministic',
-        date,
-        note: 'already_completed',
-        started_at: nowISO(),
-        finished_at: nowISO(),
-      });
-      await store.appendLog(run.id, { event: 'stage.skip_completed', stage: name, date, completed: done });
       return { status: 'skipped', reason: 'already_completed', stage: name, date, produced: 0, completed: done };
     }
   }

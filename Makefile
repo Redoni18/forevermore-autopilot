@@ -1,6 +1,11 @@
-.PHONY: plan generate digest publish metrics reflect doctor review ls install-launchd uninstall-launchd logs db-up db-apply db-fresh station
+.PHONY: tick plan generate digest publish metrics reflect doctor review ls install-launchd install-tick uninstall-launchd logs db-up db-apply db-fresh station
 
 # Autopilot task runners (thin wrappers over bin/autopilot.mjs)
+
+# The employee's heartbeat: plan today + sweep ALL in-flight work (redrafts,
+# renders, QA) across every slot date + digest. launchd runs this every 30m.
+tick:
+	node bin/autopilot.mjs tick
 
 plan:
 	node bin/autopilot.mjs run plan
@@ -30,6 +35,16 @@ ls:
 	node bin/autopilot.mjs ls
 
 # launchd management
+
+# Install ONLY the tick heartbeat (recommended): it subsumes plan/generate/
+# render/qa/digest and stays quiet when the queue is empty. install-launchd
+# also loads plists for stages that don't exist yet (metrics/publish/reflect)
+# which log daily failures — avoid until wave 2 ships them.
+install-tick:
+	cp ops/launchd/co.getforevermore.autopilot.tick.plist ~/Library/LaunchAgents/
+	launchctl unload ~/Library/LaunchAgents/co.getforevermore.autopilot.tick.plist 2>/dev/null || true
+	launchctl load ~/Library/LaunchAgents/co.getforevermore.autopilot.tick.plist
+	@echo "✓ tick agent loaded — fires every 30 minutes + at load; log: logs/launchd-tick.log"
 
 install-launchd:
 	@echo "Installing launchd plists..."

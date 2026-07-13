@@ -93,6 +93,74 @@ function printPlan(shells) {
   }
 }
 
+/* --------------------------------- tick --------------------------------- */
+
+/** A tick lock older than this is considered abandoned and broken. */
+const TICK_LOCK_STALE_MS = 45 * 60 * 1000;
+
+/**
+ * The employee's heartbeat (AP-836) — see src/stages/tick.mjs for the sweep
+ * itself. This wrapper adds the process concerns: a pid lockfile under state/
+ * so overlapping ticks (launchd + a manual run) never double-spawn the brain
+ * (locks older than 45 minutes are treated as crashed and broken).
+ */
+export async function cmdTick(argv, flags) {
+  const { runTickSweep } = await import('../stages/tick.mjs');
+  const { config, store } = boot(flags);
+  const today = flags.date || localToday();
+
+  const lockPath = join(config.resolved.state, 'tick.lock');
+  if (!(await acquireTickLock(lockPath))) {
+    console.log('↷ another tick is already running — nothing to do');
+    return 0;
+  }
+
+  let result;
+  try {
+    result = await runTickSweep({
+      config,
+      store,
+      today,
+      dryRun: Boolean(flags['dry-run']),
+      driver: flags.driver,
+      print: (line) => console.log(line),
+    });
+  } finally {
+    await fsp.rm(lockPath, { force: true }).catch(() => {});
+  }
+
+  const { passes, failures, paused } = result;
+  if (paused) console.log('⏸  tick — kill switch engaged');
+  else if (!passes.length && !failures.length) console.log('✓ tick — queue empty, nothing owed');
+  else console.log(`✓ tick — ${passes.length} stage pass(es)${failures.length ? `, ${failures.length} FAILED` : ''}`);
+  return failures.length ? 1 : 0;
+}
+
+/** O_EXCL pid lock with stale-break. True when acquired. */
+async function acquireTickLock(lockPath) {
+  await fsp.mkdir(join(lockPath, '..'), { recursive: true }).catch(() => {});
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const fh = await fsp.open(lockPath, 'wx');
+      await fh.writeFile(JSON.stringify({ pid: process.pid, at: new Date().toISOString() }));
+      await fh.close();
+      return true;
+    } catch (e) {
+      if (e.code !== 'EEXIST') throw e;
+      let stale = false;
+      try {
+        const rec = JSON.parse(await fsp.readFile(lockPath, 'utf8'));
+        stale = !rec.at || Date.now() - new Date(rec.at).getTime() > TICK_LOCK_STALE_MS;
+      } catch {
+        stale = true; // unreadable lock → treat as crashed
+      }
+      if (!stale) return false;
+      await fsp.rm(lockPath, { force: true }).catch(() => {});
+    }
+  }
+  return false;
+}
+
 /* --------------------------------- ls ---------------------------------- */
 export async function cmdLs(argv, flags) {
   const { store } = boot(flags);

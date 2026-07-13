@@ -8,7 +8,13 @@ Operational guide for the standalone Forevermore Autopilot system. All procedure
 - **Status:** `make doctor` or `node bin/autopilot.mjs doctor`
 - **Database:** `make db-up` (start), `make db-apply` (migrate)
 - **Tail logs:** `make logs`
-- **Trigger stage manually:** `make generate` (or plan/digest/publish/metrics/reflect)
+- **Sweep everything now:** `make tick` — plan today + redraft/render/QA every
+  slot date carrying in-flight work + digest. This is the loop behind the
+  station's "Request changes": the launchd agent (`make install-tick`,
+  `co.getforevermore.autopilot.tick`, every 30 min + at load) runs exactly this,
+  so redrafts come back to the review feed unattended. Overlap-safe (pid
+  lockfile under `state/`), kill-switch aware.
+- **Trigger one stage manually:** `make generate` (or plan/digest/publish/metrics/reflect)
 - **Review UI:** `make station` → http://127.0.0.1:4600
 - **Emergency pause:** Edit `.env` set `KILL_SWITCH=true`, or see [Kill switch](#kill-switch) below
 

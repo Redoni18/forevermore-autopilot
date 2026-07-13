@@ -186,7 +186,7 @@ kbd {
 
 /* ---------------------------------------------------------------- stats strip */
 .stat-strip {
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px;
   margin-bottom: 16px;
 }
 .stat {
@@ -642,4 +642,39 @@ kbd {
   .nav-toggle-bars::before { position: absolute; top: -5px; }
   .nav-toggle-bars::after { position: absolute; top: 5px; }
   .content { padding: 14px 14px 90px; }
+}
+
+/* ---------------------------------------------------------------- rework */
+.work-pulse {
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--violet); flex: 0 0 9px; display: inline-block;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(105, 65, 198, 0.35); }
+  50% { box-shadow: 0 0 0 5px rgba(105, 65, 198, 0); }
+}
+.rail-group-rework { color: var(--violet); font-weight: 700; }
+.rail-card.is-rework { background: var(--violet-soft); border-color: #e9d7fe; }
+.rail-card.is-rework:hover { border-color: #d6bbfb; }
+.rail-card.is-rework.is-selected { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(105, 65, 198, 0.14); }
+.chip-work { color: var(--violet); border-color: #e9d7fe; background: #fff; }
+.rail-note {
+  display: block; font-size: 11px; color: var(--text-2); font-style: italic;
+  margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rework-bar {
+  display: flex; gap: 10px; align-items: center;
+  padding: 13px 18px;
+  border-top: 1px solid #e9d7fe;
+  background: var(--violet-soft);
+  color: #42307d; font-size: 13px;
+  border-radius: 0 0 14px 14px;
+}
+.stat.stat-work .stat-value { color: var(--violet); }
+.caption-text.is-readonly { cursor: default; }
+.caption-text.is-readonly:hover { background: none; }
+
+@media (max-width: 1180px) {
+  .stat-strip { grid-template-columns: repeat(3, 1fr); }
 }

@@ -18,6 +18,7 @@
 import { parseArgs } from '../src/cli/args.mjs';
 import {
   cmdRun,
+  cmdTick,
   cmdLs,
   cmdShow,
   cmdApprove,
@@ -35,6 +36,7 @@ const USAGE = `autopilot — Forevermore Autopilot pipeline (M0)
 
 usage:
   autopilot run <stage> [--date YYYY-MM-DD] [--dry-run] [--driver fixture] [--force]
+  autopilot tick [--dry-run] [--driver fixture]
   autopilot ls [status]
   autopilot show <id>
   autopilot approve <id> [--note "…"]
@@ -49,11 +51,16 @@ stages:   plan | generate | render | qa | digest
 notes:    --date defaults to today; generate/render/qa/digest act on that slot
           date, plan plans the 7 days after it. A completed (stage,date) is a
           no-op unless --force. The kill switch (pause) halts every stage.
+          tick = the employee's heartbeat: plan today, then sweep EVERY date
+          carrying in-flight work (drafting→generate, drafted→render,
+          rendered→qa), then digest — so station change requests come back as
+          redrafts without running stages by hand (launchd runs it every 30m).
           import-outbox migrates a file-mode outbox into store=postgres.`;
 
 /** @type {Record<string, (argv:string[], flags:Object)=>Promise<number>|number>} */
 const COMMANDS = {
   run: cmdRun,
+  tick: cmdTick,
   ls: cmdLs,
   show: cmdShow,
   approve: cmdApprove,
