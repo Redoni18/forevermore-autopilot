@@ -20,6 +20,10 @@
  *       chars), beats carries at most one optional sub-line, and the caption
  *       does the storytelling.
  * An absent format defaults to the reel/v0 shape (keeps unit callers stable).
+ *
+ * AP-831 — every result now also carries a deterministic, format-keyed
+ * `rationale` (the item.rationale thinking log) whose `strategy.playbook_rules`
+ * cites — by id — the active playbook rules injected via `inputs.playbookRules`.
  */
 
 /** Slide-text cap for carousels (readable on a 1080×1350 poster). */
@@ -96,6 +100,69 @@ function buildImage(hook, allBeats, cta) {
   return { caption: story, overlays: { hook: line, beats: sub, cta } };
 }
 
+/** Capitalize the first letter (the thinking log is founder-facing meta, not post copy). */
+function cap(s) {
+  const t = String(s || '').trim();
+  return t ? t[0].toUpperCase() + t.slice(1) : t;
+}
+
+/**
+ * A deterministic, format-keyed THINKING LOG (AP-831) so mock/offline runs carry
+ * the full item.rationale shape. `playbook_rules` cites — by id — every ACTIVE
+ * PLAYBOOK RULE the request injected (the generate pipeline joins those ids back
+ * to rule text at persist time). Limits are HONEST about the fixture's real
+ * constraints per format.
+ * @param {Object|null} idea @param {Object} item @param {string} format @param {string[]} citedIds
+ * @returns {import('../brain/schema.mjs').RationaleLog}
+ */
+function buildRationale(idea, item, format, citedIds) {
+  const world = (Array.isArray(idea?.worlds) && idea.worlds[0]) ? String(idea.worlds[0]) : 'the world';
+  const occasion = (Array.isArray(idea?.occasions) && idea.occasions[0]) ? String(idea.occasions[0]) : 'just because';
+  const ideaId = (idea && idea.id) || item?.idea_id || 'OFFLIST';
+  const ideaTitle = (idea && (idea.title || idea.hook)) ? String(idea.title || idea.hook) : 'untitled idea';
+  const pillar = item?.pillar || (idea && idea.pillar) || 'P?';
+
+  let craft;
+  let limits;
+  let shape;
+  let hookWhy;
+  if (format === 'carousel') {
+    craft = ['cover-line pattern interrupt', 'swipe-through escalation', 'save-bait CTA'];
+    limits = [`static poster carousel — no motion or product footage for ${world} yet, so the deck carries the story on slide text alone.`];
+    shape = `a swipeable ${world} deck that escalates slide to slide to a save-worthy payoff`;
+    hookWhy = 'the cover names a specific, true-feeling tension, so the thumb stops before the swipe even starts';
+  } else if (format === 'image') {
+    craft = ['single-line pattern interrupt', 'caption-carries-the-story'];
+    limits = [`one static frame — the image holds a single line, so the caption does the emotional work; no ${world} footage available yet.`];
+    shape = `one ${world} frame built around a single scroll-stopping line`;
+    hookWhy = 'a single concrete statement reads in one glance, with no second line competing for the eye';
+  } else {
+    craft = ['POV framing', 'orientation beat', 'kinetic-text pacing'];
+    limits = [`kinetic-text video — no product footage available for ${world} yet, so the beats are on-screen text over motion, not a screen recording of the real world.`];
+    shape = `a first-person ${world} reel that lands the tension in the first two seconds`;
+    hookWhy = 'it opens on a concrete POV the viewer already feels, then lets the world resolve it';
+  }
+
+  return {
+    summary: cap(
+      `${shape}. It plays the "${ideaTitle}" angle for a ${occasion} audience and points them at getforevermore.co. ` +
+        (citedIds.length
+          ? 'Shaped by the active playbook rules cited in strategy.'
+          : 'No active playbook rules applied to this draft.'),
+    ),
+    hook_reasoning: cap(`${hookWhy}.`),
+    strategy: {
+      idea_id: String(ideaId),
+      idea_title: String(ideaTitle),
+      pillar: String(pillar),
+      playbook_rules: citedIds,
+    },
+    craft,
+    limits,
+    audience: cap(`people shopping for a ${occasion} gift who'd rather give something personal than store-bought.`),
+  };
+}
+
 export class FixtureBrain {
   constructor() {
     this.name = 'fixture';
@@ -110,6 +177,11 @@ export class FixtureBrain {
     const platform = item.platform;
     const format = item.format || (req.inputs && req.inputs.formatSpec && req.inputs.formatSpec.format) || 'reel';
     const maxTags = platform === 'tiktok' ? 5 : 10;
+
+    // Cite (by id) every active playbook rule the generate stage injected, so
+    // the deterministic path also exercises the obey-and-cite contract (AP-831).
+    const rules = Array.isArray(req.inputs && req.inputs.playbookRules) ? req.inputs.playbookRules : [];
+    const citedIds = [...new Set(rules.map((r) => r && r.id).filter(Boolean))];
 
     const hook = idea?.hook ? firstLine(idea.hook) : 'someone you love is one message away.';
     const cta = idea?.cta ? firstLine(idea.cta) : 'getforevermore.co — from $15';
@@ -138,6 +210,7 @@ export class FixtureBrain {
       caption,
       hashtags,
       overlays,
+      rationale: buildRationale(idea, item, format, citedIds),
       meta: {
         driver: 'fixture',
         model: 'fixture',
