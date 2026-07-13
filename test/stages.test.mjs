@@ -116,6 +116,51 @@ test('generate injects active playbook rules and cites them, joined, in every it
   assert.equal(run.model, 'fixture');
 });
 
+test('generate writes a source log (AP-833) and preserves the planner layer', async () => {
+  const { config, store, tmp } = mkEnv();
+  writeFileSync(
+    join(tmp, 'playbook.json'),
+    JSON.stringify([
+      { id: 'r-orient', rule: 'include a plain-words orientation beat', category: 'format', weight: 9, status: 'active' },
+    ]),
+  );
+
+  await runStage('plan', { config, store, date: RUN_DATE });
+  await runStage('generate', { config, store, date: SLOT_DATE, brain: new FixtureBrain() });
+
+  const drafted = await store.listByStatus('drafted');
+  assert.ok(drafted.length > 0);
+  for (const item of drafted) {
+    const src = item.sources;
+    assert.ok(src, `${item.id} carries a source log`);
+    assert.ok(src.plan && src.plan.picked_because, 'the planner layer survives the generate merge');
+    const gen = src.generation;
+    assert.ok(gen, 'the generation layer is present');
+    assert.equal(gen.skill.stage, 'copywriter', 'the stage skill is named');
+    assert.ok(gen.skill.path.includes('prompts/copywriter.md'), 'the skill file is named');
+    assert.deepEqual(gen.playbook_rules.map((r) => r.id), ['r-orient'], 'injected rules are listed');
+    assert.equal(gen.idea.id, item.idea_id, 'the idea injected is the shell idea');
+    assert.equal(gen.format_spec.platform, item.platform);
+    assert.equal(gen.format_spec.format, item.format);
+    assert.ok(typeof gen.variant === 'number' && gen.variant >= 1, 'the variant nudge is recorded');
+    assert.ok(gen.brand_guide, 'the brand-guide layer is described');
+  }
+});
+
+test('regen drafts record the injected owner feedback in sources.generation', async () => {
+  const { config, store } = mkEnv();
+  await store.putItem({
+    ...plannedItem(),
+    status: 'drafting',
+    feedback: { note: 'show the price plainly', reason_tags: ['too-salesy'], decided_at: '2026-07-13T10:00:00Z' },
+  });
+  await runStage('generate', { config, store, date: SLOT_DATE, brain: new FixtureBrain() });
+  const item = await store.getItem('ci_20260714_ig_1');
+  assert.equal(item.status, 'drafted');
+  const fb = item.sources.generation.feedback;
+  assert.ok(Array.isArray(fb) && fb.some((f) => f.includes('show the price plainly')), 'owner note is in the source log');
+});
+
 test('generate with no playbook rules still drafts and cites an empty rule set', async () => {
   const { config, store } = mkEnv(); // no playbook.json written
   await runStage('plan', { config, store, date: RUN_DATE });

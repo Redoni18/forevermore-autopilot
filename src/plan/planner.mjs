@@ -56,7 +56,7 @@ function recencyPenalty(lastUsed, slotDate) {
 }
 
 /** Build one `planned` candidate shell (PRD §5 contract; no timestamps here). */
-function shell({ id, slot_at, platform, format, idea, cg, producedBy }) {
+function shell({ id, slot_at, platform, format, idea, cg, producedBy, plan }) {
   const pillar = idea.pillar || null;
   const link_utm =
     `https://getforevermore.co?utm_source=${platform}` +
@@ -80,9 +80,49 @@ function shell({ id, slot_at, platform, format, idea, cg, producedBy }) {
     assets: [],
     lint: null,
     dedupe: null,
+    // The planner's decision log (AP-833): why THIS idea won THIS slot. The
+    // generate stage later merges its own `generation` layer alongside.
+    sources: plan ? { plan } : null,
     produced_by: producedBy || null,
     attempt: 1,
     regen_of: null,
+  };
+}
+
+/** Human word for a format-preference rank (0 is the best tier). */
+function fitLabel(rank) {
+  return rank === 0 ? 'purpose-built' : rank === 1 ? 'flexible fit' : 'stretch';
+}
+
+const round2 = (n) => Math.round(n * 100) / 100;
+
+/**
+ * The plan-time decision log for one chosen candidate — every factor the
+ * deterministic selector actually used, plus the nearest ideas it beat, so a
+ * reviewer can audit the choice without re-running the planner.
+ */
+function planReasoning({ entry, reused, format, poolSize, runnersUp, lastUsed }) {
+  const { idea, rank, base, penalty, s } = entry;
+  const bits = [
+    `Best available for this ${format} slot: format fit ${fitLabel(rank)}`,
+    `score ${round2(s)} (base ${round2(base)} × recency ${round2(penalty)})`,
+    lastUsed ? `last used ${lastUsed}` : 'not used in the recency window',
+  ];
+  if (reused) bits.push('reused this week — the fresh-idea pool was exhausted');
+  const beat = runnersUp.map((r) => `${r.id} (${r.score})`).join(', ');
+  const picked_because = `${bits.join('; ')}${beat ? `; beat ${beat}` : ''}.`;
+  return {
+    picked_because,
+    idea: { id: idea.id, title: idea.title ?? null },
+    score: round2(s),
+    base_score: round2(base),
+    recency_penalty: round2(penalty),
+    last_used: lastUsed || null,
+    format,
+    format_fit: { rank, label: fitLabel(rank) },
+    pool_size: poolSize,
+    reused_this_week: reused,
+    runners_up: runnersUp,
   };
 }
 
@@ -151,11 +191,12 @@ export function planWeek(opts) {
       const pool = ideas.filter((x) => x.active !== false && ideaEligibleFor(x, platform));
 
       const scored = pool
-        .map((idea) => ({
-          idea,
-          rank: formatPreferenceRank(idea, format),
-          s: baseScore(idea) * recencyPenalty(recency[idea.id], slotDate),
-        }))
+        .map((idea) => {
+          const rank = formatPreferenceRank(idea, format);
+          const base = baseScore(idea);
+          const penalty = recencyPenalty(recency[idea.id], slotDate);
+          return { idea, rank, base, penalty, s: base * penalty, lastUsed: recency[idea.id] || null };
+        })
         // Deterministic order: format-preference tier first (so a carousel slot
         // prefers a purpose-built carousel idea), then score desc, then id asc.
         .sort(
@@ -166,27 +207,44 @@ export function planWeek(opts) {
         );
 
       // Prefer ideas not yet used this week; fall back to reuse only if the
-      // eligible pool is too small to fill the slot with fresh ideas.
+      // eligible pool is too small to fill the slot with fresh ideas. Each pick
+      // remembers whether it was a fresh choice or a fallback reuse — that goes
+      // into its plan-time decision log.
       const chosen = [];
-      for (const { idea } of scored) {
-        if (usedThisRun.has(idea.id)) continue;
-        chosen.push(idea);
+      for (const entry of scored) {
+        if (usedThisRun.has(entry.idea.id)) continue;
+        chosen.push({ entry, reused: false });
         if (chosen.length >= candPer) break;
       }
       if (chosen.length < candPer) {
-        for (const { idea } of scored) {
-          if (chosen.includes(idea)) continue;
-          chosen.push(idea);
+        for (const entry of scored) {
+          if (chosen.some((c) => c.entry === entry)) continue;
+          chosen.push({ entry, reused: true });
           if (chosen.length >= candPer) break;
         }
       }
 
-      chosen.forEach((idea, idx) => {
+      // The nearest ideas the slot did NOT pick — audit context for the log.
+      const chosenIds = new Set(chosen.map((c) => c.entry.idea.id));
+      const runnersUp = scored
+        .filter((e) => !chosenIds.has(e.idea.id))
+        .slice(0, 2)
+        .map((e) => ({ id: e.idea.id, title: e.idea.title ?? null, score: round2(e.s) }));
+
+      chosen.forEach(({ entry, reused }, idx) => {
         const id = itemId(slotDate, platform, idx + 1);
         const slot_at = zonedISO(slotDate, slotTimes[platform], timezone);
-        items.push(shell({ id, slot_at, platform, format, idea, cg, producedBy }));
-        recency[idea.id] = slotDate;
-        usedThisRun.add(idea.id);
+        const plan = planReasoning({
+          entry,
+          reused,
+          format,
+          poolSize: pool.length,
+          runnersUp,
+          lastUsed: entry.lastUsed,
+        });
+        items.push(shell({ id, slot_at, platform, format, idea: entry.idea, cg, producedBy, plan }));
+        recency[entry.idea.id] = slotDate;
+        usedThisRun.add(entry.idea.id);
       });
     }
   }

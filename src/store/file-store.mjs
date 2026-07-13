@@ -43,6 +43,8 @@ export class FileStore {
     /** Active-rule source for brain injection (AP-831): a JSON array in the data
      *  root, sibling to settings.json. Absent file → no rules (empty default). */
     this.playbookPath = r.playbook || join(dirname(r.settings), 'playbook.json');
+    /** Owner suggestion inbox (AP-834): a JSON array sibling to playbook.json. */
+    this.ownerNotesPath = r.ownerNotes || join(dirname(r.settings), 'owner-notes.json');
     /** lock acquisition tuning (bounded wait so a wedged lock still errors). */
     this.lock = { retries: 200, delayMs: 15 };
   }
@@ -252,6 +254,62 @@ export class FileStore {
   }
 
   /* -------------------------- playbook rules -------------------------- */
+
+  /** Read-modify-write the playbook array under an exclusive lock. */
+  async #mutatePlaybook(mutate) {
+    await this.#ensureDir(dirname(this.playbookPath));
+    const lockPath = `${this.playbookPath}.lock`;
+    await this.#acquireLock(lockPath);
+    try {
+      const raw = await this.#readJson(this.playbookPath);
+      const rules = Array.isArray(raw) ? raw : [];
+      const result = mutate(rules);
+      await this.#writeJsonAtomic(this.playbookPath, rules);
+      return result;
+    } finally {
+      await this.#releaseLock(lockPath);
+    }
+  }
+
+  /**
+   * Insert one playbook rule (AP-834: the review station's "teach the
+   * autopilot" composer). Owner rules default to ACTIVE — they take effect at
+   * the very next generate run and get cited by id in each draft's rationale.
+   * @param {{rule:string, category?:string, weight?:number, status?:string, source?:string, evidence?:*}} input
+   */
+  async insertPlaybookRule(input = {}) {
+    if (!input.rule || !String(input.rule).trim()) throw new Error('insertPlaybookRule: rule text required');
+    const now = nowISO();
+    const status = input.status ?? 'active';
+    const record = {
+      id: `pr_${now.replace(/[-:.TZ]/g, '').slice(0, 14)}_${randomBytes(3).toString('hex')}`,
+      rule: String(input.rule).trim(),
+      category: input.category ?? 'caption',
+      status,
+      source: input.source ?? 'owner',
+      evidence: input.evidence ?? null,
+      weight: input.weight ?? 6,
+      created_at: now,
+      decided_at: status === 'proposed' ? null : now,
+    };
+    await this.#mutatePlaybook((rules) => rules.push(record));
+    return record;
+  }
+
+  /**
+   * Move a rule between statuses (active ⇄ retired, proposed → active).
+   * @param {string} id @param {string} status @returns updated rule or null
+   */
+  async setPlaybookRuleStatus(id, status) {
+    return this.#mutatePlaybook((rules) => {
+      const rule = rules.find((r) => r && r.id === id);
+      if (!rule) return null;
+      rule.status = status;
+      rule.decided_at = nowISO();
+      return { ...rule };
+    });
+  }
+
   /**
    * Active (or other-status) learned rules for brain injection (PRD §8.1),
    * weight-desc. Sourced from `<dataRoot>/playbook.json` (a plain JSON array);
@@ -269,6 +327,80 @@ export class FileStore {
           String(a.created_at ?? '').localeCompare(String(b.created_at ?? '')) ||
           String(a.id ?? a.rule ?? '').localeCompare(String(b.id ?? b.rule ?? '')),
       );
+  }
+
+  /* ---------------------------- owner notes ---------------------------- */
+
+  /**
+   * Drop a free-form owner suggestion into the inbox (AP-834). Notes are the
+   * unstructured channel — the reflect stage parses them into proposed rules;
+   * until then they're at least captured, visible, and timestamped.
+   * @param {string} text
+   */
+  async insertOwnerNote(text) {
+    if (!text || !String(text).trim()) throw new Error('insertOwnerNote: text required');
+    const now = nowISO();
+    const record = {
+      id: `on_${now.replace(/[-:.TZ]/g, '').slice(0, 14)}_${randomBytes(3).toString('hex')}`,
+      text: String(text).trim(),
+      applies_from: null,
+      processed: false,
+      processed_at: null,
+      created_at: now,
+    };
+    await this.#ensureDir(dirname(this.ownerNotesPath));
+    const lockPath = `${this.ownerNotesPath}.lock`;
+    await this.#acquireLock(lockPath);
+    try {
+      const raw = await this.#readJson(this.ownerNotesPath);
+      const notes = Array.isArray(raw) ? raw : [];
+      notes.push(record);
+      await this.#writeJsonAtomic(this.ownerNotesPath, notes);
+    } finally {
+      await this.#releaseLock(lockPath);
+    }
+    return record;
+  }
+
+  /** Owner notes, newest first. @param {number} [limit=50] */
+  async listOwnerNotes(limit = 50) {
+    const raw = await this.#readJson(this.ownerNotesPath);
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .filter((n) => n && typeof n === 'object')
+      .sort((a, b) => String(b.created_at ?? '').localeCompare(String(a.created_at ?? '')))
+      .slice(0, limit);
+  }
+
+  /* ----------------------------- run listing ----------------------------- */
+
+  /**
+   * Recent runs, newest first, for the review station's activity feed
+   * (AP-834). Transition audit rows are excluded by default — they narrate
+   * every status hop and would drown the stage-level story.
+   * @param {{limit?:number, excludeStages?:string[]}} [opts]
+   */
+  async listRuns(opts = {}) {
+    const { limit = 50, excludeStages = ['transition'] } = opts;
+    let files;
+    try {
+      files = await fsp.readdir(this.dirs.runs);
+    } catch (e) {
+      if (e.code === 'ENOENT') return [];
+      throw e;
+    }
+    const excluded = new Set(excludeStages);
+    const runs = [];
+    for (const f of files) {
+      if (!f.endsWith('.json')) continue;
+      const rec = await this.#readJson(join(this.dirs.runs, f));
+      if (!rec || typeof rec !== 'object') continue;
+      const base = String(rec.stage || '').split(':')[0];
+      if (excluded.has(base) || String(rec.stage || '').includes('transition')) continue;
+      runs.push(rec);
+    }
+    runs.sort((a, b) => String(b.started_at ?? '').localeCompare(String(a.started_at ?? '')));
+    return runs.slice(0, limit);
   }
 
   /* ----------------------------- settings ----------------------------- */

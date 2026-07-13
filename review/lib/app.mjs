@@ -36,6 +36,11 @@ async function handleRequest(req, res, ctx) {
 
   if (req.method === 'GET' && pathname === '/api/items') return handleGetItems(req, res, ctx);
   if (req.method === 'POST' && pathname === '/api/decide') return handlePostDecide(req, res, ctx);
+  if (req.method === 'GET' && pathname === '/api/activity') return handleGetActivity(req, res, ctx);
+  if (req.method === 'GET' && pathname === '/api/playbook') return handleGetPlaybook(req, res, ctx);
+  if (req.method === 'POST' && pathname === '/api/playbook/rules') return handlePostRule(req, res, ctx);
+  if (req.method === 'POST' && pathname === '/api/playbook/rules/status') return handlePostRuleStatus(req, res, ctx);
+  if (req.method === 'POST' && pathname === '/api/playbook/notes') return handlePostNote(req, res, ctx);
   if (req.method === 'GET' && pathname.startsWith('/assets/')) return serveAsset(req, res, ctx.outboxDir, pathname);
 
   if (pathname.startsWith('/api/')) {
@@ -80,6 +85,7 @@ async function enrichGroups(store, groups) {
   for (const group of groups) {
     for (const item of group.items) {
       item.rationale = item.rationale ?? null;
+      item.sources = item.sources ?? null; // source log (AP-833) — passthrough
       item.provenance = await provenanceFor(store, item, runCache);
       item.feedback_history = await feedbackHistoryFor(store, item);
     }
@@ -199,6 +205,118 @@ async function handlePostDecide(req, res, ctx) {
 
   if (!result.ok) return sendJson(res, result.status, { error: result.error, message: result.message });
   return sendJson(res, 200, { item: result.item, decision: result.decision, autoSkipped: result.autoSkipped });
+}
+
+// ------------------------------------------------------------ /api/activity
+//
+// The employee's worklog: recent stage runs, newest first. Decisions are NOT
+// re-fetched here — the client already holds every decision via /api/items
+// (feedback_history + decision) and merges the two timelines itself.
+
+async function handleGetActivity(req, res, ctx) {
+  let runs = [];
+  if (typeof ctx.store.listRuns === 'function') {
+    try {
+      runs = await ctx.store.listRuns({ limit: 80 });
+    } catch {
+      runs = []; // an activity read must never 500 the station
+    }
+  }
+  sendJson(res, 200, { generated_at: new Date().toISOString(), runs });
+}
+
+// ------------------------------------------------------------ /api/playbook
+//
+// The standing-guidance surface (AP-834). RULES are the live lever: active
+// ones are injected into every brain call and cited by id in each draft's
+// rationale. NOTES are the free-form suggestion inbox, parsed by the reflect
+// stage later — captured and visible immediately either way.
+
+const RULE_CATEGORIES = new Set(['hook', 'caption', 'format', 'timing', 'world', 'visual']);
+const RULE_STATUSES = new Set(['active', 'retired']);
+
+async function handleGetPlaybook(req, res, ctx) {
+  const { store } = ctx;
+  const rules = { active: [], proposed: [], retired: [] };
+  if (typeof store.listPlaybookRules === 'function') {
+    for (const status of Object.keys(rules)) {
+      try {
+        rules[status] = (await store.listPlaybookRules(status)) || [];
+      } catch {
+        rules[status] = [];
+      }
+    }
+  }
+  let notes = [];
+  if (typeof store.listOwnerNotes === 'function') {
+    try {
+      notes = await store.listOwnerNotes(50);
+    } catch {
+      notes = [];
+    }
+  }
+  sendJson(res, 200, { generated_at: new Date().toISOString(), rules, notes });
+}
+
+async function handlePostRule(req, res, ctx) {
+  if (typeof ctx.store.insertPlaybookRule !== 'function') {
+    return sendJson(res, 501, { error: 'unsupported', message: 'This store cannot save playbook rules.' });
+  }
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (err) {
+    return sendJson(res, err.statusCode || 400, { error: 'bad_request', message: err.message });
+  }
+  const rule = typeof body?.rule === 'string' ? body.rule.trim() : '';
+  if (!rule) return sendJson(res, 400, { error: 'bad_request', message: 'rule text is required.' });
+  if (rule.length > 500) return sendJson(res, 400, { error: 'bad_request', message: 'rule must be ≤500 characters (one imperative sentence).' });
+  const category = typeof body?.category === 'string' ? body.category : 'caption';
+  if (!RULE_CATEGORIES.has(category)) {
+    return sendJson(res, 400, { error: 'bad_request', message: `category must be one of: ${[...RULE_CATEGORIES].join(', ')}.` });
+  }
+  let weight = body?.weight ?? 6;
+  weight = Number.isInteger(weight) && weight >= 1 && weight <= 10 ? weight : 6;
+
+  const saved = await ctx.store.insertPlaybookRule({ rule, category, weight, status: 'active', source: 'owner' });
+  sendJson(res, 200, { rule: saved });
+}
+
+async function handlePostRuleStatus(req, res, ctx) {
+  if (typeof ctx.store.setPlaybookRuleStatus !== 'function') {
+    return sendJson(res, 501, { error: 'unsupported', message: 'This store cannot update playbook rules.' });
+  }
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (err) {
+    return sendJson(res, err.statusCode || 400, { error: 'bad_request', message: err.message });
+  }
+  const { id, status } = body || {};
+  if (!id || typeof id !== 'string') return sendJson(res, 400, { error: 'bad_request', message: 'rule id is required.' });
+  if (!RULE_STATUSES.has(status)) {
+    return sendJson(res, 400, { error: 'bad_request', message: `status must be one of: ${[...RULE_STATUSES].join(', ')}.` });
+  }
+  const updated = await ctx.store.setPlaybookRuleStatus(id, status);
+  if (!updated) return sendJson(res, 404, { error: 'not_found', message: `No playbook rule ${id}.` });
+  sendJson(res, 200, { rule: updated });
+}
+
+async function handlePostNote(req, res, ctx) {
+  if (typeof ctx.store.insertOwnerNote !== 'function') {
+    return sendJson(res, 501, { error: 'unsupported', message: 'This store cannot save notes.' });
+  }
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (err) {
+    return sendJson(res, err.statusCode || 400, { error: 'bad_request', message: err.message });
+  }
+  const text = typeof body?.text === 'string' ? body.text.trim() : '';
+  if (!text) return sendJson(res, 400, { error: 'bad_request', message: 'note text is required.' });
+  if (text.length > 2000) return sendJson(res, 400, { error: 'bad_request', message: 'note must be ≤2000 characters.' });
+  const saved = await ctx.store.insertOwnerNote(text);
+  sendJson(res, 200, { note: saved });
 }
 
 // ----------------------------------------------------------------- /assets

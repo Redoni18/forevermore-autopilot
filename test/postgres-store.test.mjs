@@ -183,13 +183,42 @@ test('pg rationale (AP-831) roundtrips through putItem + a transition patch', as
   assert.equal((await store.getItem(`ci_${tag}_1`)).rationale.summary, 'revised');
 });
 
+test('pg sources (AP-833) roundtrips through putItem + a transition patch merge', async (t) => {
+  const ctx = await pgTest(t);
+  if (!ctx) return;
+  const { store, tag, cleanup } = ctx;
+  t.after(cleanup);
+
+  const plan = {
+    picked_because: 'Best available for this reel slot: format fit purpose-built; score 100.',
+    idea: { id: 'F03', title: 'gamer-partner wedge' },
+    score: 100,
+    runners_up: [{ id: 'F04', title: 'x', score: 90 }],
+  };
+  const saved = await store.putItem(pgItem(tag, 1, { sources: { plan } }));
+  assert.deepEqual(saved.sources, { plan }, 'putItem persists the jsonb source log');
+  assert.deepEqual((await store.getItem(`ci_${tag}_1`)).sources, { plan }, 'getItem returns it');
+
+  // The generate stage merges its layer over the planner's, then patches whole.
+  const generation = { skill: { stage: 'copywriter' }, playbook_rules: [], recent_posts: 0 };
+  const drafted = await store.transition(`ci_${tag}_1`, 'planned', 'drafting', {
+    sources: { plan, generation },
+  });
+  assert.deepEqual(drafted.sources.generation, generation, 'transition patch adds the generation layer');
+  assert.deepEqual(drafted.sources.plan, plan, 'the planner layer survives');
+});
+
 test('pg getRun returns the row by uuid; slug id or unknown → null', async (t) => {
   const ctx = await pgTest(t);
   if (!ctx) return;
-  const { store, cleanup } = ctx;
-  t.after(cleanup);
+  const { store, tag, cleanup } = ctx;
+  t.after(async () => {
+    // sweep the appended run so it never pollutes the live activity feed
+    await store.sql`delete from autopilot.runs where driver = ${`test-${tag}`}`;
+    await cleanup();
+  });
 
-  const run = await store.appendRun({ stage: 'generate', driver: 'claude-cli', model: 'claude-x', tokens_in: 900, tokens_out: 120, cost_usd: 0.0042, prompt_sha: 'abc123' });
+  const run = await store.appendRun({ stage: 'generate', driver: `test-${tag}`, model: 'claude-x', tokens_in: 900, tokens_out: 120, cost_usd: 0.0042, prompt_sha: 'abc123' });
   const got = await store.getRun(run.id);
   assert.equal(got.id, run.id);
   assert.equal(got.stage, 'generate');
@@ -197,6 +226,48 @@ test('pg getRun returns the row by uuid; slug id or unknown → null', async (t)
   assert.equal(got.tokens_in, 900);
   assert.equal(got.cost_usd, 0.0042);
   assert.equal(await store.getRun('run_file_mode_slug'), null, 'a file-mode slug run id has no uuid row');
+});
+
+test('pg playbook write path: insert → active, retire → status filter moves it (AP-834)', async (t) => {
+  const ctx = await pgTest(t);
+  if (!ctx) return;
+  const { store, tag, cleanup } = ctx;
+  t.after(async () => {
+    await store.sql`delete from autopilot.playbook_rules where rule like ${`%${tag}%`}`;
+    await store.sql`delete from autopilot.owner_notes where text like ${`%${tag}%`}`;
+    await store.sql`delete from autopilot.runs where driver = ${`test-${tag}`}`;
+    await cleanup();
+  });
+
+  const saved = await store.insertPlaybookRule({ rule: `station rule ${tag}`, category: 'hook', weight: 7 });
+  assert.ok(saved.id, 'insert returns the uuid id');
+  assert.equal(saved.status, 'active');
+  assert.equal(saved.source, 'owner');
+  assert.ok(saved.decided_at, 'an active rule is stamped decided_at');
+
+  const active = await store.listPlaybookRules('active');
+  assert.ok(active.some((r) => r.id === saved.id), 'the new rule is injectable immediately');
+
+  const retired = await store.setPlaybookRuleStatus(saved.id, 'retired');
+  assert.equal(retired.status, 'retired');
+  assert.ok(!(await store.listPlaybookRules('active')).some((r) => r.id === saved.id));
+  assert.ok((await store.listPlaybookRules('retired')).some((r) => r.id === saved.id));
+
+  assert.equal(await store.setPlaybookRuleStatus('not-a-uuid', 'retired'), null, 'non-uuid id → null, no throw');
+
+  // owner notes inbox
+  const note = await store.insertOwnerNote(`note ${tag}: more claw-machine content`);
+  assert.equal(note.processed, false);
+  const notes = await store.listOwnerNotes(10);
+  assert.ok(notes.some((n) => n.id === note.id), 'the note is listed');
+
+  // activity: listRuns excludes transition noise and sorts newest-first
+  // (driver carries the tag so t.after can sweep this row out of the live feed)
+  const run = await store.appendRun({ stage: 'generate', driver: `test-${tag}` });
+  const runs = await store.listRuns({ limit: 10 });
+  assert.ok(runs.length >= 1);
+  assert.equal(runs[0].id, run.id, 'the just-appended run leads the feed');
+  assert.ok(runs.every((r) => r.stage !== 'transition'), 'transition audit rows are excluded');
 });
 
 test('pg listPlaybookRules: active owner rules, weight-desc, id/rule/weight shaped; status filter works', async (t) => {

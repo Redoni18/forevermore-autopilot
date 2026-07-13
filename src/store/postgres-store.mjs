@@ -97,15 +97,15 @@ function iso(v) {
   return v instanceof Date ? v.toISOString() : String(v);
 }
 
-const JSONB_COLS = new Set(['overlays', 'assets', 'lint', 'dedupe', 'rationale']);
+const JSONB_COLS = new Set(['overlays', 'assets', 'lint', 'dedupe', 'rationale', 'sources']);
 const UUID_COLS = new Set(['candidate_group', 'produced_by', 'regen_of']);
 const ENUM_COLS = { platform: 'ap_platform', format: 'ap_format', risk: 'ap_risk', status: 'ap_status' };
 /** content_items columns a `transition` patch is allowed to set (id/created_at excluded). */
 const UPDATABLE = new Set([
   'slot_at', 'platform', 'format', 'idea_id', 'series_key', 'pillar', 'risk', 'status',
   'candidate_group', 'chosen', 'caption', 'hashtags', 'overlays', 'link_utm', 'assets',
-  'lint', 'dedupe', 'rationale', 'produced_by', 'attempt', 'regen_of', 'regen_count', 'publish_attempts',
-  'next_attempt_at',
+  'lint', 'dedupe', 'rationale', 'sources', 'produced_by', 'attempt', 'regen_of', 'regen_count',
+  'publish_attempts', 'next_attempt_at',
 ]);
 /** runs columns (everything else on a Run object — item_id/from/to/note/parent_run/… — has no home here). */
 const RUN_COLS = new Set([
@@ -191,11 +191,12 @@ export class PostgresStore {
     const lint = item.lint == null ? null : item.lint;
     const dedupe = item.dedupe == null ? null : item.dedupe;
     const rationale = item.rationale == null ? null : item.rationale; // thinking log (AP-831)
+    const sources = item.sources == null ? null : item.sources; // source log (AP-833)
 
     const [row] = await this.sql`
       insert into autopilot.content_items (
         id, slot_at, platform, format, idea_id, series_key, pillar, risk, status,
-        candidate_group, chosen, caption, hashtags, overlays, link_utm, assets, lint, dedupe, rationale,
+        candidate_group, chosen, caption, hashtags, overlays, link_utm, assets, lint, dedupe, rationale, sources,
         produced_by, attempt, regen_of, regen_count, publish_attempts, next_attempt_at,
         created_at, updated_at
       ) values (
@@ -206,6 +207,7 @@ export class PostgresStore {
         ${this.sql.json(overlays)}, ${item.link_utm ?? null}, ${this.sql.json(assets)},
         ${lint === null ? null : this.sql.json(lint)}, ${dedupe === null ? null : this.sql.json(dedupe)},
         ${rationale === null ? null : this.sql.json(rationale)},
+        ${sources === null ? null : this.sql.json(sources)},
         ${producedBy}, ${item.attempt ?? 1}, ${regenOf}, ${item.regen_count ?? 0},
         ${item.publish_attempts ?? 0}, ${item.next_attempt_at ?? null},
         ${item.created_at ?? now}, ${item.updated_at ?? now}
@@ -217,6 +219,7 @@ export class PostgresStore {
         chosen = excluded.chosen, caption = excluded.caption, hashtags = excluded.hashtags,
         overlays = excluded.overlays, link_utm = excluded.link_utm, assets = excluded.assets,
         lint = excluded.lint, dedupe = excluded.dedupe, rationale = excluded.rationale,
+        sources = excluded.sources,
         produced_by = excluded.produced_by, attempt = excluded.attempt, regen_of = excluded.regen_of,
         regen_count = excluded.regen_count, publish_attempts = excluded.publish_attempts,
         next_attempt_at = excluded.next_attempt_at, updated_at = ${now}
@@ -331,6 +334,7 @@ export class PostgresStore {
       lint: row.lint ?? null,
       dedupe: row.dedupe ?? null,
       rationale: row.rationale ?? null,
+      sources: row.sources ?? null,
       produced_by: env.produced_by ?? row.produced_by ?? null,
       attempt: row.attempt,
       regen_of: env.regen_of ?? row.regen_of ?? null,
@@ -495,6 +499,99 @@ export class PostgresStore {
       created_at: iso(r.created_at),
       decided_at: iso(r.decided_at),
     }));
+  }
+
+  /**
+   * Insert one playbook rule (AP-834: the "teach the autopilot" composer).
+   * Owner rules default to ACTIVE — injected + citeable at the next generate.
+   * @param {{rule:string, category?:string, weight?:number, status?:string, source?:string, evidence?:*}} input
+   */
+  async insertPlaybookRule(input = {}) {
+    if (!input.rule || !String(input.rule).trim()) throw new Error('insertPlaybookRule: rule text required');
+    const status = input.status ?? 'active';
+    const [row] = await this.sql`
+      insert into autopilot.playbook_rules (rule, category, status, source, evidence, weight, decided_at)
+      values (
+        ${String(input.rule).trim()}, ${input.category ?? 'caption'}, ${status}, ${input.source ?? 'owner'},
+        ${input.evidence == null ? null : this.sql.json(input.evidence)}, ${input.weight ?? 6},
+        ${status === 'proposed' ? null : nowISO()}
+      )
+      returning *`;
+    return this.#rowToRule(row);
+  }
+
+  /**
+   * Move a rule between statuses (active ⇄ retired, proposed → active).
+   * @param {string} id @param {string} status @returns updated rule or null
+   */
+  async setPlaybookRuleStatus(id, status) {
+    if (!isUuid(id)) return null; // pg rules are uuid-keyed; anything else has no row
+    const rows = await this.sql`
+      update autopilot.playbook_rules
+      set status = ${status}, decided_at = now()
+      where id = ${id}
+      returning *`;
+    return rows.count ? this.#rowToRule(rows[0]) : null;
+  }
+
+  #rowToRule(r) {
+    return {
+      id: r.id,
+      rule: r.rule,
+      category: r.category ?? null,
+      status: r.status,
+      source: r.source ?? null,
+      weight: r.weight ?? 5,
+      evidence: r.evidence ?? null,
+      created_at: iso(r.created_at),
+      decided_at: iso(r.decided_at),
+    };
+  }
+
+  /* -------------------------------- owner notes ------------------------------ */
+
+  /** Drop a free-form owner suggestion into the inbox (AP-834). @param {string} text */
+  async insertOwnerNote(text) {
+    if (!text || !String(text).trim()) throw new Error('insertOwnerNote: text required');
+    const [row] = await this.sql`
+      insert into autopilot.owner_notes (text) values (${String(text).trim()})
+      returning *`;
+    return this.#rowToNote(row);
+  }
+
+  /** Owner notes, newest first. @param {number} [limit=50] */
+  async listOwnerNotes(limit = 50) {
+    const rows = await this.sql`
+      select * from autopilot.owner_notes order by created_at desc limit ${limit}`;
+    return rows.map((r) => this.#rowToNote(r));
+  }
+
+  #rowToNote(r) {
+    return {
+      id: r.id,
+      text: r.text,
+      applies_from: r.applies_from == null ? null : iso(r.applies_from),
+      processed: Boolean(r.processed),
+      processed_at: iso(r.processed_at),
+      created_at: iso(r.created_at),
+    };
+  }
+
+  /* ------------------------------- run listing ------------------------------- */
+
+  /**
+   * Recent runs, newest first, for the review station's activity feed
+   * (AP-834). Transition audit rows are excluded by default.
+   * @param {{limit?:number, excludeStages?:string[]}} [opts]
+   */
+  async listRuns(opts = {}) {
+    const { limit = 50, excludeStages = ['transition'] } = opts;
+    const rows = await this.sql`
+      select * from autopilot.runs
+      where stage != all(${excludeStages})
+      order by started_at desc
+      limit ${limit}`;
+    return rows.map((r) => this.#rowToRun(r));
   }
 
   /* -------------------------------- settings -------------------------------- */

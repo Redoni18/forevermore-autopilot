@@ -109,6 +109,8 @@ export const REASON_TAGS = [
  * @property {Object|null} dedupe              { hook_sim, nearest_item, method }.
  * @property {Object|null} [rationale]         Thinking log (AP-831): { summary, hook_reasoning,
  *   strategy:{idea_id, idea_title, pillar, playbook_rules:[{id,rule}]}, craft[], limits[], audience }.
+ * @property {Object|null} [sources]           Source log (AP-833): { plan:{picked_because, score, runners_up…},
+ *   generation:{brand_guide, skill, playbook_rules, idea, format_spec, recent_posts, feedback, variant, prompt_sha} }.
  * @property {string|null} produced_by         Run id of the stage that last produced this item.
  * @property {number} attempt                  Draft/QA attempt counter (1-based).
  * @property {string|null} regen_of            Item id this is a regeneration of.

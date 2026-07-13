@@ -23,8 +23,8 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { join as pathJoin } from 'node:path';
-import { REPO_ROOT } from '../config.mjs';
+import { join as pathJoin, relative, isAbsolute } from 'node:path';
+import { PKG_ROOT, REPO_ROOT } from '../config.mjs';
 
 /** Prompts live in THIS repo; brand/catalog/ideas live in the Forevermore
  *  platform checkout (standalone layout — REPO_ROOT resolves it via
@@ -231,6 +231,98 @@ function generationHint(inputs) {
     );
   }
   return lines.length ? lines.join('\n\n') : '';
+}
+
+/* ───────────────────────────── source description ───────────────────────── */
+
+/** A path made stable/readable for the source log: relative to the platform
+ *  checkout or the autopilot package when under either, else left as-is. */
+function displayPath(p) {
+  if (!p || !isAbsolute(p)) return p || null;
+  for (const [root, label] of [[REPO_ROOT, 'forevermore'], [PKG_ROOT, 'autopilot']]) {
+    const rel = relative(root, p);
+    if (rel && !rel.startsWith('..') && !isAbsolute(rel)) return `${label}/${rel}`;
+  }
+  return p;
+}
+
+/** 12-hex content fingerprint of a file, or null when unreadable. */
+function fileSha12(path) {
+  try {
+    return sha256(readFileSync(path, 'utf8')).slice(0, 12);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Describe the KNOWLEDGE + SKILL a stage request pulls from — the same inputs
+ * `assemblePrompt` renders, as a compact reviewable descriptor instead of a
+ * prompt string (AP-833: the review station's "Sources & skills" panel).
+ *
+ * Guaranteed exception-free: every file read is guarded, missing pieces are
+ * flagged (`missing: true`) rather than thrown, because a source log must
+ * never be able to block generation.
+ *
+ * @param {import('./schema.mjs').StageRequest} req
+ * @param {{ promptsDir?: string, brandGuidePath?: string }} [config]
+ */
+export function describeSources(req, config = {}) {
+  const promptsDir = config.promptsDir ?? DEFAULT_PROMPTS_DIR;
+  const brandGuidePath =
+    config.brandGuidePath ?? findContextFile(req?.contextFiles, 'brand-guide') ?? DEFAULT_BRAND_GUIDE;
+  const inputs = (req && req.inputs) || {};
+  const stage = req && req.stage ? String(req.stage) : 'unknown';
+  const skillPath = join(promptsDir, `${stage}.md`);
+
+  const brandSha = (() => {
+    try {
+      return sha256(extractBrandSections(readFileSync(brandGuidePath, 'utf8'))).slice(0, 12);
+    } catch {
+      return null;
+    }
+  })();
+  const skillSha = fileSha12(skillPath);
+
+  const out = {
+    brand_guide: {
+      path: displayPath(brandGuidePath),
+      sections: '§1–3 · what we are / claims law / voice (verbatim)',
+      ...(brandSha ? { sha: brandSha } : { missing: true }),
+    },
+    skill: {
+      stage,
+      path: displayPath(skillPath),
+      ...(skillSha ? { sha: skillSha } : { missing: true }),
+    },
+    playbook_rules: Array.isArray(inputs.playbookRules)
+      ? inputs.playbookRules.map((r) => ({
+          id: r.id ?? null,
+          rule: r.rule,
+          weight: r.weight ?? 5,
+          category: r.category ?? null,
+        }))
+      : [],
+    format_spec: {
+      platform: inputs.formatSpec?.platform ?? null,
+      format: inputs.formatSpec?.format ?? null,
+    },
+    worlds: Array.isArray(inputs.worldFacts)
+      ? inputs.worldFacts.map((w) => ({ slug: w.slug ?? null, name: w.name ?? null, tier: w.tier ?? null }))
+      : [],
+    recent_posts: Array.isArray(inputs.recentPosts) ? inputs.recentPosts.length : 0,
+  };
+  if (inputs.idea) {
+    out.idea = {
+      id: inputs.idea.id ?? null,
+      title: inputs.idea.title ?? null,
+      pillar: inputs.idea.pillar ?? null,
+      worlds: Array.isArray(inputs.idea.worlds) ? inputs.idea.worlds : [],
+    };
+  }
+  if (Array.isArray(inputs.feedback) && inputs.feedback.length) out.feedback = inputs.feedback;
+  if (typeof inputs.variant === 'number') out.variant = inputs.variant + 1; // human 1-based
+  return out;
 }
 
 /* ────────────────────────── context loaders (convenience) ───────────────── */

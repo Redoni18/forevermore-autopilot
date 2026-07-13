@@ -8,6 +8,7 @@
 import { loadIdeas } from '../plan/ideas.mjs';
 import { isoDatePart } from '../util/time.mjs';
 import { transitionItem } from '../state/machine.mjs';
+import { describeSources } from '../brain/assemble.mjs';
 
 /** id → idea payload. */
 function indexIdeas(ideas) {
@@ -169,7 +170,8 @@ export async function generateStage(ctx) {
           patch: { produced_by: runId },
         });
       }
-      const result = await brain.complete(copywriterRequest(cur, idea, playbookRules));
+      const req = copywriterRequest(cur, idea, playbookRules);
+      const result = await brain.complete(req);
       const data = copyFrom(result);
       const u = usageFrom(result);
       if (u) {
@@ -191,6 +193,15 @@ export async function generateStage(ctx) {
       if (data.rationale && typeof data.rationale === 'object') {
         patch.rationale = joinRationaleRules(data.rationale, ruleIndex);
       }
+      // The source log (AP-833): what THIS draft pulled from — knowledge files,
+      // the stage skill, injected rules, idea, feedback — merged over the
+      // planner's `sources.plan` layer. Best-effort by contract: a source-log
+      // failure must never block a draft.
+      try {
+        const generation = describeSources(req);
+        generation.prompt_sha = u?.promptSha ?? null;
+        patch.sources = { ...(cur.sources || {}), generation };
+      } catch { /* sources are advisory — never fatal */ }
       cur = await transitionItem(store, { item: cur, to: 'drafted', stage: 'generate', runId, patch });
       drafted++;
       await log({

@@ -125,3 +125,51 @@ test('time helpers', () => {
   assert.equal(offsetString(-330), '-05:30');
   assert.equal(offsetString(0), '+00:00');
 });
+
+test('every shell carries a plan-time decision log in sources.plan (AP-833)', () => {
+  const items = planWeek(BASE);
+  for (const it of items) {
+    const plan = it.sources && it.sources.plan;
+    assert.ok(plan, `${it.id} carries sources.plan`);
+    assert.ok(plan.picked_because.length > 20, 'a human-readable reason is present');
+    assert.equal(plan.idea.id, it.idea_id, 'the log names the idea the shell was planned from');
+    assert.equal(plan.format, it.format, 'the log records the slot format the fit was judged against');
+    assert.equal(typeof plan.score, 'number');
+    assert.equal(typeof plan.base_score, 'number');
+    assert.ok(plan.recency_penalty > 0 && plan.recency_penalty <= 1);
+    assert.ok(plan.format_fit && typeof plan.format_fit.rank === 'number' && plan.format_fit.label);
+    assert.equal(typeof plan.pool_size, 'number');
+    assert.equal(typeof plan.reused_this_week, 'boolean');
+    assert.ok(Array.isArray(plan.runners_up) && plan.runners_up.length <= 2);
+    for (const r of plan.runners_up) {
+      assert.ok(r.id && typeof r.score === 'number', 'runners-up carry id + score');
+      assert.notEqual(r.id, it.idea_id, 'a runner-up is never the chosen idea');
+    }
+  }
+});
+
+test('plan reasoning marks fallback reuse when the weekly fresh pool is exhausted', () => {
+  // 2 IG-eligible ideas, 2 candidates/slot, 2 days: day 1 consumes both fresh,
+  // so day 2's picks can only be same-week reuses — and must say so.
+  const ideas = [
+    { id: 'A', pillar: 'P1', platform: 'both', score: 100, hook: 'a' },
+    { id: 'B', pillar: 'P1', platform: 'both', score: 90, hook: 'b' },
+  ];
+  const items = planWeek({
+    ideas,
+    cadence: { instagram_per_day: 1, tiktok_per_day: 0, candidates_per_slot: 2, quiet_days: [] },
+    slotTimes: SLOT_TIMES,
+    timezone: 'Europe/Tirane',
+    startDate: '2026-07-13',
+    horizonDays: 2,
+  });
+  assert.equal(items.length, 4);
+  const day2 = items.filter((i) => i.slot_at.startsWith('2026-07-15'));
+  assert.equal(day2.length, 2);
+  for (const it of day2) {
+    assert.equal(it.sources.plan.reused_this_week, true, `${it.id} is flagged as same-week reuse`);
+    assert.match(it.sources.plan.picked_because, /reused this week/);
+  }
+  const day1 = items.filter((i) => i.slot_at.startsWith('2026-07-14'));
+  assert.ok(day1.every((i) => i.sources.plan.reused_this_week === false), 'day-1 picks are fresh');
+});
