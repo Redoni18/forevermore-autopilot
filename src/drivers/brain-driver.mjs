@@ -21,9 +21,9 @@ import { join } from 'node:path';
 import { FixtureBrain } from './fixture-brain.mjs';
 
 /** Default brain config handed to AP-301's drivers, overridable via config.brain. */
-function brainConfig(config) {
+function brainConfig(config, stage) {
   const r = (config && config.resolved) || {};
-  return {
+  const base = {
     promptsDir: r.pkgRoot ? join(r.pkgRoot, 'prompts') : undefined,
     // Brand guide moved in-repo with the §3.12 kit move (2026-07-13): prefer the
     // resolved kit path, falling back to <pkgRoot>/kit for older configs.
@@ -32,14 +32,22 @@ function brainConfig(config) {
     cwd: r.repoRoot,
     ...((config && config.brain) || {}),
   };
+  // WAVE2 §3.4 model policy: a per-stage pin beats any config.brain.model, and
+  // fallbackModel rides along so the claude-cli driver can retry-once when the
+  // pinned model is unavailable (e.g. Fable 5 leaving subscription inclusion).
+  const pinned = stage && config && config.stageModels ? config.stageModels[stage] : undefined;
+  if (pinned) base.model = pinned;
+  if (config && config.fallbackModel) base.fallbackModel = config.fallbackModel;
+  return base;
 }
 
 /**
  * @param {string} name  fixture | mock | claude-cli | agent-sdk
  * @param {ReturnType<import('../config.mjs').loadConfig>} [config]
+ * @param {string} [stage] Stage whose stageModels pin applies (WAVE2 §3.4).
  * @returns {Promise<import('../types.mjs').BrainDriver>}
  */
-export async function resolveBrainDriver(name, config) {
+export async function resolveBrainDriver(name, config, stage) {
   const which = name || (config && config.brainDriver) || 'fixture';
   if (which === 'fixture') return new FixtureBrain();
 
@@ -51,7 +59,7 @@ export async function resolveBrainDriver(name, config) {
     /* AP-301 not merged in this tree */
   }
   if (brain && typeof brain.makeDriver === 'function') {
-    return brain.makeDriver(which, brainConfig(config));
+    return brain.makeDriver(which, brainConfig(config, stage));
   }
 
   // Fallbacks when AP-301 isn't present.

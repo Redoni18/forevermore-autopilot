@@ -32,6 +32,19 @@ const DEFAULTS = {
    *  boot with a clear error. Overridable via env AUTOPILOT_DB_URL. */
   dbUrl: null,
   brainDriver: 'fixture',
+  /** Per-stage model pins (WAVE2 §3.4 — model policy is config, not code).
+   *  `stageModels[stage]` is passed as `--model` for that stage's brain calls;
+   *  unlisted stages run the CLI default. On a model-unavailable failure the
+   *  claude-cli driver retries ONCE on `fallbackModel` and completes the run —
+   *  the Telegram scanner alerts on the runs.model mismatch. Never let model
+   *  politics stall the pipeline. */
+  stageModels: {},
+  fallbackModel: null,
+  /** Daily brain-spend cap in USD (WAVE2 §3.10), summed from runs.cost_usd for
+   *  the local day. Reaching it pauses GENERATION only (render/qa/digest cost
+   *  nothing and keep draining) until midnight. Settings key
+   *  `daily_spend_cap_usd` overrides at runtime; <=0 disables. */
+  daily_spend_cap_usd: 5,
   /** Path (relative to PKG_ROOT or absolute) to the lint engine module (AP-401).
    *  null → built-in no-op lint that passes everything. Real engine exports a
    *  default `(item) => LintResult`. */

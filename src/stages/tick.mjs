@@ -21,7 +21,7 @@
  * cascading — one broken date can't strand the rest of the queue.
  */
 
-import { isoDatePart } from '../util/time.mjs';
+import { isoDatePart, nowISO } from '../util/time.mjs';
 import { runStage } from './registry.mjs';
 
 /** Statuses that mean "the employee owes work", and the stage that moves each on. */
@@ -63,6 +63,23 @@ export async function runTickSweep(opts) {
   const failures = [];
   let paused = false;
 
+  // Liveness marker (WAVE2 §3.10): every sweep END writes last_tick_at, so the
+  // Telegram scanner can alert when no tick has completed for >90 min while
+  // unpaused. Written on every return path — a paused sweep still "ticked".
+  const finish = async () => {
+    if (!dryRun) {
+      await store
+        .setSetting('last_tick_at', {
+          at: nowISO(),
+          passes: passes.length,
+          failures: failures.length,
+          paused,
+        })
+        .catch(() => {});
+    }
+    return { passes, failures, paused };
+  };
+
   const step = async (stage, date, force) => {
     try {
       const res = await runStage(stage, { config, store, date, dryRun, force, driver, ...inject });
@@ -84,18 +101,18 @@ export async function runTickSweep(opts) {
 
   // 1) keep the calendar filled (once per day; marker-respecting)
   await step('plan', today, false);
-  if (paused) return { passes, failures, paused };
+  if (paused) return finish();
 
   // 2–4) sweep in-flight work per slot date, earliest first
   for (const stage of TICK_STAGE_ORDER) {
     for (const date of await workDates(store, stage)) {
       await step(stage, date, true);
-      if (paused) return { passes, failures, paused };
+      if (paused) return finish();
     }
   }
 
   // 5) daily digest (once; marker-respecting)
   await step('digest', today, false);
 
-  return { passes, failures, paused };
+  return finish();
 }

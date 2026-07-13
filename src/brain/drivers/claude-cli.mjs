@@ -60,14 +60,36 @@ export class ClaudeCliDriver {
     let lastRaw = '';
     let lastEnvelope = null;
 
+    // WAVE2 §3.4: run on the pinned model; if THAT model is unavailable (not
+    // entitled / unknown / removed from the subscription), fall back ONCE to
+    // config.fallbackModel and complete the run. The result's `model` field
+    // reports reality (pickModel), which is how the Telegram scanner detects
+    // the fallback and alerts the owner. Model politics never stall the run.
+    let activeModel = this.config.model;
+    let fellBack = false;
+
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const fullPrompt =
         attempt === 1 ? prompt : `${prompt}\n\n${correctiveSuffix(attempt, lastError)}`;
 
-      const spawnResult = await this._spawn(fullPrompt);
+      const spawnResult = await this._spawn(fullPrompt, activeModel);
 
-      // 1) Process/spawn failure → not model-fixable.
+      const fallbackable = (text) =>
+        !fellBack &&
+        activeModel &&
+        this.config.fallbackModel &&
+        this.config.fallbackModel !== activeModel &&
+        isModelUnavailable(text);
+
+      // 1) Process/spawn failure → not model-fixable (but maybe model-swappable).
       if (spawnResult.error) {
+        const errText = `${spawnResult.error} ${spawnResult.stderr ?? ''} ${spawnResult.stdout ?? ''}`;
+        if (fallbackable(errText)) {
+          activeModel = this.config.fallbackModel;
+          fellBack = true;
+          attempt -= 1; // the swap does not consume a corrective-retry attempt
+          continue;
+        }
         return this._fail({
           promptSha,
           attempts: attempt,
@@ -83,11 +105,18 @@ export class ClaudeCliDriver {
 
       // 2) The CLI returned an error envelope (API error, refusal, etc.).
       if (envelope.is_error === true || (envelope.subtype && envelope.subtype !== 'success')) {
+        const errText = String(envelope.result ?? envelope.error ?? '');
+        if (fallbackable(errText)) {
+          activeModel = this.config.fallbackModel;
+          fellBack = true;
+          attempt -= 1;
+          continue;
+        }
         return this._fail({
           promptSha,
           attempts: attempt,
           error: `claude returned an error envelope (subtype=${envelope.subtype ?? '?'}): ${truncate(
-            String(envelope.result ?? envelope.error ?? ''),
+            errText,
             500,
           )}`,
           envelope,
@@ -116,7 +145,7 @@ export class ClaudeCliDriver {
         raw: resultText,
         tokensIn: envelope.usage?.input_tokens ?? null,
         tokensOut: envelope.usage?.output_tokens ?? null,
-        model: pickModel(envelope, this.config.model),
+        model: pickModel(envelope, activeModel),
         promptSha,
         costUsd: typeof envelope.total_cost_usd === 'number' ? envelope.total_cost_usd : null,
         error: null,
@@ -136,15 +165,18 @@ export class ClaudeCliDriver {
 
   /**
    * Spawn the CLI once and parse its stdout envelope.
+   * @param {string} prompt
+   * @param {string} [model] Model for THIS spawn (complete() swaps to the
+   *   fallback mid-loop; the constructor's config.model is only the default).
    * @returns {Promise<{ envelope?: any, stdout?: string, stderr?: string, error?: string }>}
    */
-  _spawn(prompt) {
+  _spawn(prompt, model = this.config.model) {
     const args = [
       '-p',
       prompt,
       '--output-format',
       'json',
-      ...(this.config.model ? ['--model', this.config.model] : []),
+      ...(model ? ['--model', model] : []),
       // Empty allowlist LAST: the variadic `<tools...>` stops at end-of-args and
       // can't accidentally swallow the positional prompt (which precedes it).
       '--allowedTools',
@@ -217,6 +249,23 @@ export class ClaudeCliDriver {
       driver: DRIVER,
     };
   }
+}
+
+/**
+ * Does this error text mean "the requested model cannot be used" (as opposed
+ * to a transient/API/refusal error)? Pinned by test/brain/claude-cli-fallback:
+ * these are the observed shapes for not-entitled / unknown / retired models.
+ * Deliberately narrow — a rate-limit or network error must NOT trigger the
+ * model fallback (backoff handles those).
+ */
+export function isModelUnavailable(text) {
+  const t = String(text || '');
+  return (
+    /model.{0,40}\b(not\s+(available|found|supported|entitled)|unavailable|unknown|invalid|removed|retired)/i.test(t) ||
+    /\b(no\s+access\s+to|not\s+entitled\s+to|does\s+not\s+have\s+access\s+to).{0,40}\bmodel/i.test(t) ||
+    /\bmodel:?\s*["'`]?[\w.-]+["'`]?\s+(does\s+not\s+exist|is\s+not\s+available)/i.test(t) ||
+    /not_found_error/i.test(t)
+  );
 }
 
 /**

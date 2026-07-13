@@ -13,7 +13,7 @@
  * CAS transitions), so a crashed mid-stage run resumes cleanly on re-run.
  */
 
-import { nowISO } from '../util/time.mjs';
+import { nowISO, localToday } from '../util/time.mjs';
 import { runId as makeRunId } from '../util/ids.mjs';
 import { resolveBrainDriver } from '../drivers/brain-driver.mjs';
 import { resolveLint } from '../drivers/noop-lint.mjs';
@@ -86,7 +86,38 @@ export async function runStage(name, opts) {
     return { status: 'paused', stage: name, date, produced: 0, run: run.id };
   }
 
-  // 2) idempotency (skip completed unless force/dry-run). A skip is a
+  // 2) daily brain-spend cap (WAVE2 §3.10) — generation only; render/qa/digest
+  // cost nothing and keep draining the queue. Sum of runs.cost_usd for the
+  // LOCAL day vs the cap (settings key beats config; <=0 disables). Only the
+  // FIRST trip of the day writes a run row + the spend_cap_hit marker (the
+  // Telegram scanner alerts off it); repeat blocks stay silent so the 30-min
+  // tick can't flood the activity feed (same principle as AP-836).
+  if (name === 'generate' && !dryRun) {
+    const cap = Number((await store.getSetting('daily_spend_cap_usd')) ?? config.daily_spend_cap_usd ?? 0);
+    if (cap > 0) {
+      const today = localToday();
+      const spent = await store.dailySpend(today);
+      if (spent >= cap) {
+        const already = await store.getSetting('spend_cap_hit');
+        if (!already || already.date !== today) {
+          await store.setSetting('spend_cap_hit', { date: today, at: nowISO(), spend: spent, cap });
+          const run = await store.appendRun({
+            stage: name,
+            status: 'ok',
+            driver: 'deterministic',
+            date,
+            note: 'spend_cap_hit',
+            started_at: nowISO(),
+            finished_at: nowISO(),
+          });
+          await store.appendLog(run.id, { event: 'stage.spend_cap', stage: name, date, spend: spent, cap });
+        }
+        return { status: 'paused', reason: 'spend_cap', stage: name, date, produced: 0, spend: spent, cap };
+      }
+    }
+  }
+
+  // 3) idempotency (skip completed unless force/dry-run). A skip is a
   // NON-event: it writes no run row — the 30-minute tick would otherwise
   // append ~100 "already_completed" rows a day and bury the activity feed
   // (AP-836). The completion marker itself is the durable record.
@@ -98,12 +129,12 @@ export async function runStage(name, opts) {
     }
   }
 
-  // 3) resolve injected deps (unless provided)
-  const brain = opts.brain || (name === 'generate' ? await resolveBrainDriver(opts.driver, config) : null);
+  // 4) resolve injected deps (unless provided)
+  const brain = opts.brain || (name === 'generate' ? await resolveBrainDriver(opts.driver, config, name) : null);
   const lintFn = opts.lintFn || (name === 'qa' ? await resolveLint(config) : null);
   const adapters = opts.adapters || (name === 'render' ? defaultAdapters : null);
 
-  // 4) stage run + execute
+  // 5) stage run + execute
   const runIdVal = makeRunId(name);
   const run = await store.appendRun({
     id: runIdVal,

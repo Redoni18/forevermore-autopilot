@@ -4,6 +4,10 @@
   "store": "postgres",
   "dbUrl": "postgres://postgres:autopilot@127.0.0.1:5433/autopilot",
   "brainDriver": "claude-cli",
+  "_comment_stageModels": "WAVE2 §3.4 model policy. Fable 5 leaves subscription inclusion ~2026-07-19; when generate starts falling back to Opus you'll get a Telegram alert — update the pin here, don't code around it.",
+  "stageModels": { "generate": "claude-fable-5" },
+  "fallbackModel": "claude-opus-4-8",
+  "daily_spend_cap_usd": 5,
   "lintModule": "src/drivers/brand-lint.mjs",
   "brave": "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
   "cadence": {
