@@ -1,4 +1,4 @@
-.PHONY: tick plan generate digest publish metrics reflect doctor review ls install-launchd install-tick uninstall-launchd logs db-up db-apply db-fresh station
+.PHONY: tick plan generate digest publish metrics reflect doctor review ls install-launchd install-tick uninstall-launchd logs db-up db-apply db-fresh station telegram install-telegram uninstall-telegram
 
 # Autopilot task runners (thin wrappers over bin/autopilot.mjs)
 
@@ -87,3 +87,20 @@ db-fresh:
 
 station:
 	node review/server.mjs
+
+# Telegram control channel (WAVE2 Phase 1). Needs TELEGRAM_ENABLED=true +
+# TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID in the process env.
+telegram:
+	node bin/autopilot.mjs telegram
+
+install-telegram:
+	cp ops/launchd/co.getforevermore.autopilot.telegram.plist ~/Library/LaunchAgents/
+	launchctl unload ~/Library/LaunchAgents/co.getforevermore.autopilot.telegram.plist 2>/dev/null || true
+	launchctl load ~/Library/LaunchAgents/co.getforevermore.autopilot.telegram.plist
+	@echo "✓ telegram daemon loaded (KeepAlive) — log: logs/launchd-telegram.log"
+	@echo "  the plist reads TELEGRAM_* from ~/.config/autopilot/telegram.env — create it first"
+
+uninstall-telegram:
+	launchctl unload ~/Library/LaunchAgents/co.getforevermore.autopilot.telegram.plist 2>/dev/null || true
+	rm -f ~/Library/LaunchAgents/co.getforevermore.autopilot.telegram.plist
+	@echo "✓ telegram daemon unloaded"

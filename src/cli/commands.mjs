@@ -283,6 +283,26 @@ export async function cmdResume(argv, flags) {
   return 0;
 }
 
+/* ------------------------------- telegram ------------------------------- */
+/**
+ * Run the Telegram control-channel daemon (WAVE2 Phase 1). Long-poll + scan
+ * loop, own lockfile. Gated on config.telegram.enabled (TELEGRAM_ENABLED) so a
+ * misconfigured env refuses politely instead of hammering the API.
+ */
+export async function cmdTelegram(argv, flags) {
+  const { config, store } = boot(flags);
+  const tg = config.telegram || {};
+  if (!tg.enabled) return fail('telegram is disabled — set TELEGRAM_ENABLED=true (and TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID)');
+  if (!tg.botToken) return fail('TELEGRAM_BOT_TOKEN is required');
+  if (!tg.chatId) return fail('TELEGRAM_CHAT_ID is required');
+
+  const { runBot } = await import('../telegram/bot.mjs');
+  const stationUrl = flags['station-url'] || process.env.AUTOPILOT_STATION_URL || null;
+  console.log(`📡 telegram daemon starting (chat ${tg.chatId}) — poll ${tg.pollTimeoutSec}s, scan ${tg.scanIntervalSec}s`);
+  await runBot({ config, store, stationUrl, closeStore: false, onError: (e) => console.error(`telegram: ${e.message}`) });
+  return 0;
+}
+
 /* ----------------------------- import-outbox --------------------------- */
 /**
  * One-time migration of a file-mode outbox into the DB-backed store: upsert

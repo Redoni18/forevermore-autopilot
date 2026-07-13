@@ -150,6 +150,23 @@ export function loadConfig(opts = {}) {
   const kv = (env.AUTOPILOT_KILL_SWITCH || '').toLowerCase();
   cfg.envKillSwitch = kv === '1' || kv === 'true' || kv === 'yes';
 
+  // Telegram control channel (WAVE2 Phase 1). Secrets/flags live in the
+  // process env (launchd/systemd), NOT the committed config file. TELEGRAM_API_BASE
+  // is the test/dev seam (point the bot at a fake Bot API on localhost).
+  const tgOn = (env.TELEGRAM_ENABLED || '').toLowerCase();
+  cfg.telegram = {
+    enabled: tgOn === '1' || tgOn === 'true' || tgOn === 'yes',
+    botToken: env.TELEGRAM_BOT_TOKEN || null,
+    chatId: env.TELEGRAM_CHAT_ID || null,
+    apiBase: env.TELEGRAM_API_BASE || 'https://api.telegram.org',
+    pollTimeoutSec: 50,
+    scanIntervalSec: 60,
+    // Defaults; the settings KV `quiet_hours` overrides at runtime.
+    quietHours: { start: '23:00', end: '08:00' },
+    heartbeatHour: 9,
+    ...(cfg.telegram || {}),
+  };
+
   // ---- resolve absolute paths ----
   // The platform link: env wins, then config file, then sibling default.
   const fmRoot = env.FOREVERMORE_ROOT

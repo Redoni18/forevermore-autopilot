@@ -27,8 +27,13 @@ Halts all scheduled stages within one cron tick (typically <1 minute).
 ### Mac (launchd)
 
 ```bash
-# Option 1: Via env (affects next run)
-echo "KILL_SWITCH=true" >> .env
+# Option 1: the kill switch (halts every stage within one tick, survives restarts)
+node bin/autopilot.mjs pause     # or, over Telegram: /pause
+node bin/autopilot.mjs resume    #                    /resume
+
+# Option 1b: env-forced pause (belt-and-braces) — the code reads AUTOPILOT_KILL_SWITCH,
+# NOT KILL_SWITCH. Set it in the daemon's process env.
+export AUTOPILOT_KILL_SWITCH=true
 
 # Option 2: Unload plists (immediate, survives restarts)
 launchctl unload ~/Library/LaunchAgents/co.getforevermore.autopilot.*.plist
@@ -131,6 +136,46 @@ make doctor                        # Shows TikTok token status
 API key has no expiry; check quota via Resend dashboard.
 
 **If digest emails fail:** Verify `RESEND_API_KEY` in `.env` and check account status at https://resend.com.
+
+---
+
+## Telegram control channel (WAVE2 Phase 1)
+
+The bot is the owner's phone-side surface: review cards with playable media,
+tick summaries, failure/liveness/spend alerts, and inbound steering (`/new`,
+`/rule`, `/pause`, freeform notes → suggestion box). It's a *projection of the
+DB* — decisions run through the same `decide()`/store paths as the Station.
+
+**Setup (one-time):**
+1. `@BotFather` → `/newbot` → copy the token.
+2. Message the new bot once; it echoes your numeric chat id (or use `@userinfobot`).
+3. Put the secrets where the daemon can read them (they are NOT in the committed
+   plist). On the Mac, create `~/.config/autopilot/telegram.env` (chmod 600):
+   ```
+   TELEGRAM_ENABLED=true
+   TELEGRAM_BOT_TOKEN=123456:AA...
+   TELEGRAM_CHAT_ID=900900900
+   ```
+4. `make install-telegram` (launchd, KeepAlive) — or `make telegram` in the
+   foreground to test. Log: `logs/launchd-telegram.log`.
+
+**Runtime knobs (settings KV, editable live):**
+- `/pause` · `/resume` → `kill_switch`.
+- Quiet hours: `store.setSetting('quiet_hours', {start:'23:00', end:'08:00'})`
+  (config default). Non-critical messages are held during the window and flush
+  after; critical alerts (failure, escalation, spend cap, liveness) bypass it.
+- Spend cap: `store.setSetting('daily_spend_cap_usd', 5)` (config default $5).
+
+**Only one poller per bot token.** The daemon holds `state/telegram.lock`; a
+second poller on the same box refuses. Running the Mac and (Phase 2) the VPS at
+once triggers a Telegram 409 alert — that's the cutover guard, not a bug. Kill
+the Mac daemon (`make uninstall-telegram`) before the VPS takes over.
+
+**If the bot goes silent:** check `logs/launchd-telegram.log`; confirm the token
+env is present (`launchctl` runs a login shell); a liveness alert should fire if
+the *tick* stalls, but if the bot process itself died, launchd `KeepAlive`
+restarts it — look for a crash loop in the log. The OAuth token for the brain
+(`CLAUDE_CODE_OAUTH_TOKEN`) dying silently is covered by the liveness alert.
 
 ---
 

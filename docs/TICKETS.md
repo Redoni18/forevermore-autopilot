@@ -1,6 +1,7 @@
 # Autopilot — execution breakdown
 
-Companion to `PRD.md` (normative for all contracts). 34 tickets across 9 epics.
+Companion to `PRD.md` (normative for all contracts). 37 tickets across 9 epics
+(A–I), plus the post-standalone + WAVE-2 minted tickets below.
 Every ticket names its **assignee lane** per the fleet policy:
 
 - **opus-developer** — correctness-critical builds (Fable reviews before merge)
@@ -302,3 +303,42 @@ single-image poster production in the adapter. Owner: "everything is videos."
 Standard SaaS dashboard restyle (neutral tokens, topbar/sidebar, card rows,
 history view, feedback banners); Gum-press brand styling retired for the
 internal tool. Owner: "too overcooked."
+
+## WAVE 2 Phase 1 — Telegram control channel (docs/WAVE2_BRIEF.md · Fable solo)
+
+New epic band J = Notifications/Telegram (10xx would collide; Telegram work is
+tagged AP-84x under the ops/hardening lineage since it is daemon+ops shaped).
+
+**AP-837 · Extract shared decide() core — Fable · DONE**
+decide()/autoSkipSiblings/listGroupedItems moved to src/decide/; review/lib/
+store.mjs is a re-export shim; config threaded into createReviewServer (fixes
+the silent regenMax default). One decision transaction for Station + Telegram.
+
+**AP-838 · Telegram send-ledger + via:'telegram' — Fable · DONE**
+Migration 0004: approvals.via gains 'telegram'; autopilot.telegram_messages
+(dedup + crash-safe claim-then-send + reply mapping). Store gains tgClaim/
+tgMarkSent/tgFindByMessage/tgListUnsent/dailySpend with File↔PG parity.
+
+**AP-839 · Marketing-kit rehome (§3.12) — Fable · DONE**
+The platform-side kit was lost to a git clean -fd (2026-07-13, no backup).
+Reconstructed in-repo as kit/ (ideas.json lossless from autopilot.ideas.payload;
+brand guide + catalog + render.mjs + Remotion studio rebuilt). See [[AP-840]].
+FOREVERMORE_ROOT seam shrinks to template thumbnails + captures.
+
+**AP-840 · Render path reconstruction — Fable · DONE**
+kit/04-assets/render.mjs (AP-203 contract) + poster templates + kit/05-video-
+studio comps (HookCard/ShowcaseCard/WorldShelfCard/EndCard). playwright-core
+now declared (kit owns its browser dep). Verified: real Brave + Remotion renders.
+
+**AP-841 · Model policy + spend cap + liveness — Fable · DONE**
+stageModels/fallbackModel config; claude-cli retry-once-on-fallback with the
+isModelUnavailable classifier; daily brain-spend cap (generation-only);
+runTickSweep writes last_tick_at for liveness. Fable-5-leaves-subscription safe.
+
+**AP-842 · Telegram daemon + scanner + /new — Fable · DONE**
+src/telegram/{api,bot,commands,cards,callbacks,notify,quiet,newitem}; long-poll
++ 60s scan, own lockfile, quiet hours, anti-spam ledger dedup; review cards with
+media + approve/changes/skip; /new commissioning (off-list item built from
+scratch — the brief's "OFFLIST sentinel" did not exist). `autopilot telegram`
+subcommand + launchd plist (KeepAlive). Feature-flagged off (TELEGRAM_ENABLED)
+until the DoD phone demo. Full unit + integration + adversarial coverage.

@@ -26,6 +26,7 @@ import {
   cmdRegen,
   cmdPause,
   cmdResume,
+  cmdTelegram,
   cmdDoctor,
   cmdReview,
   cmdImportOutbox,
@@ -43,6 +44,7 @@ usage:
   autopilot reject <id> --reason <tag> [--note "…"]
   autopilot regen <id> [--note "…"]
   autopilot pause | resume
+  autopilot telegram
   autopilot doctor
   autopilot review
   autopilot import-outbox
@@ -68,6 +70,7 @@ const COMMANDS = {
   regen: cmdRegen,
   pause: cmdPause,
   resume: cmdResume,
+  telegram: cmdTelegram,
   doctor: cmdDoctor,
   review: cmdReview,
   'import-outbox': cmdImportOutbox,

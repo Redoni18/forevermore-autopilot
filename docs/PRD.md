@@ -534,6 +534,18 @@ the same channel.
 - Runbook: `autopilot/RUNBOOK.md` (token refresh, stuck item, kill switch,
   migration rollback, GHA re-run).
 
+> **WAVE 2 amendment (2026-07-13, docs/WAVE2_BRIEF.md).** Telegram is now the
+> primary notification + steering surface (Resend email digest is deferred —
+> AP-503 unbuilt; the digest is local HTML today). The bot is a *projection of
+> the DB*: it drives the SAME `decide()`/store paths as the Station (a new
+> `approvals.via='telegram'`), never a second source of truth. Alerts moved from
+> Resend to Telegram: stage failure, 3rd-consecutive-failure escalation, the new
+> daily brain-spend cap (§3.10 — generation pauses, alerts), and a liveness lapse
+> (>90 min with no completed tick while unpaused). Model policy is config, not
+> code (`stageModels`/`fallbackModel`); a model-unavailable fallback emits its own
+> alert. Hosting is one Linux VPS (§3.8), superseding §4.2's GHA-runner plan and
+> the Supabase/Atlas control-plane assumptions (already superseded by ADR-001).
+
 ---
 
 ## 12. Milestones & exit criteria
