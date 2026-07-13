@@ -1,31 +1,32 @@
 /**
- * @file Video adapter (AP-203 + AP-832). Renders a vertical reel into
+ * @file Video adapter (AP-203 + AP-835). Renders a vertical reel into
  * `outbox/<id>/assets/final.mp4`, choosing one of two bodies by whether the
- * item's world has real captured footage in the library (AP-204/AP-832):
+ * item's world can be SHOWN — i.e. it resolves to an active catalog world that
+ * has BOTH captured footage in `library/manifest.json` (for a real
+ * in-experience frame) AND a poster thumbnail in the studio's
+ * `public/template-thumbs/`:
  *
- *   - FOOTAGE path — the item's world resolves to a slug present in
- *     `library/manifest.json`. The master clip is staged into the studio's
- *     `public/__autopilot-clips/<slug>.mp4` and the `OverlayReel` composition
- *     renders REAL world footage with the item's overlays (hook/beats/cta)
- *     laid over it. This is what makes a reel "show the template with real
- *     images / the actual flow" instead of text-only cards.
- *   - HOOK path — no footage for the world: the original kinetic `HookCard`
- *     (prop-driven) renders unchanged. This branch is byte-for-byte the AP-203
- *     behaviour.
+ *   - SHOWCASE path — HookCard (kinetic hook, unchanged) → ShowcaseCard (the
+ *     world's poster art + a real in-experience still popping up, same
+ *     paper-and-stickers language) → EndCard. This is AP-835's replacement
+ *     for the OverlayReel footage treatment the owner rejected as too busy:
+ *     the reel keeps the HookCard style he liked and adds ONE quiet beat that
+ *     shows the product. The still is extracted from the library master with
+ *     ffmpeg (`still_s` in the manifest entry overrides the default 60% mark).
+ *   - HOOK path — no footage or no thumbnail: the original kinetic `HookCard`
+ *     → EndCard, byte-for-byte the AP-203 behaviour.
  *
- * Both bodies concatenate the shared `EndCard` on the tail via the ffmpeg
- * concat demuxer with `-c copy` (stream copy, NO re-encode). That is valid
- * because BOTH clips come out of the SAME Remotion CLI at identical
- * codec/timebase/dimensions (H.264, 30fps, 1080×1920) — the OverlayReel's
- * OffthreadVideo source is recomposited, so its OUTPUT encode settings match
- * EndCard's exactly. If the studio's render settings ever diverge between
- * comps, drop `-c copy` and re-encode instead.
+ * All parts concatenate via the ffmpeg concat demuxer with `-c copy` (stream
+ * copy, NO re-encode). That is valid because every clip comes out of the SAME
+ * Remotion CLI at identical codec/timebase/dimensions (H.264, 30fps,
+ * 1080×1920). If the studio's render settings ever diverge between comps,
+ * drop `-c copy` and re-encode instead.
  *
  * Heavy (spawns Chrome-headless-shell + ffmpeg). The unit suite injects a stub
  * `proc` (opts.proc) to assert routing + props without launching anything.
  */
 
-import { promises as fsp, readFileSync } from 'node:fs';
+import { promises as fsp, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { sha256File } from '../util/hash.mjs';
 import * as realProc from './proc.mjs';
@@ -34,22 +35,20 @@ import { loadCatalog } from '../lint/catalog.mjs';
 
 // Studio composition durations (frames) at 30fps — see 05-video-studio/src/Root.tsx.
 const HOOK_FRAMES = 165;
+const SHOWCASE_FRAMES = 150;
 const END_FRAMES = 120;
 const FPS = 30;
 
-/** OverlayReel length is clip-capped into this window (kept in sync with Root.tsx). */
-const MAX_REEL_S = 28;
-const MIN_REEL_S = 6;
-/** Brand domain shown in the OverlayReel url pill. */
-const BRAND_URL = 'getforevermore.co';
 /** Gitignored dir (created at render time) under <videoStudio>/public/ that staticFile() reads. */
 const CLIP_DIR = '__autopilot-clips';
+/** Poster thumbnails staged in the studio (all 40+ worlds, committed with the kit). */
+const THUMBS_DIR = 'template-thumbs';
 
-/* ------------------------- world + footage resolution ------------------------- *
+/* ------------------------- world + asset resolution ------------------------- *
  * Mirrors poster.mjs's catalog approach (idea.worlds[0] → catalog slug via
- * src/lint/catalog.mjs), but the footage gate is `library/manifest.json`, not a
- * rendered thumbnail. Caches hang off the config object (WeakMap) so production
- * reuse is cheap while tests with per-fixture configs stay hermetic.
+ * src/lint/catalog.mjs). The showcase gate is manifest footage + a staged
+ * thumbnail. Caches hang off the config object (WeakMap) so production reuse
+ * is cheap while tests with per-fixture configs stay hermetic.
  * ------------------------------------------------------------------------------ */
 
 const _cache = new WeakMap();
@@ -95,12 +94,12 @@ function catalogIndex(config) {
       for (const k of new Set([normKey(r.slug), normKey(r.name)].filter(Boolean))) c.catalog[k] = rec;
     }
   } catch {
-    /* no catalog → footage routing simply never fires */
+    /* no catalog → showcase routing simply never fires */
   }
   return c.catalog;
 }
 
-/** slug → { file, dur_s, ... }, from library/manifest.json (lazy, tolerant). */
+/** slug → { file, dur_s, still_s?, ... }, from library/manifest.json (lazy, tolerant). */
 function manifest(config) {
   const c = caches(config);
   if (c.manifest) return c.manifest;
@@ -130,7 +129,7 @@ export function resolveVideoWorld(config, item) {
 
 /**
  * Footage descriptor for a resolved world, or null when the library has none.
- * @returns {{slug:string,file:string,dur_s?:number}|null}
+ * @returns {{slug:string,file:string,dur_s?:number,still_s?:number}|null}
  */
 export function footageFor(config, world) {
   if (!world) return null;
@@ -139,17 +138,35 @@ export function footageFor(config, world) {
   return entry && entry.file ? { slug: world.slug, ...entry } : null;
 }
 
+/**
+ * staticFile-relative thumbnail path for a resolved world, or null when the
+ * studio has no staged poster for it.
+ */
+export function thumbFor(config, world) {
+  if (!world) return null;
+  const rel = `${THUMBS_DIR}/${world.slug}.webp`;
+  return existsSync(join(config.resolved.videoStudio, 'public', rel)) ? rel : null;
+}
+
 /* ------------------------------- prop planning (pure) ------------------------------- */
 
 function firstLine(s) {
   return String(s || '').split('\n')[0].trim();
 }
 
-/** Clamp a clip's seconds into the reel window; a bad/absent value falls back to the cap. */
-export function reelSeconds(clipDurS) {
-  const d = Number(clipDurS);
-  if (!Number.isFinite(d) || d <= 0) return MAX_REEL_S;
-  return Math.max(MIN_REEL_S, Math.min(MAX_REEL_S, Math.round(d)));
+/**
+ * The timestamp (seconds) to pull the in-experience still from. An explicit
+ * `still_s` in the manifest entry wins; otherwise 60% into the clip — past the
+ * opening ritual, into the world's "meat". Clamped a second short of the end.
+ */
+export function stillSeconds(footage) {
+  const dur = Number(footage && footage.dur_s);
+  const explicit = Number(footage && footage.still_s);
+  if (Number.isFinite(explicit) && explicit >= 0) {
+    return Number.isFinite(dur) && dur > 1 ? Math.min(explicit, Math.floor(dur - 1)) : explicit;
+  }
+  if (!Number.isFinite(dur) || dur <= 0) return 15;
+  return Math.max(1, Math.round(dur * 0.6));
 }
 
 /** HookCard props from the item's copy (unchanged from AP-203). */
@@ -163,37 +180,32 @@ export function hookProps(item) {
   };
 }
 
-/** OverlayReel props — the item's overlays passed straight through, plus clip + length. */
-export function overlayProps(item, { slug, durS }) {
-  const o = item.overlays || {};
+/** ShowcaseCard props — the world's name, its poster art, and the still to come. */
+export function showcaseProps(world, thumb, slug) {
   return {
-    clip: `${CLIP_DIR}/${slug}.mp4`,
-    overlays: {
-      hook: o.hook || firstLine(item.caption) || '',
-      beats: Array.isArray(o.beats) ? o.beats.map((b) => String(b || '').trim()).filter(Boolean) : [],
-      cta: o.cta || '',
-    },
-    url: BRAND_URL,
-    dur_s: durS,
+    world: world.name || world.slug,
+    thumb,
+    still: `${CLIP_DIR}/${slug}-still.jpg`,
   };
 }
 
 /**
- * Pure routing decision: footage reel when `footage` is present, else the hook
- * reel. Returns the chosen comp's render props so tests can assert both the
- * decision and the exact props without spawning Remotion.
+ * Pure routing decision: the showcase reel when the world has BOTH footage
+ * (for the still) and a staged thumbnail, else the hook reel. Returns each
+ * comp's render props so tests can assert the decision and the exact props
+ * without spawning Remotion.
  * @param {import('../types.mjs').ContentItem} item
- * @param {{footage?: {slug:string,file:string,dur_s?:number}|null}} [ctx]
+ * @param {{world?:Object|null, footage?:Object|null, thumb?:string|null}} [ctx]
  */
-export function planVideo(item, { footage = null } = {}) {
-  if (footage && footage.file) {
-    const durS = reelSeconds(footage.dur_s);
+export function planVideo(item, { world = null, footage = null, thumb = null } = {}) {
+  if (world && footage && footage.file && thumb) {
     return {
-      route: 'footage',
-      slug: footage.slug,
+      route: 'showcase',
+      slug: world.slug,
       clipFile: footage.file,
-      overlaySeconds: durS,
-      props: overlayProps(item, { slug: footage.slug, durS }),
+      stillAt: stillSeconds(footage),
+      hookProps: hookProps(item),
+      showcaseProps: showcaseProps(world, thumb, world.slug),
     };
   }
   return { route: 'hook', props: hookProps(item) };
@@ -207,43 +219,49 @@ function finalAsset(durS, sha256) {
 }
 
 /**
- * Stage the master clip into <videoStudio>/public/__autopilot-clips/<slug>.mp4
- * so staticFile() can read it. The dir is created here and kept OUT of the
- * platform repo's git (its own `.gitignore` ignores everything); stale mp4s are
- * cleared first so it only ever holds the current render's clip.
+ * Extract the in-experience still from the library master into
+ * <videoStudio>/public/__autopilot-clips/<slug>-still.jpg so staticFile() can
+ * read it. The dir is created here and kept OUT of the platform repo's git
+ * (its own `.gitignore` ignores everything); stale artefacts are cleared
+ * first so it only ever holds the current render's inputs.
  */
-async function stageClip(config, slug, clipFile) {
-  const src = join(config.resolved.library, clipFile);
+async function stageStill(config, plan, P) {
+  const src = join(config.resolved.library, plan.clipFile);
   const destDir = join(config.resolved.videoStudio, 'public', CLIP_DIR);
   await fsp.mkdir(destDir, { recursive: true });
   await fsp.writeFile(join(destDir, '.gitignore'), '*\n', 'utf8').catch(() => {});
   for (const f of await fsp.readdir(destDir).catch(() => [])) {
-    if (f.endsWith('.mp4')) await fsp.rm(join(destDir, f), { force: true }).catch(() => {});
+    if (f.endsWith('.mp4') || f.endsWith('.jpg')) await fsp.rm(join(destDir, f), { force: true }).catch(() => {});
   }
-  await fsp.copyFile(src, join(destDir, `${slug}.mp4`));
-  return join(destDir, `${slug}.mp4`);
+  const dest = join(destDir, `${plan.slug}-still.jpg`);
+  P.ffmpeg(config, ['-y', '-ss', String(plan.stillAt), '-i', src, '-frames:v', '1', '-q:v', '2', dest]);
+  return dest;
 }
 
-/** FOOTAGE body: OverlayReel(real clip + overlays) → EndCard → stream-copy concat. */
-async function renderFootageReel(item, plan, { config, studio, outDir, P }) {
-  const overlayMp4 = join(outDir, 'overlay.mp4');
+/** SHOWCASE body: HookCard → ShowcaseCard(poster + real still) → EndCard, stream-copy concat. */
+async function renderShowcaseReel(item, plan, { config, studio, outDir, P }) {
+  const hookMp4 = join(outDir, 'hook.mp4');
+  const showcaseMp4 = join(outDir, 'showcase.mp4');
   const endMp4 = join(outDir, 'end.mp4');
   const finalMp4 = join(outDir, 'final.mp4');
-  const propsFile = join(outDir, 'overlay.props.json');
+  const hookPropsFile = join(outDir, 'hook.props.json');
+  const showcasePropsFile = join(outDir, 'showcase.props.json');
   const listFile = join(outDir, 'concat.txt');
   const bin = P.remotionBin(config);
 
-  await stageClip(config, plan.slug, plan.clipFile);
-  await fsp.writeFile(propsFile, JSON.stringify(plan.props), 'utf8');
+  await stageStill(config, plan, P);
+  await fsp.writeFile(hookPropsFile, JSON.stringify(plan.hookProps), 'utf8');
+  await fsp.writeFile(showcasePropsFile, JSON.stringify(plan.showcaseProps), 'utf8');
 
-  P.run(bin, ['render', 'src/index.ts', 'OverlayReel', overlayMp4, `--props=${propsFile}`], { cwd: studio });
+  P.run(bin, ['render', 'src/index.ts', 'HookCard', hookMp4, `--props=${hookPropsFile}`], { cwd: studio });
+  P.run(bin, ['render', 'src/index.ts', 'ShowcaseCard', showcaseMp4, `--props=${showcasePropsFile}`], { cwd: studio });
   P.run(bin, ['render', 'src/index.ts', 'EndCard', endMp4], { cwd: studio });
 
-  const list = `file '${overlayMp4}'\nfile '${endMp4}'\n`;
+  const list = `file '${hookMp4}'\nfile '${showcaseMp4}'\nfile '${endMp4}'\n`;
   await fsp.writeFile(listFile, list, 'utf8');
   P.ffmpeg(config, ['-y', '-f', 'concat', '-safe', '0', '-i', listFile, '-c', 'copy', finalMp4]);
 
-  const durS = (Math.round(plan.overlaySeconds * FPS) + END_FRAMES) / FPS;
+  const durS = (HOOK_FRAMES + SHOWCASE_FRAMES + END_FRAMES) / FPS; // 14.5s (fixed comp durations)
   return [finalAsset(durS, await sha256File(finalMp4))];
 }
 
@@ -285,13 +303,14 @@ export async function renderVideo(item, opts) {
 
   const world = resolveVideoWorld(config, item);
   const footage = footageFor(config, world);
-  const plan = planVideo(item, { footage });
+  const thumb = thumbFor(config, world);
+  const plan = planVideo(item, { world, footage, thumb });
 
   if (typeof log === 'function') {
     await log({ event: 'video.route', id: item.id, route: plan.route, world: world ? world.slug : null });
   }
 
-  return plan.route === 'footage'
-    ? renderFootageReel(item, plan, { config, studio, outDir, P })
+  return plan.route === 'showcase'
+    ? renderShowcaseReel(item, plan, { config, studio, outDir, P })
     : renderHookReel(item, plan, { config, studio, outDir, P });
 }
