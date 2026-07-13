@@ -26,7 +26,7 @@
  */
 
 import { promises as fsp, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 import { sha256File } from '../util/hash.mjs';
@@ -49,10 +49,20 @@ async function loadRenderModule(config) {
   return _renderMod;
 }
 
-/** Resolve playwright-core's chromium from the repo root (robust to CWD). */
+/** Resolve playwright-core's chromium from the KIT (its owner since the
+ *  §3.12 move — kit/04-assets/package.json declares it; run `npm install`
+ *  there). Falls back to the platform checkout for pre-move environments. */
 function loadChromium(config) {
-  const require = createRequire(join(config.resolved.repoRoot, 'package.json'));
-  return require('playwright-core').chromium;
+  for (const root of [dirname(config.resolved.render), config.resolved.repoRoot]) {
+    try {
+      return createRequire(join(root, 'package.json'))('playwright-core').chromium;
+    } catch {
+      /* try the next root */
+    }
+  }
+  throw new Error(
+    'playwright-core not found — run `npm install` in kit/04-assets (it owns the poster renderer deps)',
+  );
 }
 
 /* ----------------------------- idea + world lookup ---------------------------- */

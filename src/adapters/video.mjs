@@ -39,6 +39,16 @@ const MIDDLE_FRAMES = 150; // ShowcaseCard and WorldShelfCard are both 150
 const END_FRAMES = 120;
 const FPS = 30;
 
+/**
+ * Explicit bundle-server port for `remotion render`. Remotion's free-port
+ * probe checks IPv4 only; a dev server squatting [::1]:3000 (IPv6) passes the
+ * probe and then resets Chrome's `localhost` connection (v4/v6 split —
+ * ERR_CONNECTION_RESET, seen live 2026-07-13). A high pid-spread port keeps
+ * renders clear of the 3000-4600 dev range; sequential renders in one adapter
+ * call safely reuse it (each CLI run closes its server on exit).
+ */
+const RENDER_PORT = 34500 + (process.pid % 1000);
+
 /** Gitignored dir (created at render time) under <videoStudio>/public/ that staticFile() reads. */
 const CLIP_DIR = '__autopilot-clips';
 /** Poster thumbnails staged in the studio (all 40+ worlds, committed with the kit). */
@@ -297,9 +307,9 @@ async function renderMiddleReel(item, plan, { config, studio, outDir, P }) {
   await fsp.writeFile(hookPropsFile, JSON.stringify(plan.hookProps), 'utf8');
   await fsp.writeFile(middlePropsFile, JSON.stringify(plan.middleProps), 'utf8');
 
-  P.run(bin, ['render', 'src/index.ts', 'HookCard', hookMp4, `--props=${hookPropsFile}`], { cwd: studio });
-  P.run(bin, ['render', 'src/index.ts', plan.middleComp, middleMp4, `--props=${middlePropsFile}`], { cwd: studio });
-  P.run(bin, ['render', 'src/index.ts', 'EndCard', endMp4], { cwd: studio });
+  P.run(bin, ['render', 'src/index.ts', 'HookCard', hookMp4, `--props=${hookPropsFile}`, `--port=${RENDER_PORT}`], { cwd: studio });
+  P.run(bin, ['render', 'src/index.ts', plan.middleComp, middleMp4, `--props=${middlePropsFile}`, `--port=${RENDER_PORT}`], { cwd: studio });
+  P.run(bin, ['render', 'src/index.ts', 'EndCard', endMp4, `--port=${RENDER_PORT}`], { cwd: studio });
 
   const list = `file '${hookMp4}'\nfile '${middleMp4}'\nfile '${endMp4}'\n`;
   await fsp.writeFile(listFile, list, 'utf8');
@@ -321,8 +331,8 @@ async function renderHookReel(item, plan, { config, studio, outDir, P }) {
   await fsp.writeFile(propsFile, JSON.stringify(plan.props), 'utf8');
 
   // 1) HookCard with props, 2) EndCard. cwd = studio so `src/index.ts` resolves.
-  P.run(bin, ['render', 'src/index.ts', 'HookCard', hookMp4, `--props=${propsFile}`], { cwd: studio });
-  P.run(bin, ['render', 'src/index.ts', 'EndCard', endMp4], { cwd: studio });
+  P.run(bin, ['render', 'src/index.ts', 'HookCard', hookMp4, `--props=${propsFile}`, `--port=${RENDER_PORT}`], { cwd: studio });
+  P.run(bin, ['render', 'src/index.ts', 'EndCard', endMp4, `--port=${RENDER_PORT}`], { cwd: studio });
 
   // 3) stream-copy concat (no re-encode). Absolute paths + -safe 0.
   const list = `file '${hookMp4}'\nfile '${endMp4}'\n`;

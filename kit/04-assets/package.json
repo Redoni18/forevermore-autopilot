@@ -1,0 +1,10 @@
+{
+  "name": "forevermore-poster-kit",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Poster render tooling (render.mjs + templates). Owns the browser-driving dependency so the autopilot core keeps its zero-runtime-dep discipline — the kit is the renderer's toolbox, its deps live with it (same pattern as ../05-video-studio owning Remotion).",
+  "type": "module",
+  "dependencies": {
+    "playwright-core": "1.61.1"
+  }
+}

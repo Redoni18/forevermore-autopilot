@@ -2,11 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
-import { REPO_ROOT } from '../src/config.mjs';
+import { PKG_ROOT } from '../src/config.mjs';
 
-// render.mjs lives in the Forevermore platform checkout (standalone layout).
+// render.mjs lives IN THIS repo since the §3.12 kit move (2026-07-13).
 const { JOBS, SIZES, renderOne, renderJobs, serve } = await import(
-  pathToFileURL(join(REPO_ROOT, 'marketing/04-assets/render.mjs')).href
+  pathToFileURL(join(PKG_ROOT, 'kit/04-assets/render.mjs')).href
 );
 
 // Guards the AP-203 refactor: importing render.mjs must be side-effect-free

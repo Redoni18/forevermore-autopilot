@@ -1,0 +1,23 @@
+{
+  "name": "forevermore-video-studio",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Remotion studio for Forevermore autopilot reels (HookCard → ShowcaseCard/WorldShelfCard → EndCard). RECONSTRUCTED 2026-07-13 after kit loss — versions pinned to the surviving node_modules lockfile.",
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio",
+    "render:hook": "remotion render src/index.ts HookCard out/hook.mp4",
+    "render:end": "remotion render src/index.ts EndCard out/end.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.484",
+    "@remotion/google-fonts": "4.0.484",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.484"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.7",
+    "typescript": "5.9.3"
+  }
+}

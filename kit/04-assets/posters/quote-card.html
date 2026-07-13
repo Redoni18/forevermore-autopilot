@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- quote-card: params {line, hl, mascot: gift|album|book, sub}.
+     The single-image poster: kicker chip, big centered line (optional
+     highlight), sub line, mascot bottom-right, coin stickers.
+     RECONSTRUCTED 2026-07-13 — owner review pending. -->
+<html>
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="poster.css" />
+<style>
+  .kicker { position: absolute; top: 9%; width: 100%; text-align: center; }
+  .kicker .chip { font-size: 34px; padding: 12px 30px; box-shadow: 6px 7px 0 var(--ink); }
+  .stage { position: absolute; top: 26%; left: 80px; right: 80px; height: 44%; display: flex; align-items: center; justify-content: center; }
+  .line { font-size: 84px; font-weight: 500; line-height: 1.2; letter-spacing: -0.015em; text-align: center; }
+  .sub { position: absolute; top: 72%; left: 14%; right: 40%; text-align: center; font-size: 40px; font-weight: 400; color: rgba(17,17,17,0.72); }
+  .mascot { position: absolute; bottom: -8px; right: 30px; width: 34%; }
+  .coin.star { top: 13%; right: 11%; width: 96px; height: 96px; transform: rotate(8deg); }
+  .coin.heart { bottom: 24%; left: 9%; width: 72px; height: 72px; transform: rotate(-6deg); }
+  .url { position: absolute; bottom: 5.5%; left: 0; width: 62%; text-align: center; font-size: 40px; font-weight: 700; }
+</style>
+</head>
+<body>
+  <div class="kicker"><span class="chip caps">made, not generated</span></div>
+  <div class="coin star"></div>
+  <div class="coin heart"></div>
+  <div class="stage"><div class="line" data-base="84px"></div></div>
+  <div class="sub"></div>
+  <div class="url">getforevermore.co</div>
+  <img class="mascot" alt="" />
+  <script type="module">
+    import { initPoster, lineWithHighlight, fitText, COIN_SVG } from './poster.js';
+    initPoster((p) => {
+      document.querySelector('.coin.star').innerHTML = COIN_SVG.star;
+      document.querySelector('.coin.heart').innerHTML = COIN_SVG.heart;
+      const line = document.querySelector('.line');
+      lineWithHighlight(line, p.line || 'Give them a whole world.', p.hl);
+      fitText(line);
+      document.querySelector('.sub').textContent = p.sub || '';
+      const mascot = ['gift', 'album', 'book'].includes(p.mascot) ? p.mascot : 'gift';
+      document.querySelector('.mascot').src = `assets/mascot/${mascot}.png`;
+    });
+  </script>
+</body>
+</html>

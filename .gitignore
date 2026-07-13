@@ -14,6 +14,7 @@ library/*.webm
 # Marketing kit (moved in-repo 2026-07-13, §3.12). Source is committed; the
 # Remotion studio's deps and all rendered output are regenerated, not source.
 kit/05-video-studio/node_modules/
+kit/04-assets/node_modules/
 kit/04-assets/captures/
 kit/04-assets/renders/
 kit/04-assets/social-video/

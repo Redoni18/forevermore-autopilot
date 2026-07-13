@@ -1,0 +1,85 @@
+<!doctype html>
+<!-- carousel-slide: params vary by `slide`:
+       hook  → {slide, line, hl, n}
+       world → {slide, world, name, tier, line, n}
+       cta   → {slide, line, cta, pricechip?, n}
+     `n` is the "2/7" position chip. RECONSTRUCTED 2026-07-13 — owner review
+     pending. -->
+<html>
+<head>
+<meta charset="utf-8" />
+<link rel="stylesheet" href="poster.css" />
+<style>
+  .n { position: absolute; top: 4.5%; right: 5%; z-index: 3; }
+  .n .chip { font-size: 30px; padding: 10px 24px; background: #fff; box-shadow: 5px 6px 0 var(--ink); transform: rotate(2deg); }
+  .kicker { position: absolute; top: 8%; width: 100%; text-align: center; z-index: 2; }
+  .kicker .chip { font-size: 38px; padding: 14px 34px; box-shadow: 6px 7px 0 var(--ink); }
+  .stage { position: absolute; top: 26%; left: 90px; right: 90px; height: 46%; display: flex; align-items: center; justify-content: center; }
+  .line { font-size: 82px; font-weight: 500; line-height: 1.22; letter-spacing: -0.015em; text-align: center; }
+  .frame { position: absolute; top: 20%; left: 50%; transform: translateX(-50%) rotate(-2deg); width: 56%; height: 50%; display: none; }
+  .frame .card { width: 100%; height: 100%; }
+  .tier { position: absolute; top: -18px; left: -24px; z-index: 2; }
+  .tier .chip { font-size: 26px; padding: 9px 22px; box-shadow: 5px 6px 0 var(--ink); transform: rotate(-6deg); }
+  .wline { position: absolute; top: 74%; left: 110px; right: 110px; text-align: center; font-size: 50px; font-weight: 500; line-height: 1.25; display: none; }
+  .ctapill { position: absolute; top: 68%; width: 100%; text-align: center; display: none; }
+  .ctapill .chip { font-size: 44px; padding: 20px 48px; background: #fff; box-shadow: 8px 9px 0 var(--ink); transform: rotate(-1deg); }
+  .pricechip { position: absolute; top: 80%; width: 100%; text-align: center; display: none; }
+  .pricechip .chip { font-size: 34px; padding: 13px 30px; box-shadow: 6px 7px 0 var(--ink); transform: rotate(-2deg); }
+  .coin.star { top: 12%; right: 10%; width: 88px; height: 88px; display: none; }
+  .coin.heart { bottom: 7%; left: 8%; width: 70px; height: 70px; transform: rotate(-7deg); }
+  .url { position: absolute; bottom: 4.5%; width: 100%; text-align: center; font-size: 38px; font-weight: 700; }
+</style>
+</head>
+<body>
+  <div class="n"><span class="chip nlabel"></span></div>
+  <div class="kicker" style="display:none"><span class="chip klabel"></span></div>
+  <div class="stage"><div class="line" data-base="82px"></div></div>
+  <div class="frame">
+    <div class="tier"><span class="chip pink"></span></div>
+    <div class="card"><img class="art" alt="" /></div>
+  </div>
+  <div class="wline"></div>
+  <div class="ctapill"><span class="chip clabel"></span></div>
+  <div class="pricechip"><span class="chip plabel"></span></div>
+  <div class="coin star"></div>
+  <div class="coin heart"></div>
+  <div class="url">getforevermore.co</div>
+  <script type="module">
+    import { initPoster, lineWithHighlight, fitText, COIN_SVG } from './poster.js';
+    // '' reverts to the stylesheet display (flex for coins/stage) — never 'block'.
+    const show = (sel, on = true) => (document.querySelector(sel).style.display = on ? '' : 'none');
+    initPoster((p) => {
+      document.querySelector('.coin.star').innerHTML = COIN_SVG.star;
+      document.querySelector('.coin.heart').innerHTML = COIN_SVG.heart;
+      document.querySelector('.nlabel').textContent = p.n || '';
+      const slide = p.slide || 'hook';
+      if (slide === 'world') {
+        show('.stage', false);
+        show('.frame');
+        show('.wline');
+        show('.kicker');
+        document.querySelector('.klabel').textContent = (p.name || p.world || '').toLowerCase();
+        document.querySelector('.chip.pink').textContent = p.tier === 'premium' ? 'premium' : 'standard';
+        document.querySelector('.art').src = `assets/thumbs/${p.world}.webp`;
+        document.querySelector('.wline').textContent = p.line || '';
+      } else if (slide === 'cta') {
+        show('.coin.star');
+        show('.ctapill');
+        const line = document.querySelector('.line');
+        lineWithHighlight(line, p.line || 'getforevermore.co', '');
+        fitText(line);
+        document.querySelector('.clabel').textContent = p.cta || 'open their world';
+        if (p.pricechip) {
+          show('.pricechip');
+          document.querySelector('.plabel').textContent = p.pricechip;
+        }
+      } else {
+        show('.coin.star');
+        const line = document.querySelector('.line');
+        lineWithHighlight(line, p.line || '', p.hl);
+        fitText(line);
+      }
+    });
+  </script>
+</body>
+</html>
