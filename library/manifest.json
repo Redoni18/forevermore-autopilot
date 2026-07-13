@@ -1,0 +1,38 @@
+{
+  "blockheart-mine": {
+    "file": "blockheart-mine.mp4",
+    "dur_s": 46.6,
+    "recorded_at": "2026-07-13T00:00:00Z",
+    "quality_note": "first-person voxel mine, opening ritual + torch-lit tunnel amble; single tap-gate interaction"
+  },
+  "gone-fishing": {
+    "file": "gone-fishing.mp4",
+    "dur_s": 45.2,
+    "recorded_at": "2026-07-13T00:00:00Z",
+    "quality_note": "dawn water + boat idle, first catch beat lands mid-clip"
+  },
+  "love-letters": {
+    "file": "love-letters.mp4",
+    "dur_s": 45.6,
+    "recorded_at": "2026-07-13T00:00:00Z",
+    "quality_note": "golden-hour rooftops, dove arrivals; ambient take"
+  },
+  "passport": {
+    "file": "passport.mp4",
+    "dur_s": 43.8,
+    "recorded_at": "2026-07-13T00:00:00Z",
+    "quality_note": "passport opens + first stamps; page turns are ambient-timed"
+  },
+  "pocket-pal": {
+    "file": "pocket-pal.mp4",
+    "dur_s": 43.7,
+    "recorded_at": "2026-07-13T00:00:00Z",
+    "quality_note": "handheld boot + hatch sequence; strong first 15s"
+  },
+  "prize-claw": {
+    "file": "prize-claw.mp4",
+    "dur_s": 43.8,
+    "recorded_at": "2026-07-13T00:00:00Z",
+    "quality_note": "coin-in + claw drop loop; pastel cabinet reads well small"
+  }
+}
