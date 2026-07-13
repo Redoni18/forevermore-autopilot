@@ -45,7 +45,7 @@ import { createHash } from 'node:crypto';
 import { promises as fsp } from 'node:fs';
 import { join } from 'node:path';
 import { CasConflictError } from '../types.mjs';
-import { nowISO } from '../util/time.mjs';
+import { nowISO, localDayRange } from '../util/time.mjs';
 
 /* ------------------------------- uuid5 bridge ------------------------------ */
 
@@ -594,6 +594,143 @@ export class PostgresStore {
       order by started_at desc
       limit ${limit}`;
     return rows.map((r) => this.#rowToRun(r));
+  }
+
+  /* ------------------------- telegram send-ledger ------------------------- */
+  //
+  // The uuid-keyed twin of FileStore's telegram-messages.json. item_id rides
+  // the SAME slug↔uuid5 bridge as approvals.content_item_id (toPk on write);
+  // on read the original slug is recovered from the referenced content_items
+  // row's reserved overlays.__fileids envelope — exactly how #rowToItem
+  // restores slug ids — so callers see the file-mode slug in both modes.
+
+  /**
+   * Map a telegram_messages row back to the file-mode ledger record. `overrideSlug`
+   * (fresh claims echo the caller's slug directly, no join); otherwise recover the
+   * slug from the joined content_items overlays. chat_id/message_id are int8 —
+   * coerced to Number (Telegram ids are well within the safe-integer range).
+   */
+  #rowToTgRecord(row, itemOverlays = null, overrideSlug = undefined) {
+    let itemId = null;
+    if (overrideSlug !== undefined) {
+      itemId = overrideSlug ?? null;
+    } else if (row.item_id != null) {
+      const ov = itemOverlays && typeof itemOverlays === 'object' ? itemOverlays : {};
+      const env = ov.__fileids && typeof ov.__fileids === 'object' ? ov.__fileids : {};
+      itemId = env.id ?? row.item_id;
+    }
+    return {
+      id: row.id,
+      kind: row.kind,
+      dedup_key: row.dedup_key,
+      item_id: itemId,
+      item_status: row.item_status ?? null,
+      attempt: row.attempt == null ? null : Number(row.attempt),
+      chat_id: row.chat_id == null ? null : Number(row.chat_id),
+      message_id: row.message_id == null ? null : Number(row.message_id),
+      payload: row.payload ?? null,
+      sent_at: iso(row.sent_at),
+      created_at: iso(row.created_at),
+    };
+  }
+
+  /** Re-select one ledger row by dedup_key, joining content_items for the slug. */
+  async #tgSelectByDedup(dedupKey) {
+    const rows = await this.sql`
+      select tm.*, ci.overlays as __item_overlays
+      from autopilot.telegram_messages tm
+      left join autopilot.content_items ci on ci.id = tm.item_id
+      where tm.dedup_key = ${dedupKey}
+      limit 1`;
+    return rows.count ? this.#rowToTgRecord(rows[0], rows[0].__item_overlays) : null;
+  }
+
+  /**
+   * Atomic claim on dedup_key (`on conflict do nothing`): the first caller wins
+   * (claimed:true, message_id null); a later caller for the same key gets
+   * claimed:false and the existing record. See {@link FileStore#tgClaim}.
+   * @param {{kind:string, dedup_key:string, item_id?:string|null, item_status?:string|null,
+   *   attempt?:number|null, chat_id:number, payload?:*}} record
+   * @returns {Promise<{claimed:boolean, record:Object}>}
+   */
+  async tgClaim(record = {}) {
+    if (!record.dedup_key) throw new Error('tgClaim: dedup_key required');
+    if (record.chat_id == null) throw new Error('tgClaim: chat_id required');
+    const pk = record.item_id != null ? toPk(record.item_id) : null;
+    const [row] = await this.sql`
+      insert into autopilot.telegram_messages (kind, dedup_key, item_id, item_status, attempt, chat_id, payload)
+      values (
+        ${record.kind}, ${record.dedup_key}, ${pk}, ${record.item_status ?? null},
+        ${record.attempt ?? null}, ${record.chat_id},
+        ${record.payload == null ? null : this.sql.json(record.payload)}
+      )
+      on conflict (dedup_key) do nothing
+      returning *`;
+    if (row) return { claimed: true, record: this.#rowToTgRecord(row, null, record.item_id ?? null) };
+    return { claimed: false, record: await this.#tgSelectByDedup(record.dedup_key) };
+  }
+
+  /**
+   * Mark a claimed row as sent (message_id + sent_at). Returns the updated
+   * record (slug recovered), or null when the key is unknown.
+   * @param {string} dedupKey @param {{message_id:number, sent_at?:string}} sent
+   */
+  async tgMarkSent(dedupKey, { message_id, sent_at } = {}) {
+    const rows = await this.sql`
+      update autopilot.telegram_messages
+      set message_id = ${message_id ?? null}, sent_at = ${sent_at ?? nowISO()}
+      where dedup_key = ${dedupKey}
+      returning id`;
+    if (!rows.count) return null;
+    return this.#tgSelectByDedup(dedupKey);
+  }
+
+  /**
+   * Resolve a Telegram (chat_id, message_id) to its ledger record — reply-to-card.
+   * @param {number} chatId @param {number} messageId @returns {Promise<Object|null>}
+   */
+  async tgFindByMessage(chatId, messageId) {
+    const rows = await this.sql`
+      select tm.*, ci.overlays as __item_overlays
+      from autopilot.telegram_messages tm
+      left join autopilot.content_items ci on ci.id = tm.item_id
+      where tm.chat_id = ${chatId} and tm.message_id = ${messageId}
+      limit 1`;
+    return rows.count ? this.#rowToTgRecord(rows[0], rows[0].__item_overlays) : null;
+  }
+
+  /**
+   * Claimed-but-unsent records (message_id null) older than the threshold — the
+   * crash-safe resend queue. Sorted created_at asc.
+   * @param {{olderThanMs?:number, now?:number|Date}} [opts]
+   */
+  async tgListUnsent({ olderThanMs = 0, now = Date.now() } = {}) {
+    const nowMs = now instanceof Date ? now.getTime() : Number(now);
+    const cutoff = new Date(nowMs - olderThanMs).toISOString();
+    const rows = await this.sql`
+      select tm.*, ci.overlays as __item_overlays
+      from autopilot.telegram_messages tm
+      left join autopilot.content_items ci on ci.id = tm.item_id
+      where tm.message_id is null and tm.created_at < ${cutoff}
+      order by tm.created_at asc`;
+    return rows.map((r) => this.#rowToTgRecord(r, r.__item_overlays));
+  }
+
+  /* ------------------------------ daily spend ------------------------------ */
+
+  /**
+   * Total `runs.cost_usd` for the given LOCAL calendar date (`YYYY-MM-DD`) — the
+   * spend-cap accounting. A run belongs to the date iff its `started_at` falls
+   * within that local day ({@link localDayRange}); identical to FileStore since
+   * both compare the same absolute instants. @param {string} dateIso
+   */
+  async dailySpend(dateIso) {
+    const { start, end } = localDayRange(dateIso);
+    const [row] = await this.sql`
+      select coalesce(sum(cost_usd), 0) as total
+      from autopilot.runs
+      where started_at >= ${start} and started_at < ${end}`;
+    return Number(row.total) || 0;
   }
 
   /* -------------------------------- settings -------------------------------- */

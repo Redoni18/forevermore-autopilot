@@ -23,7 +23,7 @@ import { promises as fsp } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { CasConflictError, LockTimeoutError } from '../types.mjs';
-import { nowISO } from '../util/time.mjs';
+import { nowISO, localDayRange } from '../util/time.mjs';
 import { runId as makeRunId, approvalId as makeApprovalId } from '../util/ids.mjs';
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -45,6 +45,10 @@ export class FileStore {
     this.playbookPath = r.playbook || join(dirname(r.settings), 'playbook.json');
     /** Owner suggestion inbox (AP-834): a JSON array sibling to playbook.json. */
     this.ownerNotesPath = r.ownerNotes || join(dirname(r.settings), 'owner-notes.json');
+    /** Telegram send-ledger (Phase 1): a JSON object keyed by dedup_key, sibling
+     *  to settings.json. Single-writer by design (the one bot daemon claims +
+     *  marks-sent); reads are lock-free, writes go through the shared lockfile. */
+    this.telegramMessagesPath = r.telegramMessages || join(dirname(r.settings), 'telegram-messages.json');
     /** lock acquisition tuning (bounded wait so a wedged lock still errors). */
     this.lock = { retries: 200, delayMs: 15 };
   }
@@ -401,6 +405,134 @@ export class FileStore {
     }
     runs.sort((a, b) => String(b.started_at ?? '').localeCompare(String(a.started_at ?? '')));
     return runs.slice(0, limit);
+  }
+
+  /* ------------------------- telegram send-ledger ------------------------- */
+
+  /** Read-modify-write the dedup_key→record map under an exclusive lock. */
+  async #mutateTelegram(mutate) {
+    await this.#ensureDir(dirname(this.telegramMessagesPath));
+    const lockPath = `${this.telegramMessagesPath}.lock`;
+    await this.#acquireLock(lockPath);
+    try {
+      const raw = await this.#readJson(this.telegramMessagesPath);
+      const map = raw && typeof raw === 'object' && !Array.isArray(raw) ? raw : {};
+      const result = mutate(map);
+      await this.#writeJsonAtomic(this.telegramMessagesPath, map);
+      return result;
+    } finally {
+      await this.#releaseLock(lockPath);
+    }
+  }
+
+  /**
+   * Claim a ledger slot for an outbound event (Phase 1 §1 "claim-then-send").
+   * Atomic insert-or-conflict on dedup_key: the FIRST caller for a key claims
+   * it (message_id null = not yet sent) and gets {claimed:true}; any later
+   * caller for the same key gets {claimed:false} and the EXISTING record (so a
+   * scanner can see whether it was already sent). Single-writer assumption: the
+   * lone bot daemon is the only writer, and the lockfile serialises even it.
+   * item_id is the file-mode SLUG verbatim (file mode is slug-native).
+   * @param {{kind:string, dedup_key:string, item_id?:string|null, item_status?:string|null,
+   *   attempt?:number|null, chat_id:number, payload?:*}} record
+   * @returns {Promise<{claimed:boolean, record:Object}>}
+   */
+  async tgClaim(record = {}) {
+    if (!record.dedup_key) throw new Error('tgClaim: dedup_key required');
+    if (record.chat_id == null) throw new Error('tgClaim: chat_id required');
+    const now = nowISO();
+    return this.#mutateTelegram((map) => {
+      const existing = map[record.dedup_key];
+      if (existing) return { claimed: false, record: existing };
+      const row = {
+        id: `tg_${now.replace(/[-:.TZ]/g, '').slice(0, 14)}_${randomBytes(3).toString('hex')}`,
+        kind: record.kind,
+        dedup_key: record.dedup_key,
+        item_id: record.item_id ?? null,
+        item_status: record.item_status ?? null,
+        attempt: record.attempt ?? null,
+        chat_id: record.chat_id,
+        message_id: null,
+        payload: record.payload ?? null,
+        sent_at: null,
+        created_at: now,
+      };
+      map[record.dedup_key] = row;
+      return { claimed: true, record: row };
+    });
+  }
+
+  /**
+   * Mark a claimed row as sent (records the Telegram message_id + send time).
+   * @param {string} dedupKey @param {{message_id:number, sent_at?:string}} sent
+   * @returns {Promise<Object|null>} the updated record, or null if unknown key.
+   */
+  async tgMarkSent(dedupKey, { message_id, sent_at } = {}) {
+    return this.#mutateTelegram((map) => {
+      const row = map[dedupKey];
+      if (!row) return null;
+      row.message_id = message_id ?? null;
+      row.sent_at = sent_at ?? nowISO();
+      return { ...row };
+    });
+  }
+
+  /**
+   * Resolve a Telegram (chat_id, message_id) back to its ledger record — the
+   * reply-to-card lookup. Returns the record (item_id is the slug) or null.
+   * @param {number} chatId @param {number} messageId
+   */
+  async tgFindByMessage(chatId, messageId) {
+    const raw = await this.#readJson(this.telegramMessagesPath);
+    if (!raw || typeof raw !== 'object') return null;
+    for (const row of Object.values(raw)) {
+      if (row && row.chat_id === chatId && row.message_id === messageId) return { ...row };
+    }
+    return null;
+  }
+
+  /**
+   * Claimed-but-unsent records (message_id null) older than the threshold — the
+   * crash-safe resend queue (a claim that died mid-send). Sorted created_at asc.
+   * @param {{olderThanMs?:number, now?:number|Date}} [opts]
+   */
+  async tgListUnsent({ olderThanMs = 0, now = Date.now() } = {}) {
+    const nowMs = now instanceof Date ? now.getTime() : Number(now);
+    const cutoff = new Date(nowMs - olderThanMs).toISOString();
+    const raw = await this.#readJson(this.telegramMessagesPath);
+    if (!raw || typeof raw !== 'object') return [];
+    return Object.values(raw)
+      .filter((r) => r && r.message_id == null && String(r.created_at) < cutoff)
+      .map((r) => ({ ...r }))
+      .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
+  }
+
+  /* ------------------------------ daily spend ------------------------------ */
+
+  /**
+   * Total `cost_usd` across all runs whose `started_at` falls on the given
+   * LOCAL calendar date (`YYYY-MM-DD`) — the spend-cap accounting. A run belongs
+   * to the date iff its start instant is within that local day (see
+   * {@link localDayRange}); null costs count as 0. @param {string} dateIso
+   */
+  async dailySpend(dateIso) {
+    const { start, end } = localDayRange(dateIso);
+    let files;
+    try {
+      files = await fsp.readdir(this.dirs.runs);
+    } catch (e) {
+      if (e.code === 'ENOENT') return 0;
+      throw e;
+    }
+    let total = 0;
+    for (const f of files) {
+      if (!f.endsWith('.json')) continue;
+      const rec = await this.#readJson(join(this.dirs.runs, f));
+      if (!rec || typeof rec !== 'object' || rec.started_at == null) continue;
+      const started = new Date(rec.started_at).toISOString();
+      if (started >= start && started < end && typeof rec.cost_usd === 'number') total += rec.cost_usd;
+    }
+    return total;
   }
 
   /* ----------------------------- settings ----------------------------- */

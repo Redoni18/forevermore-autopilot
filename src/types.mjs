@@ -157,8 +157,28 @@ export const REASON_TAGS = [
  * @property {string[]} [reason_tags]
  * @property {string} [note]
  * @property {{before:string, after:string}} [caption_diff]
- * @property {'atlas'|'email-link'|'cli'} via
+ * @property {'atlas'|'email-link'|'cli'|'local-station'|'telegram'} via
  * @property {string} decided_at
+ */
+
+/**
+ * Telegram send-ledger record (Phase 1). One row per outbound event: dedup
+ * (unique dedup_key), crash-safe send state (message_id null = claimed-unsent),
+ * and the message_id→content_item mapping for reply-to-card. item_id is always
+ * the file-mode SLUG on read, in both stores.
+ *
+ * @typedef {Object} TelegramMessage
+ * @property {string} id
+ * @property {'card'|'prompt'|'summary'|'alert'|'heartbeat'|'digest'|'reply'} kind
+ * @property {string} dedup_key
+ * @property {string|null} item_id           file-mode slug (null for item-less events)
+ * @property {string|null} item_status
+ * @property {number|null} attempt
+ * @property {number} chat_id
+ * @property {number|null} message_id        null = claimed, not yet sent
+ * @property {Object|null} payload
+ * @property {string|null} sent_at
+ * @property {string} created_at
  */
 
 /**
@@ -179,6 +199,15 @@ export const REASON_TAGS = [
  *   Fetch a run by id (the producing-run join behind item.provenance, AP-831).
  * @property {(approval:Partial<Approval>)=>Promise<Approval>} appendApproval
  * @property {(itemId:string)=>Promise<Approval[]>} listApprovals
+ * @property {(record:Partial<TelegramMessage>)=>Promise<{claimed:boolean, record:TelegramMessage}>} tgClaim
+ *   Atomic insert-or-conflict on dedup_key for the outbound send-ledger (Phase 1).
+ * @property {(dedupKey:string, sent:{message_id:number, sent_at?:string})=>Promise<TelegramMessage|null>} tgMarkSent
+ * @property {(chatId:number, messageId:number)=>Promise<TelegramMessage|null>} tgFindByMessage
+ *   Reply-to-card lookup: resolve a Telegram (chat_id, message_id) to its record.
+ * @property {(opts?:{olderThanMs?:number, now?:number|Date})=>Promise<TelegramMessage[]>} tgListUnsent
+ *   Claimed-but-unsent records older than the threshold (crash-safe resend queue).
+ * @property {(dateIso:string)=>Promise<number>} dailySpend
+ *   Sum of runs.cost_usd for the given local calendar date (spend-cap accounting).
  * @property {(status?:string)=>Promise<Array<{id:string,rule:string,category?:string,weight?:number}>>} listPlaybookRules
  *   Active learned rules for brain injection (PRD §8.1), weight-desc.
  * @property {()=>Promise<Object>} getSettings

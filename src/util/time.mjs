@@ -125,6 +125,26 @@ export function isoDatePart(iso) {
   return String(iso).slice(0, 10);
 }
 
+/**
+ * The [start, end) instants (as UTC-ISO strings) that bound a local calendar
+ * date `YYYY-MM-DD` in the PROCESS-LOCAL timezone — the same zone {@link localToday}
+ * reads. `new Date(y, m-1, d)` constructs local-midnight of that date; the next
+ * day's local-midnight is the exclusive upper bound. Used by the spend-ledger's
+ * `dailySpend(dateIso)` so a run "belongs to" a date iff its `started_at` (stored
+ * UTC) falls inside that local day — identical semantics in file and postgres
+ * mode, since both compare the same absolute instants.
+ * @param {string} dateStr `YYYY-MM-DD` — throws if malformed.
+ * @returns {{start:string, end:string}}
+ */
+export function localDayRange(dateStr) {
+  assertDate(dateStr);
+  const [y, m, d] = dateStr.split('-').map(Number);
+  return {
+    start: new Date(y, m - 1, d, 0, 0, 0, 0).toISOString(),
+    end: new Date(y, m - 1, d + 1, 0, 0, 0, 0).toISOString(),
+  };
+}
+
 /** Current time as ISO-8601 in UTC (`...Z`). */
 export function nowISO(now = new Date()) {
   return now.toISOString();
