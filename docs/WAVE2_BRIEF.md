@@ -96,6 +96,7 @@ The PRD's reflect stage (§8): weekly, read `metrics_snapshots` + decision histo
 
 ## 5. Engineering ground rules
 
+- **Who builds: Fable 5, solo.** All wave-2 development in this repo is done directly on your own thread — you plan, you write the code, you verify. Do not route implementation to worker agents; this invokes the solo override in my global fleet policy and it is deliberate: I want Fable-5-level quality in the code itself, not only in the orchestration. Using your own tools directly (web search, test runs, headless QA) is of course fine.
 - Tests green before and after every phase (`npm test` — note: bare `node --test test/` fails). New stages, transitions, adapters, and the Telegram command surface all get tests; publisher idempotency gets adversarial ones.
 - Feature-flag every new subsystem (`TELEGRAM_ENABLED`, `PUBLISH_ENABLED`, …) defaulting off until its DoD demo passes.
 - Migrations only (`db/migrations/0004+.sql` via `db/apply.mjs`); never hand-edit live tables. Both stores (Postgres + FileStore) keep contract parity.
