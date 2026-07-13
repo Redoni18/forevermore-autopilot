@@ -49,6 +49,7 @@ export async function startTestServer(paths) {
     outboxDir: paths.outboxDir,
     settingsPath: paths.settingsPath,
     publicDir: PUBLIC_DIR,
+    config,
   });
 
   await new Promise((resolve, reject) => {

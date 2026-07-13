@@ -92,7 +92,7 @@ const store = createStore(config);
 const outboxDir = config.resolved.outbox;
 const settingsPath = config.resolved.settings;
 
-const server = createReviewServer({ store, outboxDir, settingsPath, publicDir: PUBLIC_DIR });
+const server = createReviewServer({ store, outboxDir, settingsPath, publicDir: PUBLIC_DIR, config });
 
 server.listen(args.port, '127.0.0.1', () => {
   console.log(`autopilot review station -> http://127.0.0.1:${args.port}`);

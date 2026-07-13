@@ -16,11 +16,14 @@ const MAX_BODY_BYTES = 1_000_000; // 1MB is generous for a caption edit + note
 // `store` carries the item/decision data (file OR postgres — same contract);
 // `outboxDir` is used ONLY to stream on-disk assets; `settingsPath` feeds the
 // read-only kill-switch header (graceful about missing/either-shape files).
-export function createReviewServer({ store, outboxDir, settingsPath, publicDir }) {
+// `config` (optional) is the loadConfig() result — threaded through so the
+// changes_requested regen budget comes from config.retry.regen_max instead of
+// silently defaulting to 2 (the latent bug noted at app.mjs's decide call).
+export function createReviewServer({ store, outboxDir, settingsPath, publicDir, config }) {
   if (!store || !outboxDir || !publicDir) {
     throw new Error('createReviewServer requires store, outboxDir, publicDir');
   }
-  const ctx = { store, outboxDir, settingsPath, publicDir };
+  const ctx = { store, outboxDir, settingsPath, publicDir, config };
   return createServer((req, res) => {
     handleRequest(req, res, ctx).catch((err) => {
       console.error('[autopilot-review] unhandled error:', err);
