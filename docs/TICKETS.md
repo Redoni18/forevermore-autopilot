@@ -377,3 +377,20 @@ into a temp dir, lints both, and PASSES only if assets are non-empty and each
 fresh lint verdict matches the item's stored verdict (parity, not absolute
 pass — a bounced item may legitimately fail again). Proven on the Mac:
 poster 3.2s / video 9.0s, parity holds.
+
+**AP-847 · systemd units for the VPS (§3.8) — Fable · DONE**
+ops/systemd/: tick (oneshot + *:0/30 timer, Persistent), bot (Restart=always),
+station (127.0.0.1:4600 unchanged — Cloudflare Access is the boundary), backup
+(03:30 timer). All User=autopilot, WorkingDirectory=/opt/autopilot,
+EnvironmentFile=/etc/autopilot/autopilot.env, TZ=Europe/Tirane. Makefile
+install-systemd/uninstall-systemd (Linux-guarded; enabling stays a manual
+cutover step).
+
+**AP-848 · Nightly backup → R2 + restore drill — Fable · DONE**
+ops/vps/backup.sh: in-container pg_dump (--no-owner -x) → gzip → rclone→R2
+(env-only auth, no rclone.conf) + 14-day retention + incremental outbox/ and
+library/ sync; --local mode for credential-free drills. ops/vps/restore.sh:
+restores into a THROWAWAY scratch container (double-ready guard against the
+postgres-image init restart) and row-count-checks 6 tables vs live; promoting
+to live stays a manual RUNBOOK procedure. Full dump→restore cycle proven on
+the Mac: 48/199/8/21/137/50 rows, exact match, twice.
