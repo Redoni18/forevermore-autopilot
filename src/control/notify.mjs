@@ -55,6 +55,7 @@ export async function runScanCycle(ctx) {
       build: () => cards.reviewCard(item, { stationUrl }),
     });
   }
+  const newCards = out.stats().byKind.card || 0;
 
   // 2+3) run-cursor: failures (critical), fallbacks (non-critical), summary.
   // FIRST BOOT (no cursor yet): initialize the cursor to NOW and alert on
@@ -102,11 +103,16 @@ export async function runScanCycle(ctx) {
     }
     if (maxSeen && maxSeen !== cursor) await store.setSetting('telegram_runs_cursor', maxSeen);
 
-    // tick summary — only when the batch of fresh runs did something.
+    // tick summary — only when something ACTUALLY happened this window
+    // (renders, QA bounces, failures, or new cards going out). The standing
+    // pending count is context in the text, never the trigger — using it as
+    // one sent "Tick — 20 awaiting review" every 30 minutes all morning
+    // (seen live 2026-07-14: seven identical summaries by lunchtime, minted
+    // off the paused tick's kill-switch run rows).
     if (fresh.length) {
       const awaitingReview = pending.length;
       const qaBounced = fresh.filter((r) => r.stage === 'qa' && r.status === 'failed').length;
-      if (rendered || awaitingReview || qaBounced || failed) {
+      if (rendered || qaBounced || failed || newCards) {
         const at = maxSeen || now.toISOString();
         await out.send({
           key: `summary:${at}`,

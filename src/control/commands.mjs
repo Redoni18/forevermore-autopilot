@@ -43,7 +43,12 @@ async function handleButton(ev, ctx) {
   const { itemId, action } = ev;
 
   if (action === 'changes') {
-    await ev.ack(`✏️ Reply to the card message with your change note for ${itemId}`);
+    // Arm the pending-note state: the owner's NEXT plain message becomes the
+    // change note for this item (no Discord reply mechanics needed — seen live
+    // 2026-07-14: the owner typed a normal message after tapping Changes and
+    // it fell into the suggestion box). Replying to the card still works too.
+    await store.setSetting('pending_change_note', { itemId, at: new Date().toISOString() });
+    await ev.ack(`✏️ Now send your change note for ${itemId} (any message counts)`);
     return { handled: true, action };
   }
 
@@ -77,12 +82,22 @@ async function handleButton(ev, ctx) {
 
 /* -------------------------------- text --------------------------------- */
 
+const PENDING_NOTE_TTL_MS = 10 * 60 * 1000;
+
 async function handleText(ev, ctx) {
   const text = (ev.text || '').trim();
   if (!text) return { skipped: true };
 
   if (ev.replyToMessageId || ev.replyToText) return handleReply(ev, ctx);
   if (text.startsWith('/')) return handleCommand(text, ctx);
+
+  // A recent ✏️ Changes tap arms the next plain message as that item's change
+  // note (10-min fuse) — the natural "tap, then type" flow.
+  const pending = await ctx.store.getSetting('pending_change_note');
+  if (pending && pending.itemId && Date.now() - new Date(pending.at).getTime() < PENDING_NOTE_TTL_MS) {
+    await ctx.store.setSetting('pending_change_note', null);
+    return applyChangeNote(pending.itemId, text, ctx);
+  }
 
   await ctx.store.insertOwnerNote(text);
   await ctx.api.sendMessage(ctx.channelId, '✎ noted');
@@ -104,12 +119,18 @@ async function handleReply(ev, ctx) {
     await api.sendMessage(ctx.channelId, '✎ noted (could not tie it to an item)');
     return { handled: true, kind: 'note-orphan' };
   }
+  return applyChangeNote(itemId, ev.text, ctx);
+}
+
+/** The one change-request path (reply-to-card AND pending-note both land here). */
+async function applyChangeNote(itemId, note, ctx) {
+  const { store, config, api } = ctx;
   const res = await decide({
     store,
     itemId,
     decision: 'changes_requested',
     reasonTags: ['owner-note'],
-    note: ev.text,
+    note,
     via: 'telegram',
     regenMax: config.retry?.regen_max ?? 2,
   });

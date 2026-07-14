@@ -108,6 +108,72 @@ test('reply to a card (ledger-mapped message id) → changes_requested + bounce'
   }
 });
 
+test('changes tap arms the pending note: next plain message becomes the change request', async () => {
+  const { env, fake, api, ctx } = await boot();
+  try {
+    await seed(env);
+    const target = (await env.store.listByStatus('pending_review'))[0];
+    await handleEvent(toNeutralEvent('INTERACTION_CREATE', buttonInteraction(target.id, 'changes'), { channelId: CHANNEL, api }), ctx);
+    assert.equal((await env.store.getSetting('pending_change_note')).itemId, target.id, 'pending state armed');
+
+    const msg = toNeutralEvent(
+      'MESSAGE_CREATE',
+      { channel_id: CHANNEL, author: { id: OWNER }, content: 'show one template thumbnail, not a grid of nine' },
+      { channelId: CHANNEL, api: ctx.api },
+    );
+    const res = await handleEvent(msg, ctx);
+    assert.equal(res.kind, 'changes');
+    assert.equal(res.ok, true);
+    const after = await env.store.getItem(target.id);
+    assert.equal(after.status, 'drafting', 'plain message after the tap queued the redraft');
+    assert.equal(after.feedback.note, 'show one template thumbnail, not a grid of nine');
+    assert.equal(await env.store.getSetting('pending_change_note'), null, 'pending state consumed');
+
+    // …and a later plain message is back to being a suggestion-box note.
+    const later = await handleEvent(
+      toNeutralEvent('MESSAGE_CREATE', { channel_id: CHANNEL, author: { id: OWNER }, content: 'love the matchday hooks' }, { channelId: CHANNEL, api: ctx.api }),
+      ctx,
+    );
+    assert.equal(later.kind, 'note');
+  } finally {
+    await fake.stop();
+  }
+});
+
+test('an EXPIRED pending note falls back to the suggestion box', async () => {
+  const { env, fake, ctx } = await boot();
+  try {
+    await seed(env);
+    const target = (await env.store.listByStatus('pending_review'))[0];
+    await env.store.setSetting('pending_change_note', { itemId: target.id, at: new Date(Date.now() - 20 * 60 * 1000).toISOString() });
+    const res = await handleEvent(
+      toNeutralEvent('MESSAGE_CREATE', { channel_id: CHANNEL, author: { id: OWNER }, content: 'stale thought' }, { channelId: CHANNEL, api: ctx.api }),
+      ctx,
+    );
+    assert.equal(res.kind, 'note', 'expired pending → suggestion box, not a change request');
+    assert.equal((await env.store.getItem(target.id)).status, 'pending_review', 'item untouched');
+  } finally {
+    await fake.stop();
+  }
+});
+
+test('paused-tick run rows alone do NOT produce a tick summary', async () => {
+  const { env, fake, api } = await boot();
+  try {
+    await seed(env);
+    // Cycle 1 initializes the cursor + sends the cards.
+    await runScanCycle({ store: env.store, config: env.config, api, chatId: CHANNEL, now: new Date('2026-07-14T12:00:00Z') });
+    // A paused tick writes kill-switch marker rows (status ok, nothing produced).
+    for (const stage of ['plan', 'digest']) {
+      await env.store.appendRun({ stage, status: 'ok', driver: 'deterministic', date: SLOT_DATE, note: 'kill_switch_engaged', started_at: '2026-07-14T12:05:00Z', finished_at: '2026-07-14T12:05:01Z' });
+    }
+    const r = await runScanCycle({ store: env.store, config: env.config, api, chatId: CHANNEL, now: new Date('2026-07-14T12:07:00Z') });
+    assert.equal(r.byKind.summary || 0, 0, 'no "N awaiting review" spam from a do-nothing tick');
+  } finally {
+    await fake.stop();
+  }
+});
+
 test('/new, /pause, /resume, freeform note and /rule flow through the router', async () => {
   const { env, fake, ctx } = await boot();
   try {
