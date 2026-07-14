@@ -49,6 +49,11 @@ const FPS = 30;
  */
 const RENDER_PORT = 34500 + (process.pid % 1000);
 
+/** Remotion --gl flag (§3.9): 'swangle' on CPU-only Linux, unset on macOS. */
+function glArgs(config) {
+  return config.remotionGl ? [`--gl=${config.remotionGl}`] : [];
+}
+
 /** Gitignored dir (created at render time) under <videoStudio>/public/ that staticFile() reads. */
 const CLIP_DIR = '__autopilot-clips';
 /** Poster thumbnails staged in the studio (all 40+ worlds, committed with the kit). */
@@ -307,9 +312,9 @@ async function renderMiddleReel(item, plan, { config, studio, outDir, P }) {
   await fsp.writeFile(hookPropsFile, JSON.stringify(plan.hookProps), 'utf8');
   await fsp.writeFile(middlePropsFile, JSON.stringify(plan.middleProps), 'utf8');
 
-  P.run(bin, ['render', 'src/index.ts', 'HookCard', hookMp4, `--props=${hookPropsFile}`, `--port=${RENDER_PORT}`], { cwd: studio });
-  P.run(bin, ['render', 'src/index.ts', plan.middleComp, middleMp4, `--props=${middlePropsFile}`, `--port=${RENDER_PORT}`], { cwd: studio });
-  P.run(bin, ['render', 'src/index.ts', 'EndCard', endMp4, `--port=${RENDER_PORT}`], { cwd: studio });
+  P.run(bin, ['render', 'src/index.ts', 'HookCard', hookMp4, `--props=${hookPropsFile}`, `--port=${RENDER_PORT}`, ...glArgs(config)], { cwd: studio });
+  P.run(bin, ['render', 'src/index.ts', plan.middleComp, middleMp4, `--props=${middlePropsFile}`, `--port=${RENDER_PORT}`, ...glArgs(config)], { cwd: studio });
+  P.run(bin, ['render', 'src/index.ts', 'EndCard', endMp4, `--port=${RENDER_PORT}`, ...glArgs(config)], { cwd: studio });
 
   const list = `file '${hookMp4}'\nfile '${middleMp4}'\nfile '${endMp4}'\n`;
   await fsp.writeFile(listFile, list, 'utf8');
@@ -331,8 +336,8 @@ async function renderHookReel(item, plan, { config, studio, outDir, P }) {
   await fsp.writeFile(propsFile, JSON.stringify(plan.props), 'utf8');
 
   // 1) HookCard with props, 2) EndCard. cwd = studio so `src/index.ts` resolves.
-  P.run(bin, ['render', 'src/index.ts', 'HookCard', hookMp4, `--props=${propsFile}`, `--port=${RENDER_PORT}`], { cwd: studio });
-  P.run(bin, ['render', 'src/index.ts', 'EndCard', endMp4, `--port=${RENDER_PORT}`], { cwd: studio });
+  P.run(bin, ['render', 'src/index.ts', 'HookCard', hookMp4, `--props=${propsFile}`, `--port=${RENDER_PORT}`, ...glArgs(config)], { cwd: studio });
+  P.run(bin, ['render', 'src/index.ts', 'EndCard', endMp4, `--port=${RENDER_PORT}`, ...glArgs(config)], { cwd: studio });
 
   // 3) stream-copy concat (no re-encode). Absolute paths + -safe 0.
   const list = `file '${hookMp4}'\nfile '${endMp4}'\n`;

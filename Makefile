@@ -1,4 +1,4 @@
-.PHONY: tick plan generate digest publish metrics reflect doctor review ls install-launchd install-tick uninstall-launchd logs db-up db-apply db-fresh station bot install-bot uninstall-bot
+.PHONY: tick plan generate digest publish metrics reflect doctor render-proof review ls install-launchd install-tick uninstall-launchd logs db-up db-apply db-fresh station bot install-bot uninstall-bot
 
 # Autopilot task runners (thin wrappers over bin/autopilot.mjs)
 
@@ -27,6 +27,12 @@ reflect:
 
 doctor:
 	node bin/autopilot.mjs doctor
+
+# §3.9 render-parity proof: re-renders one real poster + one real video item
+# from kit/ into a temp dir and lints both. Run before/after any render-env
+# change (VPS: AUTOPILOT_REMOTION_GL=swangle).
+render-proof:
+	node bin/render-proof.mjs
 
 review:
 	node bin/autopilot.mjs review

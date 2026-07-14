@@ -367,3 +367,13 @@ runs the deep variant; the tick runs the fast variant behind a fingerprint gate
 (`contract_state` setting) and appends ONE failed doctor:contract run per
 distinct drift — the bot scanner's existing failure path turns that into a
 Discord alert. Paused/dry sweeps skip the gate.
+
+**AP-846 · Linux render portability + parity proof (§3.9) — Fable · DONE**
+`remotionGl` config key / AUTOPILOT_REMOTION_GL env → `--gl=<v>` on every
+Remotion render (swangle for CPU-only VPS; unset = macOS default). Browser
+path was already portable (AUTOPILOT_BRAVE). bin/render-proof.mjs (`make
+render-proof`): re-renders one real poster + one real video item from kit/
+into a temp dir, lints both, and PASSES only if assets are non-empty and each
+fresh lint verdict matches the item's stored verdict (parity, not absolute
+pass — a bounced item may legitimately fail again). Proven on the Mac:
+poster 3.2s / video 9.0s, parity holds.

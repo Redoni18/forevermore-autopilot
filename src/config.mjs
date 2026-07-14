@@ -50,6 +50,9 @@ const DEFAULTS = {
    *  default `(item) => LintResult`. */
   lintModule: null,
   brave: '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',
+  /** Remotion --gl renderer (§3.9 Linux portability). null → Remotion's
+   *  default (fine on macOS with a GPU). CPU-only Linux boxes need 'swangle'. */
+  remotionGl: null,
   cadence: {
     instagram_per_day: 1,
     tiktok_per_day: 1,
@@ -143,6 +146,7 @@ export function loadConfig(opts = {}) {
   if (env.AUTOPILOT_DB_URL) cfg.dbUrl = env.AUTOPILOT_DB_URL;
   if (env.AUTOPILOT_DRIVER) cfg.brainDriver = env.AUTOPILOT_DRIVER;
   if (env.AUTOPILOT_BRAVE) cfg.brave = env.AUTOPILOT_BRAVE;
+  if (env.AUTOPILOT_REMOTION_GL) cfg.remotionGl = env.AUTOPILOT_REMOTION_GL;
   if (env.AUTOPILOT_LINT_MODULE) cfg.lintModule = env.AUTOPILOT_LINT_MODULE;
   if (env.AUTOPILOT_ROOT) cfg.paths.root = env.AUTOPILOT_ROOT;
 

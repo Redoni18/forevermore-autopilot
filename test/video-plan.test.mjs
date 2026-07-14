@@ -189,3 +189,22 @@ test('renderVideo hook body survives as the bare fallback (nothing staged at all
   assert.deepEqual(renders, ['HookCard', 'EndCard']);
   assert.equal(assets[0].dur_s, 9.5);
 });
+
+test('renderVideo passes --gl only when remotionGl is configured (§3.9)', async () => {
+  const bare = fakeEnv();
+  let P = stubProc();
+  await renderVideo(itemFixture(), { config: bare.config, outDir: bare.outDir, proc: P });
+  for (const c of P.calls.filter((c) => c.kind === 'run')) {
+    assert.ok(!c.args.some((a) => String(a).startsWith('--gl=')), 'no --gl by default (macOS)');
+  }
+
+  const linux = fakeEnv();
+  linux.config.remotionGl = 'swangle';
+  P = stubProc();
+  await renderVideo(itemFixture(), { config: linux.config, outDir: linux.outDir, proc: P });
+  const renders = P.calls.filter((c) => c.kind === 'run');
+  assert.ok(renders.length >= 2);
+  for (const c of renders) {
+    assert.ok(c.args.includes('--gl=swangle'), `--gl=swangle on every render: ${c.args.join(' ')}`);
+  }
+});
