@@ -2,8 +2,9 @@
 //
 // This is the ONE place the human-decision transaction lives, so every surface
 // that lets the owner approve / request changes / skip an item — the local
-// review station (review/lib/app.mjs) AND the Telegram control channel
-// (src/telegram/*) — flows through the exact same `decide()`/store paths and
+// review station (review/lib/app.mjs) AND the Discord control channel
+// (src/control/* + src/discord/*) — flows through the exact same
+// `decide()`/store paths and
 // the same candidate-group auto-skip, rather than each re-implementing the CAS.
 //
 // It was moved here VERBATIM from review/lib/store.mjs (which is now a pure

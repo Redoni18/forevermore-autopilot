@@ -283,23 +283,25 @@ export async function cmdResume(argv, flags) {
   return 0;
 }
 
-/* ------------------------------- telegram ------------------------------- */
+/* --------------------------------- bot ---------------------------------- */
 /**
- * Run the Telegram control-channel daemon (WAVE2 Phase 1). Long-poll + scan
- * loop, own lockfile. Gated on config.telegram.enabled (TELEGRAM_ENABLED) so a
- * misconfigured env refuses politely instead of hammering the API.
+ * Run the Discord control-channel daemon (WAVE2 Phase 1; pivoted from
+ * Telegram). Gateway + scan loop, own lockfile. Gated on
+ * config.discord.enabled (DISCORD_ENABLED) so a misconfigured env refuses
+ * politely instead of hammering the API.
  */
-export async function cmdTelegram(argv, flags) {
+export async function cmdBot(argv, flags) {
   const { config, store } = boot(flags);
-  const tg = config.telegram || {};
-  if (!tg.enabled) return fail('telegram is disabled — set TELEGRAM_ENABLED=true (and TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID)');
-  if (!tg.botToken) return fail('TELEGRAM_BOT_TOKEN is required');
-  if (!tg.chatId) return fail('TELEGRAM_CHAT_ID is required');
+  const dc = config.discord || {};
+  if (!dc.enabled) return fail('discord is disabled — set DISCORD_ENABLED=true (and DISCORD_BOT_TOKEN / DISCORD_CHANNEL_ID / DISCORD_OWNER_ID)');
+  if (!dc.botToken) return fail('DISCORD_BOT_TOKEN is required');
+  if (!dc.channelId) return fail('DISCORD_CHANNEL_ID is required');
+  if (!dc.ownerId) return fail('DISCORD_OWNER_ID is required');
 
-  const { runBot } = await import('../telegram/bot.mjs');
+  const { runBot } = await import('../discord/bot.mjs');
   const stationUrl = flags['station-url'] || process.env.AUTOPILOT_STATION_URL || null;
-  console.log(`📡 telegram daemon starting (chat ${tg.chatId}) — poll ${tg.pollTimeoutSec}s, scan ${tg.scanIntervalSec}s`);
-  await runBot({ config, store, stationUrl, closeStore: false, onError: (e) => console.error(`telegram: ${e.message}`) });
+  console.log(`📡 discord daemon starting (channel ${dc.channelId}) — scan every ${dc.scanIntervalSec}s`);
+  await runBot({ config, store, stationUrl, closeStore: false, onError: (e) => console.error(`discord: ${e.message}`) });
   return 0;
 }
 

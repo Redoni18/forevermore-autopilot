@@ -335,10 +335,21 @@ stageModels/fallbackModel config; claude-cli retry-once-on-fallback with the
 isModelUnavailable classifier; daily brain-spend cap (generation-only);
 runTickSweep writes last_tick_at for liveness. Fable-5-leaves-subscription safe.
 
-**AP-842 · Telegram daemon + scanner + /new — Fable · DONE**
+**AP-842 · Telegram daemon + scanner + /new — Fable · DONE (superseded by AP-843)**
 src/telegram/{api,bot,commands,cards,callbacks,notify,quiet,newitem}; long-poll
 + 60s scan, own lockfile, quiet hours, anti-spam ledger dedup; review cards with
 media + approve/changes/skip; /new commissioning (off-list item built from
 scratch — the brief's "OFFLIST sentinel" did not exist). `autopilot telegram`
 subcommand + launchd plist (KeepAlive). Feature-flagged off (TELEGRAM_ENABLED)
 until the DoD phone demo. Full unit + integration + adversarial coverage.
+
+**AP-843 · Discord pivot — Fable · DONE**
+Owner hit Telegram's mandatory regional SMS-signup fee and chose Discord ($0
+everywhere). Channel-neutral core extracted to src/control/ (cards→markdown,
+router→neutral events, notify/quiet/newitem/callbacks unchanged); new
+src/discord/ transport: REST client + zero-dep gateway (Node 22 global
+WebSocket, HELLO/IDENTIFY/heartbeat/reconnect) + daemon (state/bot.lock).
+`autopilot bot` subcommand, DISCORD_* env, launchd plist, RUNBOOK/OWNER_TASKS
+§6 rewritten. Snowflake ids stay strings end-to-end (> 2^53). The ledger,
+decide path, migration 0004 (via:'telegram' retained as the chat-surface
+value), spend/liveness scanners all survive unchanged.

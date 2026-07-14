@@ -1,20 +1,18 @@
 /**
- * @file Message formatters + media resolution (pure).
+ * @file Message formatters + media resolution (pure, channel-neutral).
  *
- * Every outbound message's text/keyboard is built here so it's unit-testable
- * without a bot. HTML parse mode (Telegram's) — escape all interpolated copy.
- * A card carries the review buttons; alerts/summaries are text-only.
+ * Every outbound message is built here so it's unit-testable without a bot.
+ * Output shape: `{ text, buttons? }` where text is Discord-flavored markdown
+ * and buttons is a flat list of `{label, itemId, action}` decision buttons
+ * and/or `{label, url}` link buttons — the transport (src/discord/api.mjs)
+ * turns them into message components. Escape all interpolated copy with esc().
  */
 
 import { join } from 'node:path';
-import { encodeDecision } from './callbacks.mjs';
 
-/** Escape text for Telegram HTML parse mode. */
+/** Escape user copy for Discord markdown (bold/italic/code/spoiler/quote). */
 export function esc(s) {
-  return String(s ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  return String(s ?? '').replace(/([*_`~|\\])/g, '\\$1').replace(/^>/gm, '\\>');
 }
 
 /** Absolute path to an item's primary media file, or null. */
@@ -25,7 +23,7 @@ export function mediaPathFor(config, item) {
   return join(config.resolved.outbox, item.id, pick.path);
 }
 
-/** Media kind for the Bot API method (sendVideo vs sendPhoto vs sendDocument). */
+/** Media kind hint for the transport (attachment either way on Discord). */
 export function mediaKindFor(item) {
   const assets = Array.isArray(item?.assets) ? item.assets : [];
   if (assets.some((a) => a.kind === 'video')) return 'video';
@@ -42,7 +40,6 @@ const FORMAT_LABEL = {
 };
 
 function slotLabel(item) {
-  // 2026-07-14T17:30… → "Tue 17:30". Cheap + tz-naive (the slot is already zoned).
   const m = /T(\d{2}:\d{2})/.exec(String(item.slot_at || ''));
   const time = m ? m[1] : '';
   const day = item.slot_at
@@ -52,8 +49,8 @@ function slotLabel(item) {
 }
 
 /**
- * A review card: caption text + the 4-button inline keyboard.
- * @returns {{text:string, keyboard:Object}}
+ * A review card: markdown body + decision buttons (+ optional Station link).
+ * @returns {{text:string, buttons:Array<Object>}}
  */
 export function reviewCard(item, { stationUrl } = {}) {
   const platform = item.platform === 'instagram' ? 'instagram' : 'tiktok';
@@ -63,20 +60,20 @@ export function reviewCard(item, { stationUrl } = {}) {
   const caption = item.caption || '';
 
   const lines = [
-    `🎬 <b>${esc(item.id)}</b> — ${esc(platform)} ${esc(fmt)}${slotLabel(item) ? `, slot ${esc(slotLabel(item))}` : ''}`,
+    `🎬 **${esc(item.id)}** — ${esc(platform)} ${esc(fmt)}${slotLabel(item) ? `, slot ${esc(slotLabel(item))}` : ''}`,
   ];
-  if (attempt > 1) lines.push(`<i>attempt ${attempt}</i>`);
+  if (attempt > 1) lines.push(`*attempt ${attempt}*`);
   lines.push('');
-  if (hook) lines.push(`<b>Hook:</b> ${esc(hook)}`);
-  if (caption) lines.push(`<b>Caption:</b> ${esc(truncate(caption, 600))}`);
+  if (hook) lines.push(`**Hook:** ${esc(hook)}`);
+  if (caption) lines.push(`**Caption:** ${esc(truncate(caption, 600))}`);
 
-  const row1 = [
-    { text: '✅ Approve', callback_data: encodeDecision(item.id, 'approve') },
-    { text: '✏️ Changes', callback_data: encodeDecision(item.id, 'changes') },
-    { text: '⏭ Skip', callback_data: encodeDecision(item.id, 'skip') },
+  const buttons = [
+    { label: '✅ Approve', itemId: item.id, action: 'approve' },
+    { label: '✏️ Changes', itemId: item.id, action: 'changes' },
+    { label: '⏭ Skip', itemId: item.id, action: 'skip' },
   ];
-  const row2 = stationUrl ? [[{ text: '🔍 Station', url: stationUrl }]] : [];
-  return { text: lines.join('\n'), keyboard: { inline_keyboard: [row1, ...row2] } };
+  if (stationUrl) buttons.push({ label: '🔍 Station', url: stationUrl });
+  return { text: lines.join('\n'), buttons };
 }
 
 /** A per-tick summary line (only emitted when something happened). */
@@ -93,11 +90,11 @@ export function tickSummary({ rendered = 0, awaitingReview = 0, qaBounced = 0, f
 /** A stage-failure alert. */
 export function failureAlert({ stage, date, itemId, attempt, cause }) {
   const who = itemId ? ` — item ${esc(itemId)}${attempt ? `, attempt ${attempt}` : ''}` : '';
-  return `✗ <b>${esc(stage)}</b> failed${date ? ` (${esc(date)})` : ''}: ${esc(truncate(cause || '', 240))}${who}`;
+  return `✗ **${esc(stage)}** failed${date ? ` (${esc(date)})` : ''}: ${esc(truncate(cause || '', 240))}${who}`;
 }
 
 export function escalationAlert({ stage, date }) {
-  return `🚨 <b>${esc(stage)}</b> has failed 3 ticks in a row${date ? ` (${esc(date)})` : ''} — pipeline needs you. /doctor`;
+  return `🚨 **${esc(stage)}** has failed 3 ticks in a row${date ? ` (${esc(date)})` : ''} — pipeline needs you. /doctor`;
 }
 
 export function spendCapAlert({ spend, cap }) {
@@ -105,13 +102,13 @@ export function spendCapAlert({ spend, cap }) {
 }
 
 export function livenessAlert({ lastAt }) {
-  return `🫥 No tick has completed since ${lastAt ? clock(lastAt) : 'a while'} (>90 min) while unpaused. Check launchd / <code>make logs</code>.`;
+  return `🫥 No tick has completed since ${lastAt ? clock(lastAt) : 'a while'} (>90 min) while unpaused. Check launchd / \`make logs\`.`;
 }
 
-export function fallbackAlert({ ranModel, wantModel, runId }) {
+export function fallbackAlert({ ranModel, wantModel }) {
   return (
-    `⚠️ generate ran on <b>${esc(ranModel)}</b> (fallback) — ${esc(wantModel)} was unavailable. ` +
-    `If Fable 5 left your subscription, update <code>stageModels.generate</code> in autopilot.config.json.`
+    `⚠️ generate ran on **${esc(ranModel)}** (fallback) — ${esc(wantModel)} was unavailable. ` +
+    `If Fable 5 left your subscription, update \`stageModels.generate\` in autopilot.config.json.`
   );
 }
 
@@ -128,7 +125,7 @@ export function statusText({ counts = {}, lastTickAt, spend = 0, cap = 0, paused
   for (const k of order) if (counts[k]) rows.push(`  ${k}: ${counts[k]}`);
   for (const [k, v] of Object.entries(counts)) if (!seen.has(k) && v) rows.push(`  ${k}: ${v}`);
   return [
-    '<b>Status</b>',
+    '**Status**',
     rows.length ? rows.join('\n') : '  (queue empty)',
     '',
     `last tick: ${lastTickAt ? clock(lastTickAt) : '—'}`,
@@ -140,18 +137,18 @@ export function statusText({ counts = {}, lastTickAt, spend = 0, cap = 0, paused
 
 export function helpText() {
   return [
-    '<b>Forevermore Autopilot</b>',
+    '**Forevermore Autopilot**',
     'Reply to a card = change-request note. Any other message = suggestion box.',
     '',
-    '/status — queue, last tick, spend',
-    '/queue — items awaiting review',
-    '/new [instagram|tiktok] [YYYY-MM-DD] &lt;brief&gt; — commission content',
-    '/rule &lt;text&gt; [#hook|#caption|#format|#timing|#world|#visual] — add a playbook rule',
-    '/pause · /resume — kill switch',
-    '/tick — force a tick now',
-    '/digest — today’s digest summary',
-    '/doctor — health check',
-    '/help — this',
+    '`/status` — queue, last tick, spend',
+    '`/queue` — items awaiting review',
+    '`/new [instagram|tiktok] [YYYY-MM-DD] <brief>` — commission content',
+    '`/rule <text> [#hook|#caption|#format|#timing|#world|#visual]` — add a playbook rule',
+    '`/pause` · `/resume` — kill switch',
+    '`/tick` — force a tick now',
+    '`/digest` — today’s digest summary',
+    '`/doctor` — health check',
+    '`/help` — this',
   ].join('\n');
 }
 

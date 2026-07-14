@@ -534,7 +534,9 @@ the same channel.
 - Runbook: `autopilot/RUNBOOK.md` (token refresh, stuck item, kill switch,
   migration rollback, GHA re-run).
 
-> **WAVE 2 amendment (2026-07-13, docs/WAVE2_BRIEF.md).** Telegram is now the
+> **WAVE 2 amendment (2026-07-13, docs/WAVE2_BRIEF.md; channel pivoted to
+> Discord 2026-07-14 — Telegram signup carries a mandatory SMS fee in the
+> owner's region, Discord's bot API is free).** The chat bot is now the
 > primary notification + steering surface (Resend email digest is deferred —
 > AP-503 unbuilt; the digest is local HTML today). The bot is a *projection of
 > the DB*: it drives the SAME `decide()`/store paths as the Station (a new

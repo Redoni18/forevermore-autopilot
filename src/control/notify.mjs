@@ -35,7 +35,7 @@ const CLAIM_RETRY_MS = 5 * 60 * 1000;
  */
 export async function runScanCycle(ctx) {
   const { store, config, api, chatId, now = new Date(), stationUrl, logAction } = ctx;
-  const quietWindow = resolveQuietWindow(await store.getSetting('quiet_hours'), config.telegram.quietHours);
+  const quietWindow = resolveQuietWindow(await store.getSetting('quiet_hours'), config.discord.quietHours);
   const quiet = inQuietHours(now, quietWindow, config.timezone);
 
   const out = new Sender({ store, config, api, chatId, now, quiet, logAction });
@@ -136,7 +136,7 @@ export async function runScanCycle(ctx) {
   }
 
   // 6) daily heartbeat (~configured hour) — non-critical.
-  if (now.getHours() >= (config.telegram.heartbeatHour ?? 9)) {
+  if (now.getHours() >= (config.discord.heartbeatHour ?? 9)) {
     const today = localToday(now);
     await out.send({
       key: `heartbeat:${today}`,
@@ -173,7 +173,7 @@ async function resendOrphans(out, store, now) {
     // We can only resend text payloads we persisted; cards without a cached
     // payload are re-derived next cycle by their normal path, so skip here.
     if (row.payload && row.payload.text) {
-      await out.deliver(row, { text: row.payload.text, keyboard: row.payload.keyboard });
+      await out.deliver(row, { text: row.payload.text, buttons: row.payload.buttons });
     }
   }
 }
@@ -200,7 +200,7 @@ class Sender {
    * @param {string} ev.kind  card|summary|alert|heartbeat|digest|prompt
    * @param {boolean} ev.critical  bypass quiet hours
    * @param {Object} [ev.item]  content item (for cards → media)
-   * @param {()=>({text?:string,keyboard?:Object})|Promise<...>} ev.build
+   * @param {()=>({text?:string,buttons?:Array})|Promise<...>} ev.build
    */
   async send(ev) {
     // Quiet hours: hold non-critical events by NOT claiming them (the ledger is
@@ -215,7 +215,7 @@ class Sender {
       item_status: ev.item ? ev.item.status : null,
       attempt: ev.item ? ev.item.attempt || 1 : null,
       chat_id: this.chatId,
-      payload: { text: built.text, keyboard: built.keyboard },
+      payload: { text: built.text, buttons: built.buttons },
     });
     if (!claim.claimed) return false; // already sent (or claimed by a prior cycle)
 
@@ -229,19 +229,19 @@ class Sender {
     const mediaPath = item && existsSyncSafe(cards.mediaPathFor(this.config, item));
     if (mediaPath) {
       const kind = cards.mediaKindFor(item);
-      const opts = { caption: built.text, keyboard: built.keyboard };
+      const opts = { caption: built.text, buttons: built.buttons };
       msg =
         kind === 'photo'
           ? await this.api.sendPhoto(this.chatId, mediaPath, opts)
           : await this.api.sendVideo(this.chatId, mediaPath, opts);
     } else {
-      msg = await this.api.sendMessage(this.chatId, built.text, { keyboard: built.keyboard });
+      msg = await this.api.sendMessage(this.chatId, built.text, { buttons: built.buttons });
     }
     await this.store.tgMarkSent(row.dedup_key, { message_id: msg?.message_id });
     this._sent += 1;
     this._byKind[row.kind] = (this._byKind[row.kind] || 0) + 1;
     if (this.logAction) {
-      await this.logAction({ event: 'telegram.sent', kind: row.kind, dedup_key: row.dedup_key });
+      await this.logAction({ event: 'control.sent', kind: row.kind, dedup_key: row.dedup_key });
     }
   }
 

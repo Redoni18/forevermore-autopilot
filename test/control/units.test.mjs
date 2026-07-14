@@ -2,11 +2,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { encodeDecision, parseCallback, callbackByteLength } from '../../src/telegram/callbacks.mjs';
-import { inQuietHours, resolveQuietWindow } from '../../src/telegram/quiet.mjs';
-import * as cards from '../../src/telegram/cards.mjs';
-import { parseNewCommand } from '../../src/telegram/newitem.mjs';
-import { extractItemId } from '../../src/telegram/commands.mjs';
+import { encodeDecision, parseCallback, callbackByteLength } from '../../src/control/callbacks.mjs';
+import { inQuietHours, resolveQuietWindow } from '../../src/control/quiet.mjs';
+import * as cards from '../../src/control/cards.mjs';
+import { parseNewCommand } from '../../src/control/newitem.mjs';
+import { extractItemId } from '../../src/control/commands.mjs';
 
 /* ── callbacks ──────────────────────────────────────────────────────────── */
 
@@ -56,23 +56,26 @@ test('settings quiet window overrides the config default', () => {
 
 /* ── cards ──────────────────────────────────────────────────────────────── */
 
-test('review card escapes HTML and carries the three decision buttons', () => {
+test('review card escapes markdown and carries the three decision buttons', () => {
   const item = {
     id: 'ci_20260714_ig_1',
     platform: 'instagram',
     format: 'reel',
     attempt: 2,
     slot_at: '2026-07-14T17:30:00+02:00',
-    overlays: { hook: 'he <ignores> me & minecraft' },
+    overlays: { hook: 'he *ignores* me `and` minecraft' },
     caption: 'a caption',
   };
-  const { text, keyboard } = cards.reviewCard(item, { stationUrl: 'http://localhost:4600' });
-  assert.match(text, /&lt;ignores&gt;/, 'hook is HTML-escaped');
-  assert.match(text, /&amp;/, 'ampersand escaped');
+  const { text, buttons } = cards.reviewCard(item, { stationUrl: 'http://localhost:4600' });
+  assert.match(text, /he \\\*ignores\\\* me \\`and\\` minecraft/, 'hook markdown is escaped');
   assert.match(text, /attempt 2/);
-  const codes = keyboard.inline_keyboard[0].map((b) => b.callback_data);
-  assert.deepEqual(codes, ['d:ci_20260714_ig_1:a', 'd:ci_20260714_ig_1:c', 'd:ci_20260714_ig_1:s']);
-  assert.equal(keyboard.inline_keyboard[1][0].url, 'http://localhost:4600');
+  const decisions = buttons.filter((b) => b.action).map((b) => [b.itemId, b.action]);
+  assert.deepEqual(decisions, [
+    ['ci_20260714_ig_1', 'approve'],
+    ['ci_20260714_ig_1', 'changes'],
+    ['ci_20260714_ig_1', 'skip'],
+  ]);
+  assert.equal(buttons.find((b) => b.url)?.url, 'http://localhost:4600');
 });
 
 test('tick summary only names what happened', () => {

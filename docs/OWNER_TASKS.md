@@ -148,24 +148,25 @@ Verified against:
 
 ---
 
-## 6. Telegram bot (NEEDED FIRST — Phase 1 build is underway)
+## 6. Discord bot (NEEDED FIRST — Phase 1 is built against it)
 
-**Why it matters:** this is the entire point of Phase 1 — a bot that talks to you from your phone. The build already assumes a bot token and your chat id exist; this is the one thing actually blocking progress right now.
+**Why it matters:** this is the entire point of Phase 1 — a bot that talks to you from your phone. Discord replaced Telegram (2026-07-14) because Telegram signup carries a mandatory SMS-verification fee in this region; Discord signup and its bot API are free everywhere.
 
-**Steps:**
-- [ ] Open Telegram, search for **BotFather** (verified account, blue checkmark, `@BotFather`), start a chat.
-- [ ] Send `/newbot`.
-- [ ] Reply with a display name, e.g. `Forevermore Autopilot`.
-- [ ] Reply with a username ending in `bot`, e.g. `ForevermoreAutopilotBot` (must be globally unique on Telegram — add a suffix if it's taken).
-- [ ] BotFather replies with an HTTP API token (a long string like `123456789:AA...`) — copy it.
-- [ ] Open a chat with your new bot (search its `@username`) and send it any message, e.g. "hi". This seeds the bot's update feed so the running poller can pick up your chat id automatically once it's built.
-- [ ] If you want the numeric chat id right now instead of waiting for the poller: message **@userinfobot** (a well-known Telegram utility bot) — it replies instantly with your numeric Telegram user id, which doubles as your private chat id with the new bot.
+**Steps (all free — no Nitro, no payment anywhere):**
+- [ ] Create/log into a Discord account (discord.com or the app) — free signup, email-verified.
+- [ ] Create your private server: in the Discord app, the **+** button in the server list → **Create My Own** → **For me and my friends** → name it e.g. `Forevermore HQ`. You'll be the only human in it.
+- [ ] (Recommended) rename the default `#general` channel to `#autopilot`.
+- [ ] Go to **discord.com/developers/applications** → **New Application** → name it `Forevermore Autopilot`.
+- [ ] Left sidebar → **Bot**. Click **Reset Token** → copy the token (shown once — this is `DISCORD_BOT_TOKEN`).
+- [ ] Same page, scroll to **Privileged Gateway Intents** → toggle **MESSAGE CONTENT INTENT** ON → Save. (Required so the bot can read your commands; free for bots in under 100 servers.)
+- [ ] Left sidebar → **OAuth2** → **URL Generator**: check the **bot** scope; under Bot Permissions check **View Channels**, **Send Messages**, **Attach Files**, **Read Message History**. Copy the generated URL, open it in your browser, and invite the bot to your new server.
+- [ ] In the Discord app: **User Settings → Advanced → Developer Mode ON**. Then right-click the `#autopilot` channel → **Copy Channel ID** (this is `DISCORD_CHANNEL_ID`), and right-click your own name → **Copy User ID** (this is `DISCORD_OWNER_ID`).
 
-**→ hand back:** `TELEGRAM_BOT_TOKEN=<token>` and `TELEGRAM_CHAT_ID=<numeric id>` for `.env`.
+**→ hand back:** `DISCORD_BOT_TOKEN`, `DISCORD_CHANNEL_ID`, `DISCORD_OWNER_ID` → put them in `~/.config/autopilot/bot.env` (see RUNBOOK "Discord control channel").
 
-**Est. time:** 5 min
+**Est. time:** 10 min
 
-Verified against: https://core.telegram.org/bots/features#botfather
+Verified against: https://discord.com/developers/docs (applications + gateway intents)
 
 ---
 

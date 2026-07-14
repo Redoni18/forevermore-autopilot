@@ -28,8 +28,8 @@ Halts all scheduled stages within one cron tick (typically <1 minute).
 
 ```bash
 # Option 1: the kill switch (halts every stage within one tick, survives restarts)
-node bin/autopilot.mjs pause     # or, over Telegram: /pause
-node bin/autopilot.mjs resume    #                    /resume
+node bin/autopilot.mjs pause     # or, over Discord: /pause
+node bin/autopilot.mjs resume    #                   /resume
 
 # Option 1b: env-forced pause (belt-and-braces) — the code reads AUTOPILOT_KILL_SWITCH,
 # NOT KILL_SWITCH. Set it in the daemon's process env.
@@ -139,25 +139,26 @@ API key has no expiry; check quota via Resend dashboard.
 
 ---
 
-## Telegram control channel (WAVE2 Phase 1)
+## Discord control channel (WAVE2 Phase 1)
 
 The bot is the owner's phone-side surface: review cards with playable media,
 tick summaries, failure/liveness/spend alerts, and inbound steering (`/new`,
 `/rule`, `/pause`, freeform notes → suggestion box). It's a *projection of the
 DB* — decisions run through the same `decide()`/store paths as the Station.
+(Pivoted from Telegram 2026-07-14: Telegram signup carries a mandatory SMS fee
+in this region; Discord's bot API is free.)
 
-**Setup (one-time):**
-1. `@BotFather` → `/newbot` → copy the token.
-2. Message the new bot once; it echoes your numeric chat id (or use `@userinfobot`).
-3. Put the secrets where the daemon can read them (they are NOT in the committed
-   plist). On the Mac, create `~/.config/autopilot/telegram.env` (chmod 600):
-   ```
-   TELEGRAM_ENABLED=true
-   TELEGRAM_BOT_TOKEN=123456:AA...
-   TELEGRAM_CHAT_ID=900900900
-   ```
-4. `make install-telegram` (launchd, KeepAlive) — or `make telegram` in the
-   foreground to test. Log: `logs/launchd-telegram.log`.
+**Setup (one-time):** follow docs/OWNER_TASKS.md §6 (developer-portal app →
+bot token + MESSAGE CONTENT intent → invite to your private server → copy
+channel + user ids). Then create `~/.config/autopilot/bot.env` (chmod 600):
+```
+DISCORD_ENABLED=true
+DISCORD_BOT_TOKEN=...
+DISCORD_CHANNEL_ID=...
+DISCORD_OWNER_ID=...
+```
+`make install-bot` (launchd, KeepAlive) — or `make bot` in the foreground to
+test. Log: `logs/launchd-bot.log`.
 
 **Runtime knobs (settings KV, editable live):**
 - `/pause` · `/resume` → `kill_switch`.
@@ -166,16 +167,17 @@ DB* — decisions run through the same `decide()`/store paths as the Station.
   after; critical alerts (failure, escalation, spend cap, liveness) bypass it.
 - Spend cap: `store.setSetting('daily_spend_cap_usd', 5)` (config default $5).
 
-**Only one poller per bot token.** The daemon holds `state/telegram.lock`; a
-second poller on the same box refuses. Running the Mac and (Phase 2) the VPS at
-once triggers a Telegram 409 alert — that's the cutover guard, not a bug. Kill
-the Mac daemon (`make uninstall-telegram`) before the VPS takes over.
+**Only one daemon per box.** It holds `state/bot.lock`; a second refuses.
+Running the Mac and (Phase 2) the VPS daemons at once is safe at the Discord
+level (gateway allows multiple sessions) but would double-send cards — the
+ledger dedup prevents true duplicates, yet kill the Mac daemon
+(`make uninstall-bot`) before the VPS takes over anyway.
 
-**If the bot goes silent:** check `logs/launchd-telegram.log`; confirm the token
-env is present (`launchctl` runs a login shell); a liveness alert should fire if
-the *tick* stalls, but if the bot process itself died, launchd `KeepAlive`
-restarts it — look for a crash loop in the log. The OAuth token for the brain
-(`CLAUDE_CODE_OAUTH_TOKEN`) dying silently is covered by the liveness alert.
+**If the bot goes silent:** check `logs/launchd-bot.log`; confirm the env file
+exists (launchd runs a login shell); a liveness alert fires if the *tick*
+stalls; if the bot process itself died, launchd `KeepAlive` restarts it — look
+for a crash loop in the log. Silent `CLAUDE_CODE_OAUTH_TOKEN` death is covered
+by the liveness alert.
 
 ---
 

@@ -150,21 +150,24 @@ export function loadConfig(opts = {}) {
   const kv = (env.AUTOPILOT_KILL_SWITCH || '').toLowerCase();
   cfg.envKillSwitch = kv === '1' || kv === 'true' || kv === 'yes';
 
-  // Telegram control channel (WAVE2 Phase 1). Secrets/flags live in the
-  // process env (launchd/systemd), NOT the committed config file. TELEGRAM_API_BASE
-  // is the test/dev seam (point the bot at a fake Bot API on localhost).
-  const tgOn = (env.TELEGRAM_ENABLED || '').toLowerCase();
-  cfg.telegram = {
-    enabled: tgOn === '1' || tgOn === 'true' || tgOn === 'yes',
-    botToken: env.TELEGRAM_BOT_TOKEN || null,
-    chatId: env.TELEGRAM_CHAT_ID || null,
-    apiBase: env.TELEGRAM_API_BASE || 'https://api.telegram.org',
-    pollTimeoutSec: 50,
+  // Discord control channel (WAVE2 Phase 1; pivoted from Telegram 2026-07-14 —
+  // Telegram signup carries a mandatory SMS-verification fee in the owner's
+  // region). Secrets/flags live in the process env (launchd/systemd), NOT the
+  // committed config file. DISCORD_API_BASE is the test/dev seam (point the
+  // bot at a fake REST API on localhost). All Discord ids are snowflake
+  // STRINGS (> 2^53) — never Number() them.
+  const dcOn = (env.DISCORD_ENABLED || '').toLowerCase();
+  cfg.discord = {
+    enabled: dcOn === '1' || dcOn === 'true' || dcOn === 'yes',
+    botToken: env.DISCORD_BOT_TOKEN || null,
+    channelId: env.DISCORD_CHANNEL_ID || null,
+    ownerId: env.DISCORD_OWNER_ID || null,
+    apiBase: env.DISCORD_API_BASE || 'https://discord.com/api/v10',
     scanIntervalSec: 60,
     // Defaults; the settings KV `quiet_hours` overrides at runtime.
     quietHours: { start: '23:00', end: '08:00' },
     heartbeatHour: 9,
-    ...(cfg.telegram || {}),
+    ...(cfg.discord || {}),
   };
 
   // ---- resolve absolute paths ----
