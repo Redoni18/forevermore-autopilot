@@ -132,6 +132,11 @@ cannot run on CF Workers. The **runner** is a plain Node process executing
 | **B. GitHub Actions (cron)** | Free tier ample (~30 min/day); secrets store; survives laptop-closed | Needs `CLAUDE_CODE_OAUTH_TOKEN` (via `claude setup-token`) or `ANTHROPIC_API_KEY`; Remotion-on-Ubuntu needs `npx remotion browser ensure`; capture stage must boot experience app (~60s) | **M1+ recommended** |
 | C. VPS/Docker | Always-on | $6–12/mo + ops | only if B chafes |
 
+> **Superseded (WAVE2 §3.8, 2026-07-14):** production is option C — one
+> Hetzner VPS with systemd units (see RUNBOOK "VPS operations" and
+> OWNER_TASKS §9–10). A stayed the M0–M1 default as planned; B was never
+> wired (`ops/github/autopilot.yml` staged but inert, per the wave-2 brief).
+
 The CF cron worker (`infra/autopilot-cron`, mirroring `emails-sweep-cron`)
 fires stage webhooks on schedule; the runner also self-schedules via launchd/
 GHA cron so the worker is a redundancy trigger, not a hard dependency.

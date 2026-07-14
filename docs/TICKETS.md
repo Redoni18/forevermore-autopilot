@@ -394,3 +394,10 @@ restores into a THROWAWAY scratch container (double-ready guard against the
 postgres-image init restart) and row-count-checks 6 tables vs live; promoting
 to live stays a manual RUNBOOK procedure. Full dump→restore cycle proven on
 the Mac: 48/199/8/21/137/50 rows, exact match, twice.
+
+**AP-849 · Phase 2 ops docs — Fable · DONE**
+RUNBOOK "VPS operations" (services/journalctl, env + token refresh on the box,
+backup/restore + promote-to-live, the cutover checklist) + superseded banner on
+the GHA section. OWNER_TASKS §9 (Hetzner create/harden/install, exact
+commands, hand-back points) + §10 (Cloudflare Tunnel + Access). PRD §4.2
+superseded marker → option C (VPS) with pointers.

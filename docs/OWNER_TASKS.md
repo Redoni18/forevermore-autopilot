@@ -199,3 +199,89 @@ Verified against: https://discord.com/developers/docs (applications + gateway in
 **→ hand back:** nothing to `.env` — this is content, not credentials.
 
 **Est. time:** ongoing, not counted in the one-sitting total above.
+
+---
+
+## 9. Hetzner VPS — create, harden, install (WAVE2 Phase 2)
+
+Prereqs: §7 done (GitHub remote exists, first push OK'd), §5 done (R2 bucket +
+token). Have your SSH public key ready (`cat ~/.ssh/id_ed25519.pub`; if none:
+`ssh-keygen -t ed25519`).
+
+### 9a. Create the server (~5 min, browser)
+
+- [ ] https://console.hetzner.com → sign up / log in → New project `forevermore-autopilot`.
+- [ ] Add server: **Location** Nuremberg or Falkenstein · **Image** Ubuntu 24.04 · **Type** Shared vCPU x86 **CPX31** (4 vCPU / 8 GB, ~€16.5/mo — pre-approved) · **SSH key** paste your public key · name `autopilot-1`.
+- [ ] Note the IPv4 → below, `VPS=<that ip>`.
+
+### 9b. Harden + install system packages (~15 min, copy-paste as root)
+
+```bash
+ssh root@$VPS
+
+# user + ssh hardening
+adduser --gecos "" autopilot && usermod -aG sudo autopilot
+mkdir -p /home/autopilot/.ssh && cp ~/.ssh/authorized_keys /home/autopilot/.ssh/ && chown -R autopilot:autopilot /home/autopilot/.ssh
+printf 'PasswordAuthentication no\nPermitRootLogin no\n' > /etc/ssh/sshd_config.d/99-hardening.conf && systemctl reload ssh
+
+# firewall: SSH only — the Station is NEVER exposed (tunnel handles it)
+ufw allow OpenSSH && ufw --force enable
+
+# updates + timezone
+apt-get update && apt-get -y upgrade && apt-get -y install unattended-upgrades git rclone
+dpkg-reconfigure -f noninteractive unattended-upgrades
+timedatectl set-timezone Europe/Tirane
+
+# Node 22 + Docker
+curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get -y install nodejs
+curl -fsSL https://get.docker.com | sh && usermod -aG docker autopilot
+```
+
+Re-login test before closing this shell: `ssh autopilot@$VPS sudo true` (new
+terminal) — then close root.
+
+### 9c. App install (~15 min, as autopilot@$VPS)
+
+```bash
+sudo mkdir -p /opt/autopilot /opt/forevermore /etc/autopilot && sudo chown autopilot: /opt/autopilot /opt/forevermore
+git clone git@github.com:<you>/forevermore-autopilot.git /opt/autopilot   # deploy key or gh auth
+git clone --depth 1 <platform-repo-url> /opt/forevermore                  # read-only (ADR-001)
+cd /opt/autopilot && npm ci && (cd kit/04-assets && npm ci) && (cd kit/05-video-studio && npm ci)
+npx -y playwright-core install --with-deps chromium
+npx playwright-core install --dry-run chromium 2>/dev/null | grep chrome   # note the binary path → AUTOPILOT_BRAVE
+docker compose up -d && node db/apply.mjs
+```
+
+- [ ] `/etc/autopilot/autopilot.env` — start from `.env.example`; the keys that matter here:
+  `AUTOPILOT_DB_URL` (same as .env.example), `FOREVERMORE_ROOT=/opt/forevermore`,
+  `DISCORD_ENABLED=true` + the three `DISCORD_*` ids (same values as the Mac's `~/.config/autopilot/bot.env`),
+  `AUTOPILOT_BRAVE=<chromium path from above>`, `AUTOPILOT_REMOTION_GL=swangle`,
+  `R2_ACCOUNT_ID/R2_ACCESS_KEY_ID/R2_SECRET_ACCESS_KEY/R2_BUCKET` (§5),
+  `AUTOPILOT_STATION_URL=https://autopilot.getforevermore.com` (§10),
+  `CLAUDE_CODE_OAUTH_TOKEN` (next step). Then:
+  `sudo chown root:autopilot /etc/autopilot/autopilot.env && sudo chmod 640 /etc/autopilot/autopilot.env`
+- [ ] **Brain token** (second Claude subscription): `npm i -g @anthropic-ai/claude-code`, log the box's browser-less flow in with `claude setup-token` (it prints a URL — open it on your phone, logged into the SECOND subscription), paste the token it emits into the env file. Never `--bare`.
+- [ ] Pre-seed data from the Mac (non-freeze; repeated at cutover):
+  `docker exec autopilot-local-db pg_dump -U postgres --no-owner -x autopilot | gzip | ssh autopilot@$VPS "gunzip | docker exec -i autopilot-local-db psql -U postgres -d autopilot"`
+  then `rsync -az outbox/ library/ autopilot@$VPS:/opt/autopilot/` (run from the Mac repo root, two rsyncs).
+- [ ] Verify: `make doctor` green (contract checks included) and `make render-proof` passes (Remotion's first Linux render downloads its headless shell; slower is fine).
+- [ ] `make install-systemd` (units installed, NOT enabled — enabling is the cutover step, RUNBOOK "Cutover checklist").
+
+**→ hand back:** VPS IP + "doctor and render-proof green". I take it from there
+up to the cutover checklist, which we run together.
+
+**Est. time:** ~35 min active.
+
+## 10. Cloudflare Tunnel + Access for the Station (~15 min, browser)
+
+Prereq: getforevermore.com is on Cloudflare (free plan is fine).
+
+- [ ] Dash → Zero Trust (one-time free-plan onboarding if new) → **Networks → Tunnels → Create a tunnel** (cloudflared) → name `autopilot` → copy the "install and run a connector" command for **Debian/Ubuntu 64-bit** and run it on the VPS (installs the `cloudflared` service with the tunnel token baked in).
+- [ ] Tunnel → **Public hostnames → Add**: subdomain `autopilot`, domain `getforevermore.com`, service `HTTP://localhost:4600`.
+- [ ] **Access → Applications → Add** → Self-hosted: application domain `autopilot.getforevermore.com`; policy `owner-only`: Allow · Include → Emails → your email; session duration 24h. Login method: One-Time PIN is enough.
+- [ ] Phone test: https://autopilot.getforevermore.com → email PIN → Station loads. (It will 502 until the Station service is enabled at cutover — Access login working is the pass bar today.)
+
+**→ hand back:** "Access URL live". Nothing goes in `.env` beyond
+`AUTOPILOT_STATION_URL` (§9c).
+
+**Est. time:** ~15 min.

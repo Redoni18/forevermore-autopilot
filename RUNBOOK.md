@@ -213,7 +213,69 @@ pnpm supabase query "SELECT id, status FROM autopilot.content_items WHERE status
 
 ---
 
+## VPS operations (WAVE2 Phase 2, §3.8)
+
+Production home: one Hetzner CPX31 (Ubuntu 24.04, TZ Europe/Tirane), repo at
+`/opt/autopilot`, env in `/etc/autopilot/autopilot.env` (0640 root:autopilot),
+platform clone (read-only, ADR-001) at `/opt/forevermore`. Provisioning from
+zero: `docs/OWNER_TASKS.md` §9 (server + hardening) and §10 (tunnel + Access).
+
+### Services (systemd — units in ops/systemd/)
+
+```bash
+systemctl status autopilot-bot autopilot-station          # daemons
+systemctl list-timers 'autopilot-*'                       # tick + backup
+journalctl -u autopilot-tick -n 100 --no-pager            # last tick output
+journalctl -u autopilot-bot -f                            # follow the bot
+sudo systemctl restart autopilot-bot                      # after env changes
+# per-run .jsonl logs still land in /opt/autopilot/logs/ exactly as on the Mac
+```
+
+Force one tick now: `sudo systemctl start autopilot-tick.service`
+(or `/tick` in Discord).
+
+### Env & token refresh on the box
+
+All env lives in `/etc/autopilot/autopilot.env`. After edits:
+`sudo systemctl restart autopilot-bot autopilot-station` (the tick picks env
+up on its next run). `CLAUDE_CODE_OAUTH_TOKEN` (~1 year): SSH in as
+`autopilot`, run `claude setup-token` (NEVER `--bare`), paste the new token
+into the env file, restart nothing (the tick spawns `claude` fresh each run).
+
+### Backups (nightly 03:30 → R2)
+
+```bash
+make backup-now       # manual dump + outbox/library sync (ops/vps/backup.sh)
+make restore-drill    # newest R2 dump → scratch container → row-count check
+bash ops/vps/restore.sh pg/autopilot-YYYYMMDD-HHMMSS.sql.gz   # specific dump
+```
+
+The drill NEVER touches live data. Promoting a restore to live (disaster
+only): stop timers + daemons, `docker compose down && docker volume rm
+forevermore-autopilot_autopilot-pgdata`, `docker compose up -d`,
+`node db/apply.mjs`, then `gunzip -c dump.sql.gz | docker exec -i
+autopilot-local-db psql -U postgres -d autopilot`, restart services.
+
+### Cutover checklist (Mac → VPS, one sitting)
+
+1. Mac: `launchctl unload ~/Library/LaunchAgents/co.getforevermore.autopilot.tick.plist`; wait until `state/tick.lock` is gone.
+2. Final sync from the Mac:
+   `docker exec autopilot-local-db pg_dump -U postgres --no-owner -x autopilot | gzip | ssh autopilot@VPS "gunzip | docker exec -i autopilot-local-db psql -U postgres -d autopilot"`
+   (fresh DB on the VPS: `db-fresh` first), then
+   `rsync -az outbox/ autopilot@VPS:/opt/autopilot/outbox/ && rsync -az library/ autopilot@VPS:/opt/autopilot/library/`
+3. Mac: `make uninstall-bot` — never two gateways.
+4. VPS: `sudo systemctl enable --now autopilot-bot autopilot-station autopilot-tick.timer autopilot-backup.timer`
+5. Phone: `/status` answers; Station loads at the Access URL; `/tick` completes a full sweep.
+6. Drills: stop `autopilot-tick.timer` >90 min → liveness alert → restart; `make backup-now` + `make restore-drill`.
+7. Mac: `make uninstall-launchd` — the Mac is dev-only from here.
+8. `/resume` in Discord when ready for the first unattended VPS tick.
+
+---
+
 ## Switching runner: Mac → GitHub Actions
+
+> **SUPERSEDED (2026-07-14):** WAVE2 §3.8 chose a Hetzner VPS instead — see
+> "VPS operations" above. Kept for reference; do not wire the GHA scheduler.
 
 The system ships with launchd (M0–M1 default). To migrate to GitHub Actions:
 
