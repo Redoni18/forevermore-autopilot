@@ -19,6 +19,11 @@ kit/04-assets/captures/
 kit/04-assets/renders/
 kit/04-assets/social-video/
 
+# Secrets — NEVER committed. .env.example documents the keys; real values
+# live here locally and in /etc/autopilot/autopilot.env on the VPS.
+.env
+.env.local
+
 # Node
 node_modules/
 *.log
