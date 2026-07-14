@@ -13,6 +13,7 @@ import { runStage, STAGE_NAMES, isPaused } from '../stages/registry.mjs';
 import { transitionItem, regenNext } from '../state/machine.mjs';
 import { loadIdeas } from '../plan/ideas.mjs';
 import { remotionBin } from '../adapters/proc.mjs';
+import { contractChecks } from '../doctor/contract.mjs';
 import { localToday } from '../util/time.mjs';
 
 /** Stores opened this process — closed together by the CLI entrypoint so a
@@ -464,6 +465,10 @@ export async function cmdDoctor(argv, flags) {
   } catch (e) {
     add('ideas.json parses', false, 'critical', e.message);
   }
+
+  // kit/platform contract (AP-845) — deep variant: also imports render.mjs
+  // and verifies the renderOne/renderJobs exports the poster adapter needs.
+  for (const c of await contractChecks(config, { deep: true })) checks.push(c);
 
   // outbox writable (critical)
   let writable = false;

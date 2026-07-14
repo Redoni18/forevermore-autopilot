@@ -353,3 +353,17 @@ WebSocket, HELLO/IDENTIFY/heartbeat/reconnect) + daemon (state/bot.lock).
 §6 rewritten. Snowflake ids stay strings end-to-end (> 2^53). The ledger,
 decide path, migration 0004 (via:'telegram' retained as the chat-surface
 value), spend/liveness scanners all survive unchanged.
+
+**AP-844 · Quiet first boot — Fable · DONE**
+First live boot (2026-07-14 03:30) back-filled ~24 stale run failures as
+alerts. The scanner's run cursor now anchors to NOW on first boot instead of
+replaying history; passive sends stay out of the Activity worklog.
+
+**AP-845 · Kit/platform contract check (Phase 2 pre-work) — Fable · DONE**
+src/doctor/contract.mjs: render.mjs exports (deep), poster templates + mascots,
+studio comps, template-thumbs floor, brand-guide sections, catalog, platform
+root, capture-library manifest (canonical slug-keyed shape). `autopilot doctor`
+runs the deep variant; the tick runs the fast variant behind a fingerprint gate
+(`contract_state` setting) and appends ONE failed doctor:contract run per
+distinct drift — the bot scanner's existing failure path turns that into a
+Discord alert. Paused/dry sweeps skip the gate.

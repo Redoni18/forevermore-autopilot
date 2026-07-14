@@ -22,7 +22,8 @@
  */
 
 import { isoDatePart, nowISO } from '../util/time.mjs';
-import { runStage } from './registry.mjs';
+import { runStage, isPaused } from './registry.mjs';
+import { contractChecks, contractFingerprint } from '../doctor/contract.mjs';
 
 /** Statuses that mean "the employee owes work", and the stage that moves each on. */
 export const TICK_STAGE_FOR_STATUS = {
@@ -32,6 +33,36 @@ export const TICK_STAGE_FOR_STATUS = {
   rendered: 'qa',
 };
 const TICK_STAGE_ORDER = ['generate', 'render', 'qa'];
+
+/**
+ * Contract drift → ONE failed `doctor:contract` run row per distinct failure
+ * set (fingerprint in the `contract_state` setting), which the bot scanner's
+ * existing failure path turns into a Discord alert. Recovery clears the
+ * fingerprint silently. Never throws into the sweep.
+ */
+async function contractGate({ config, store, print }) {
+  const checks = await contractChecks(config);
+  const fp = contractFingerprint(checks);
+  const prev = (await store.getSetting('contract_state').catch(() => null)) || '';
+  if (fp === (prev || '')) return;
+  await store.setSetting('contract_state', fp);
+  if (fp) {
+    const summary = checks
+      .filter((c) => c.level === 'critical' && !c.ok)
+      .map((c) => `${c.name}: ${c.detail}`)
+      .join('; ');
+    print(`✗ contract drift — ${summary}`);
+    await store.appendRun({
+      stage: 'doctor:contract',
+      status: 'failed',
+      started_at: nowISO(),
+      finished_at: nowISO(),
+      error: `doctor:contract — kit/platform contract drift: ${summary}`,
+    });
+  } else {
+    print('✓ contract restored');
+  }
+}
 
 /** Distinct slot dates (ascending) that currently carry work for `stage`. */
 export async function workDates(store, stage) {
@@ -58,6 +89,14 @@ export async function workDates(store, stage) {
 export async function runTickSweep(opts) {
   const { config, store, today, dryRun = false, driver, print = () => {} } = opts;
   const inject = { brain: opts.brain, lintFn: opts.lintFn, adapters: opts.adapters };
+
+  // §3.12 contract gate (AP-845): cheap filesystem checks of the kit +
+  // FOREVERMORE_ROOT seam. Alert-only — a broken contract must not stop the
+  // sweep (the affected stage fails loudly on its own); paused sweeps skip it
+  // (the kill switch halts everything); dry runs stay pure.
+  if (!dryRun && !(await isPaused(store, config).catch(() => false))) {
+    await contractGate({ config, store, print }).catch(() => {});
+  }
 
   const passes = [];
   const failures = [];
