@@ -56,55 +56,65 @@ export async function runScanCycle(ctx) {
     });
   }
 
-  // 2) run-cursor: failures (critical), fallbacks (non-critical), summary.
+  // 2+3) run-cursor: failures (critical), fallbacks (non-critical), summary.
+  // FIRST BOOT (no cursor yet): initialize the cursor to NOW and alert on
+  // nothing historical — back-filling the last 200 runs as alerts floods the
+  // owner with stale failures (and "fallback" misfires on runs that predate
+  // the model pin). Seen live on the 2026-07-14 first boot: ~24 alerts at
+  // 03:30. Cards (section 1) still send on first boot; only run-derived
+  // messages are anchored to the cursor.
   const cursor = (await store.getSetting('telegram_runs_cursor')) || null;
-  const runs = await store.listRuns({ limit: 200 });
-  const fresh = runs
-    .filter((r) => !cursor || String(r.started_at) > String(cursor))
-    .sort((a, b) => String(a.started_at).localeCompare(String(b.started_at)));
+  if (!cursor) {
+    await store.setSetting('telegram_runs_cursor', now.toISOString());
+  } else {
+    const runs = await store.listRuns({ limit: 200 });
+    const fresh = runs
+      .filter((r) => String(r.started_at) > String(cursor))
+      .sort((a, b) => String(a.started_at).localeCompare(String(b.started_at)));
 
-  let maxSeen = cursor;
-  let rendered = 0;
-  let failed = 0;
-  for (const r of fresh) {
-    if (String(r.started_at) > String(maxSeen || '')) maxSeen = r.started_at;
-    if (r.status === 'ok' && r.stage === 'render') rendered += r.produced || 0;
-    if (r.status === 'failed') {
-      failed += 1;
-      await out.send({
-        key: `alert:runfail:${r.id}`,
-        kind: 'alert',
-        critical: true,
-        build: () => ({ text: cards.failureAlert({ stage: r.stage, date: r.date, cause: r.error }) }),
-      });
-    }
-    // model fallback: an ok generate run whose model isn't the pinned one.
-    if (r.status === 'ok' && r.stage === 'generate') {
-      const want = config.stageModels?.generate;
-      if (want && r.model && !prefixMatch(r.model, want)) {
+    let maxSeen = cursor;
+    let rendered = 0;
+    let failed = 0;
+    for (const r of fresh) {
+      if (String(r.started_at) > String(maxSeen || '')) maxSeen = r.started_at;
+      if (r.status === 'ok' && r.stage === 'render') rendered += r.produced || 0;
+      if (r.status === 'failed') {
+        failed += 1;
         await out.send({
-          key: `alert:fallback:${r.id}`,
+          key: `alert:runfail:${r.id}`,
           kind: 'alert',
-          critical: false,
-          build: () => ({ text: cards.fallbackAlert({ ranModel: r.model, wantModel: want, runId: r.id }) }),
+          critical: true,
+          build: () => ({ text: cards.failureAlert({ stage: r.stage, date: r.date, cause: r.error }) }),
         });
       }
+      // model fallback: an ok generate run whose model isn't the pinned one.
+      if (r.status === 'ok' && r.stage === 'generate') {
+        const want = config.stageModels?.generate;
+        if (want && r.model && !prefixMatch(r.model, want)) {
+          await out.send({
+            key: `alert:fallback:${r.id}`,
+            kind: 'alert',
+            critical: false,
+            build: () => ({ text: cards.fallbackAlert({ ranModel: r.model, wantModel: want, runId: r.id }) }),
+          });
+        }
+      }
     }
-  }
-  if (maxSeen && maxSeen !== cursor) await store.setSetting('telegram_runs_cursor', maxSeen);
+    if (maxSeen && maxSeen !== cursor) await store.setSetting('telegram_runs_cursor', maxSeen);
 
-  // 3) tick summary — only when the batch of fresh runs did something.
-  if (fresh.length) {
-    const awaitingReview = pending.length;
-    const qaBounced = fresh.filter((r) => r.stage === 'qa' && r.status === 'failed').length;
-    if (rendered || awaitingReview || qaBounced || failed) {
-      const at = maxSeen || now.toISOString();
-      await out.send({
-        key: `summary:${at}`,
-        kind: 'summary',
-        critical: false,
-        build: () => ({ text: cards.tickSummary({ rendered, awaitingReview, qaBounced, failed, at }) }),
-      });
+    // tick summary — only when the batch of fresh runs did something.
+    if (fresh.length) {
+      const awaitingReview = pending.length;
+      const qaBounced = fresh.filter((r) => r.stage === 'qa' && r.status === 'failed').length;
+      if (rendered || awaitingReview || qaBounced || failed) {
+        const at = maxSeen || now.toISOString();
+        await out.send({
+          key: `summary:${at}`,
+          kind: 'summary',
+          critical: false,
+          build: () => ({ text: cards.tickSummary({ rendered, awaitingReview, qaBounced, failed, at }) }),
+        });
+      }
     }
   }
 

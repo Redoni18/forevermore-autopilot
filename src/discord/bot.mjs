@@ -164,7 +164,11 @@ export async function runBot(opts) {
     await gateway.start(); // resolves on first READY
     while (!stopped && !(opts.shouldStop && opts.shouldStop())) {
       try {
-        await runScanCycle({ store, config, api, chatId: channelId, stationUrl: opts.stationUrl, logAction: log });
+        // No logAction here: passive sends (cards/alerts/summaries) live in the
+        // send-ledger + daemon log only. Minting a `report` run per send buried
+        // the Station Activity feed in ~44 rows on first boot (2026-07-14).
+        // Real actions (decisions, commissions) are logged by the router.
+        await runScanCycle({ store, config, api, chatId: channelId, stationUrl: opts.stationUrl });
       } catch (err) {
         if (opts.onError) opts.onError(err);
       }

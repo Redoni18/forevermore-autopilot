@@ -159,12 +159,41 @@ test('quiet hours hold cards; critical failure alert passes', async () => {
   const { env, fake, api } = await boot();
   try {
     await seed(env);
-    const run = await env.store.appendRun({ stage: 'generate', status: 'failed', driver: 'test', date: SLOT_DATE, started_at: new Date().toISOString(), error: 'boom' });
-    await env.store.updateRun(run.id, { status: 'failed', error: 'boom', finished_at: new Date().toISOString() });
+    // Initialize the runs cursor (first boot alerts on nothing historical).
+    await env.store.setSetting('telegram_runs_cursor', new Date('2026-07-13T23:00:00Z').toISOString());
+    const run = await env.store.appendRun({ stage: 'generate', status: 'failed', driver: 'test', date: SLOT_DATE, started_at: '2026-07-14T00:10:00Z', error: 'boom' });
+    await env.store.updateRun(run.id, { status: 'failed', error: 'boom', finished_at: '2026-07-14T00:11:00Z' });
     const night = new Date('2026-07-14T00:30:00Z'); // 02:30 Tirane
     const r = await runScanCycle({ store: env.store, config: env.config, api, chatId: CHANNEL, now: night });
     assert.equal(r.byKind.card || 0, 0);
     assert.ok((r.byKind.alert || 0) >= 1);
+  } finally {
+    await fake.stop();
+  }
+});
+
+test('first boot: cursor initializes to now, NO historical failure back-fill; cards still send', async () => {
+  const { env, fake, api } = await boot();
+  try {
+    await seed(env);
+    // A pile of OLD failures that must NOT become alerts on first boot.
+    for (let i = 0; i < 5; i++) {
+      const run = await env.store.appendRun({ stage: 'generate', status: 'failed', driver: 'test', date: SLOT_DATE, started_at: `2026-07-13T1${i}:00:00Z`, error: 'stale kit-loss failure' });
+      await env.store.updateRun(run.id, { status: 'failed', error: 'stale kit-loss failure', finished_at: `2026-07-13T1${i}:01:00Z` });
+    }
+    assert.equal(await env.store.getSetting('telegram_runs_cursor'), undefined, 'no cursor before first boot');
+
+    const now = new Date('2026-07-14T12:00:00Z');
+    const r1 = await runScanCycle({ store: env.store, config: env.config, api, chatId: CHANNEL, now });
+    assert.equal(r1.byKind.alert || 0, 0, 'no stale-failure alert flood on first boot');
+    assert.ok((r1.byKind.card || 0) > 0, 'cards still send on first boot');
+    assert.equal(await env.store.getSetting('telegram_runs_cursor'), now.toISOString(), 'cursor anchored to now');
+
+    // A NEW failure after the cursor does alert on the next cycle.
+    const run = await env.store.appendRun({ stage: 'render', status: 'failed', driver: 'test', date: SLOT_DATE, started_at: '2026-07-14T12:05:00Z', error: 'fresh boom' });
+    await env.store.updateRun(run.id, { status: 'failed', error: 'fresh boom', finished_at: '2026-07-14T12:06:00Z' });
+    const r2 = await runScanCycle({ store: env.store, config: env.config, api, chatId: CHANNEL, now: new Date('2026-07-14T12:07:00Z') });
+    assert.ok((r2.byKind.alert || 0) >= 1, 'post-cursor failures still alert');
   } finally {
     await fake.stop();
   }
