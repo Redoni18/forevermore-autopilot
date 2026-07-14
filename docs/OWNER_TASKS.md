@@ -244,7 +244,11 @@ terminal) — then close root.
 
 ```bash
 sudo mkdir -p /opt/autopilot /opt/forevermore /etc/autopilot && sudo chown autopilot: /opt/autopilot /opt/forevermore
-git clone git@github.com:<you>/forevermore-autopilot.git /opt/autopilot   # deploy key or gh auth
+# NOTE: plain github.com here — the Mac's `github.com-personal` SSH alias is
+# a local ~/.ssh/config convention. Give the VPS a READ-ONLY deploy key:
+# ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -N "" && cat ~/.ssh/id_ed25519.pub
+# → repo Settings → Deploy keys → Add (leave "Allow write access" OFF).
+git clone git@github.com:Redoni18/forevermore-autopilot.git /opt/autopilot   # default branch: master
 git clone --depth 1 <platform-repo-url> /opt/forevermore                  # read-only (ADR-001)
 cd /opt/autopilot && npm ci && (cd kit/04-assets && npm ci) && (cd kit/05-video-studio && npm ci)
 npx -y playwright-core install --with-deps chromium
