@@ -1,0 +1,22 @@
+# Review Station (AP-501) on the VPS. STILL binds 127.0.0.1:4600 with no auth
+# — that design is unchanged; the network boundary is Cloudflare Tunnel +
+# Access (owner's email only) in front of it. Never open 4600 in ufw.
+[Unit]
+Description=Forevermore Autopilot review station (localhost:4600)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=autopilot
+WorkingDirectory=/opt/autopilot
+EnvironmentFile=/etc/autopilot/autopilot.env
+Environment=TZ=Europe/Tirane
+ExecStart=/usr/bin/node review/server.mjs
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

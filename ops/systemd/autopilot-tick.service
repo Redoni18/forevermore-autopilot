@@ -1,0 +1,23 @@
+# The employee's heartbeat on the VPS (WAVE2 Phase 2, AP-847) — the systemd
+# twin of ops/launchd/co.getforevermore.autopilot.tick.plist. Fired by
+# autopilot-tick.timer every 30 minutes; oneshot so overlapping starts queue
+# behind the unit (plus the tick's own pid lockfile, state/tick.lock).
+#
+# Install: make install-systemd   (copies units + daemon-reload)
+# Enable at cutover: sudo systemctl enable --now autopilot-tick.timer
+[Unit]
+Description=Forevermore Autopilot tick (30-min pipeline sweep)
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=autopilot
+WorkingDirectory=/opt/autopilot
+EnvironmentFile=/etc/autopilot/autopilot.env
+Environment=TZ=Europe/Tirane
+ExecStart=/usr/bin/node bin/autopilot.mjs tick
+# journalctl -u autopilot-tick is the log surface; per-run .jsonl files still
+# land in logs/ exactly as on the Mac.
+NoNewPrivileges=true
+PrivateTmp=true

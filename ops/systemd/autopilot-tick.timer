@@ -1,0 +1,13 @@
+# Every 30 minutes, aligned to :00/:30 like the Mac launchd StartInterval.
+# Persistent=true replays a tick missed during a reboot — the systemd
+# equivalent of launchd RunAtLoad.
+[Unit]
+Description=Forevermore Autopilot tick schedule
+
+[Timer]
+OnCalendar=*:0/30
+Persistent=true
+RandomizedDelaySec=30
+
+[Install]
+WantedBy=timers.target

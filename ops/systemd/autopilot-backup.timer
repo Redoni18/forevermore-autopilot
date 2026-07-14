@@ -1,0 +1,11 @@
+# 03:30 nightly (box TZ = Europe/Tirane), replayed after a missed window.
+[Unit]
+Description=Forevermore Autopilot backup schedule
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

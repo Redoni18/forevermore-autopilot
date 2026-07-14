@@ -1,0 +1,23 @@
+# Discord control-channel daemon (WAVE2 Phase 1→2, AP-847) — systemd twin of
+# ops/launchd/co.getforevermore.autopilot.bot.plist. Long-running gateway +
+# 60s scanner; its own lockfile (state/bot.lock) guards double-starts, and
+# cutover discipline guards double-gateways (never run Mac + VPS bots at once).
+[Unit]
+Description=Forevermore Autopilot Discord bot
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=autopilot
+WorkingDirectory=/opt/autopilot
+EnvironmentFile=/etc/autopilot/autopilot.env
+Environment=TZ=Europe/Tirane
+ExecStart=/usr/bin/node bin/autopilot.mjs bot
+Restart=always
+RestartSec=10
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

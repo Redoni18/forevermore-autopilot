@@ -1,0 +1,17 @@
+# Nightly pg_dump → R2 plus incremental outbox/library sync (AP-848).
+# Fired by autopilot-backup.timer at 03:30 Europe/Tirane. The autopilot user
+# must be in the docker group (pg_dump runs inside the DB container).
+[Unit]
+Description=Forevermore Autopilot nightly backup to R2
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=autopilot
+WorkingDirectory=/opt/autopilot
+EnvironmentFile=/etc/autopilot/autopilot.env
+Environment=TZ=Europe/Tirane
+ExecStart=/usr/bin/bash ops/vps/backup.sh
+NoNewPrivileges=true
+PrivateTmp=true

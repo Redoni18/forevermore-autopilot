@@ -1,4 +1,4 @@
-.PHONY: tick plan generate digest publish metrics reflect doctor render-proof review ls install-launchd install-tick uninstall-launchd logs db-up db-apply db-fresh station bot install-bot uninstall-bot
+.PHONY: tick plan generate digest publish metrics reflect doctor render-proof review ls install-launchd install-tick uninstall-launchd logs db-up db-apply db-fresh station bot install-bot uninstall-bot install-systemd uninstall-systemd backup-now restore-drill
 
 # Autopilot task runners (thin wrappers over bin/autopilot.mjs)
 
@@ -111,3 +111,25 @@ uninstall-bot:
 	launchctl unload ~/Library/LaunchAgents/co.getforevermore.autopilot.bot.plist 2>/dev/null || true
 	rm -f ~/Library/LaunchAgents/co.getforevermore.autopilot.bot.plist
 	@echo "✓ bot daemon unloaded"
+
+# ── VPS (systemd) ─────────────────────────────────────────────────────────
+# Install copies units only; enabling is a deliberate cutover step (RUNBOOK).
+
+install-systemd:
+	@[ "$$(uname)" = "Linux" ] || { echo "install-systemd targets the VPS (Linux)"; exit 1; }
+	sudo cp ops/systemd/autopilot-*.service ops/systemd/autopilot-*.timer /etc/systemd/system/
+	sudo systemctl daemon-reload
+	@echo "✓ units installed — at cutover: sudo systemctl enable --now autopilot-bot autopilot-station autopilot-tick.timer autopilot-backup.timer"
+
+uninstall-systemd:
+	@[ "$$(uname)" = "Linux" ] || { echo "uninstall-systemd targets the VPS (Linux)"; exit 1; }
+	sudo systemctl disable --now autopilot-bot autopilot-station autopilot-tick.timer autopilot-backup.timer 2>/dev/null || true
+	sudo rm -f /etc/systemd/system/autopilot-*.service /etc/systemd/system/autopilot-*.timer
+	sudo systemctl daemon-reload
+	@echo "✓ units removed"
+
+backup-now:
+	bash ops/vps/backup.sh
+
+restore-drill:
+	bash ops/vps/restore.sh latest
