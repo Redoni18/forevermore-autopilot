@@ -50,6 +50,9 @@ export RCLONE_CONFIG_R2_PROVIDER=Cloudflare
 export RCLONE_CONFIG_R2_ACCESS_KEY_ID="$R2_ACCESS_KEY_ID"
 export RCLONE_CONFIG_R2_SECRET_ACCESS_KEY="$R2_SECRET_ACCESS_KEY"
 export RCLONE_CONFIG_R2_ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+# Bucket-scoped R2 tokens cannot HeadBucket/CreateBucket — skip the check
+# or every operation 403s (rclone S3 quirk, verified live 2026-07-15).
+export RCLONE_CONFIG_R2_NO_CHECK_BUCKET=true
 
 rclone copyto "${workdir}/${DUMP}" "r2:${R2_BUCKET}/pg/${DUMP}"
 echo "backup: uploaded pg/${DUMP}"
