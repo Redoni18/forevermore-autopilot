@@ -232,6 +232,12 @@ apt-get update && apt-get -y upgrade && apt-get -y install unattended-upgrades g
 dpkg-reconfigure -f noninteractive unattended-upgrades
 timedatectl set-timezone Europe/Tirane
 
+# 4 GB swapfile — render headroom on small-RAM boxes (CX23-class, 4 GB).
+# Chromium+Remotion peak past physical RAM during a render; swap turns a
+# would-be OOM kill into a slower render, which §3.9 explicitly accepts.
+fallocate -l 4G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
 # Node 22 + Docker
 curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && apt-get -y install nodejs
 curl -fsSL https://get.docker.com | sh && usermod -aG docker autopilot
